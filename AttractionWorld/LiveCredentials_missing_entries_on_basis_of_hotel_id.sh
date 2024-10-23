@@ -158,7 +158,7 @@ LEFT JOIN ticketpriceschedule tps ON
         )
     ) >= CURRENT_DATE()
 WHERE
-    qc.cod_id = 347 AND mec.deleted = '0' AND tlt.deleted = '0' AND qc.cashier_type = '1' AND tlt.template_id != '0' AND tlt.publish_catalog = '1' AND DATE(
+    qc.cod_id = 41383 AND mec.deleted = '0' AND tlt.deleted = '0' AND qc.cashier_type = '1' AND tlt.template_id != '0' AND tlt.publish_catalog = '1' AND DATE(
         FROM_UNIXTIME(
             IF(
                 tps.end_date LIKE '%9999%',
