@@ -100,3 +100,5 @@ insert into template_level_tickets (template_id, ticket_id, is_pos_list, is_susp
 
 
 
+Alter command
+
