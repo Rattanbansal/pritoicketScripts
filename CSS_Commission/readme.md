@@ -19,7 +19,7 @@ select count(*) from ticket_level_commission where deleted = '0' and is_adjust_p
 ---- Query to Get latest commission
 
 
-select vt.vt_group_no, concat(vt.transaction_id, 'R') as transaction_id,vt.order_confirm_date, vt.created_date,vt.hotel_id, vt.channel_id, vt.ticketId, vt.ticketpriceschedule_id, vt.version, vt.row_type, vt.partner_gross_price, vt.partner_net_price, vt.order_currency_partner_gross_price, vt.order_currency_partner_net_price, vt.supplier_gross_price, vt.supplier_net_price, vt.col2 from visitor_tickets vt join (select vt_group_no, transaction_id,row_type, max(version) as version from visitor_tickets where created_date between '2024-03-10 00:00:01' and '2024-10-10 23:59:59' and ticketId in (2614) and vt_group_no = 171032183339123 group by vt_group_no, transaction_id, row_type) as maxversion on vt.vt_group_no = maxversion.vt_group_no and vt.transaction_id = maxversion.transaction_id and vt.row_type = maxversion.row_type and ABS(vt.version-maxversion.version) = '0'
+select vt.vt_group_no, concat(vt.transaction_id, 'R') as transaction_id,vt.order_confirm_date, vt.created_date,vt.hotel_id, vt.channel_id, vt.ticketId, vt.ticketpriceschedule_id, vt.version, vt.row_type, vt.partner_gross_price, vt.partner_net_price, vt.order_currency_partner_gross_price, vt.order_currency_partner_net_price, vt.supplier_gross_price, vt.supplier_net_price, vt.col2 from visitor_tickets vt join (select vt_group_no, transaction_id,row_type, max(version) as version from visitor_tickets where created_date between '2024-03-10 00:00:01' and '2024-10-10 23:59:59' and ticketId in (2614) and vt_group_no = 171606095880779 group by vt_group_no, transaction_id, row_type) as maxversion on vt.vt_group_no = maxversion.vt_group_no and vt.transaction_id = maxversion.transaction_id and vt.row_type = maxversion.row_type and ABS(vt.version-maxversion.version) = '0'
 
 
 --- Started join with setting table to fetch setting level pricing
@@ -111,3 +111,21 @@ GROUP BY
     pt.museum_gross_fee = aggt.purchase_priceg,
     pt.distributor_gross_fee = aggt.distributor_feeg,
     pt.hgs_gross_fee = aggt.hgs_feeg
+
+
+
+Steps: 
+
+1. Get All orders and ticket id which provided in jira card : Around 3.50 lacs orders
+
+2. Need to check for which distrutors these products are enabled
+
+3. After that need to get channel_id and catalog_id linked with that distributor
+
+4. Get commission for each product and distributor on each different level  i.e. account level, sub catalog level and default level
+
+5. Then prepare list of final data which we need to apply as per pricing hierarchy
+
+6. Then update records in the visitor_tickets for partner_gross_price and partner_net_price
+
+7. After update all these records also need to update the fees column in the prepaid_tickets as well
