@@ -4,7 +4,7 @@ DB_HOST='10.10.10.19'
 DB_USER='pip'
 DB_PASS='pip2024##'
 DB_NAME='rattan'
-BATCH_SIZE=50
+BATCH_SIZE=5
 
 mysqlHost="prodrds.prioticket.com"
 mysqlUser=pipeuser
@@ -64,7 +64,7 @@ for ticket_id in $ticket_ids; do
 
         mysql -h"$mysqlHost" -u"$mysqlUser" -p"$mysqlPassword" -D"$mysqlDatabase" -sN -e "$update_query_pt"
 
-        sleep 3
+        sleep 15
 
     done
 done
