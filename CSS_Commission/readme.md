@@ -163,8 +163,8 @@ select distinct(ticket_id) from (SELECT ticket_level_commission_id, hotel_id, ca
 
 
 
-SELECT transaction_id, row_type, version, action_performed, partner_net_price, supplier_net_price, transaction_type_name FROM `visitor_tickets` WHERE vt_group_no in (171402682349905) order by transaction_id, version, col2, row_type limit 200 
+SELECT transaction_id, row_type, version, action_performed, partner_net_price, supplier_net_price, transaction_type_name FROM `visitor_tickets` WHERE vt_group_no in (172842131444443) order by transaction_id, version, col2, row_type limit 200 
 
 
-select prepaid_ticket_id, version, ticket_id, is_addon_ticket, action_performed, museum_net_fee, distributor_net_fee, hgs_net_fee from prepaid_tickets WHERE visitor_group_no in (171402682349905) order by version, prepaid_ticket_id limit 200
+select prepaid_ticket_id, version, ticket_id, is_addon_ticket, action_performed, museum_net_fee, distributor_net_fee, hgs_net_fee from prepaid_tickets WHERE visitor_group_no in (172842131444443) order by version, prepaid_ticket_id limit 200
 
