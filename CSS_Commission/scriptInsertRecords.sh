@@ -1,14 +1,14 @@
 #!/bin/bash
 
 set -e  # Exit immediately if any command exits with a non-zero status
-TIMEOUT_PERIOD=8
+TIMEOUT_PERIOD=25
 
 
 DB_HOST='localhost'
 DB_USER='admin'
 DB_PASS='redhat'
 DB_NAME='dummy'
-BATCH_SIZE=50
+BATCH_SIZE=100
 
 mysqlHost="prodrds.prioticket.com"
 mysqlUser=pipeuser
@@ -86,11 +86,11 @@ for ticket_id in $ticket_ids; do
 
             echo "$select_query_vt" >> vt_select_query.sql
 
-            sleep 3
+            # sleep 3
             echo "VT RDS insert query vt"
             timeout $TIMEOUT_PERIOD time mysql -h"$mysqlHost" -u"$mysqlUser" -p"$mysqlPassword" -D"$mysqlDatabase" -sN -e "$select_query_vt" || exit 1
 
-            sleep 3
+            # sleep 3
 
             echo "VT secondary insert query vt"
             timeout $TIMEOUT_PERIOD time mysql -h"$SECHOST" -u"$SECUSER" -p"$SECPASSWORD" -D"$SECDATABASE" -sN -e "$select_query_vt" || exit 1
@@ -106,13 +106,13 @@ for ticket_id in $ticket_ids; do
 
             timeout $TIMEOUT_PERIOD time mysql -h"$mysqlHost" -u"$mysqlUser" -p"$mysqlPassword" -D"$mysqlDatabase" -sN -e "$select_query_pt" || exit 1
 
-            sleep 3
+            # sleep 3
 
             echo "pt insert query sec"
 
             timeout $TIMEOUT_PERIOD time mysql -h"$SECHOST" -u"$SECUSER" -p"$SECPASSWORD" -D"$SECDATABASE" -sN -e "$select_query_pt" || exit 1
 
-            sleep 3
+            # sleep 3
 
             timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "update orders set status = '1' where vt_group_no in ($batch_str)" || exit 1
 
