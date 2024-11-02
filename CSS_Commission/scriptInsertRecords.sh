@@ -8,7 +8,7 @@ DB_HOST='localhost'
 DB_USER='admin'
 DB_PASS='redhat'
 DB_NAME='dummy'
-BATCH_SIZE=100
+BATCH_SIZE=50
 
 mysqlHost="prodrds.prioticket.com"
 mysqlUser=pipeuser
@@ -112,11 +112,12 @@ for ticket_id in $ticket_ids; do
 
             timeout $TIMEOUT_PERIOD time mysql -h"$SECHOST" -u"$SECUSER" -p"$SECPASSWORD" -D"$SECDATABASE" -sN -e "$select_query_pt" || exit 1
 
-            # sleep 3
+            sleep 3
 
             timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "update orders set status = '1' where vt_group_no in ($batch_str)" || exit 1
 
             echo "Sleep Started to Run next VGNS"
+            echo "------$(date '+%Y-%m-%d %H:%M:%S.%3N')--------"
             sleep 5
 
         fi
