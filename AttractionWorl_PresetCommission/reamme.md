@@ -51,3 +51,8 @@ update channel_level_commission set ip_address = '88-88-88-92', subtotal_net_amo
 update channel_level_commission set ip_address = '88-88-88-93', museum_net_commission = (museum_net_commission+(ticket_net_price-museum_net_commission-merchant_net_commission-hotel_commission_net_price)) where ip_address = '88-88-88-91' and last_modified_at > '2024-10-25 00:00:01' and commission_on_sale_price = '1' and ticket_net_price-museum_net_commission-merchant_net_commission-hotel_commission_net_price < '0'
 
 update channel_level_commission set ip_address = '88-88-88-94', museum_gross_commission = (museum_net_commission*(100+museum_commission_tax_value)/100) where ip_address = '88-88-88-93' and last_modified_at > '2024-10-25 00:00:01' and commission_on_sale_price = '1'
+
+
+-- Mismtch Records
+
+SELECT channel_level_commission_id, channel_id, catalog_id, ticket_id, ticketpriceschedule_id, ticket_type, currency, resale_currency_level, ticket_list_price, ticket_new_price, ticket_discount, is_discount_in_percent, ticket_gross_price, ticket_net_price, museum_gross_commission, museum_net_commission, merchant_gross_commission, merchant_net_commission, subtotal_gross_amount, subtotal_net_amount, hotel_prepaid_commission_percentage, hgs_prepaid_commission_percentage, hotel_commission_gross_price, hotel_commission_net_price, hgs_commission_gross_price, hgs_commission_net_price FROM channel_level_commission where ticket_id = '77506' and ticket_type not like '%infant%' and deleted = '0' and channel_id = '1304' group by channel_level_commission_id having ABS(ticket_net_price-museum_net_commission-merchant_net_commission-hotel_commission_net_price-hgs_commission_net_price) > '0.05'
