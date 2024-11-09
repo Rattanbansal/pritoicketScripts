@@ -55,6 +55,6 @@ for ((i=0; i<$total_vt_groups; i+=BATCH_SIZE)); do
 
     timeout $TIMEOUT_PERIOD time mysql -h"$SOURCE_DB_HOST" -u"$SOURCE_DB_USER" -p"$SOURCE_DB_PASSWORD" -D"$SOURCE_DB_NAME_S" -sN -e "$MISMATCH" >> mismatch.csv
 
-    exit
+    # exit
 
 done
