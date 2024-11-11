@@ -99,6 +99,7 @@ insert into template_level_tickets (template_id, ticket_id, is_pos_list, is_susp
 
 
 
+-- Findout Combi Products
 
-Alter command
+select p.*, ctd.hotel_id as old_cluster_hotel_id, ctd.main_ticket_id as cluster_product_id, ctd.main_ticket_price_schedule_id as cluster_product_id, ctd.cluster_ticket_id as cluster_sub_ticket_id, ctd.ticket_price_schedule_id as cluster_sub_product_type_id, ctd.is_deleted, ctd.list_price, ctd.new_price, ctd.ticket_gross_price, ctd.ticket_net_price from (SELECT qc.reseller_id, qc.cod_id as company_id, qc.company, mec.mec_id, mec.cod_id, mec.museum_name, mec.postingEventTitle, mec.is_combi, mec.deleted, mec.reseller_id as product_reseller_id FROM priopassdb.qr_codes qc left join modeventcontent mec on qc.cod_id = mec.cod_id where qc.cashier_type = '2' and qc.reseller_id = '686' and mec.deleted = '0' and mec.is_combi = '2') as p left join cluster_tickets_detail ctd on p.mec_id = ctd.main_ticket_id where ctd.is_deleted = '0';
 
