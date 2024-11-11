@@ -14,3 +14,35 @@ last_modified_when record deleted =
 	2024-11-09 12:22:39
 	Edit Edit	Copy Copy	Delete Delete	2024-11-09 12:24:41
 	Edit Edit	Copy Copy	Delete Delete	2024-11-09 16:09:49
+
+
+------
+
+New FLow
+partner_type:0 = supplier_admin_id => KEY : cat-0-supplier_admin_id
+partner_type:1 = {DELETED in NEW FLOW}
+partner_type:2 = partner_id {distributor_id} - {DELETED IN NEW FLOW}
+partner_type:3 = partner_id (Agent catalog_id) => KEY : cat-partner_id
+Partner_type:4 = partner_Id (Reseller sub_catalog_id) => KEY: sub_cat-partner_id
+partner_type:5 = partner_id (Agent sub_catalog_id) => KEY: sub_cat-partner_id
+
+else case reseller_id = 686
+
+
+ 
+Old Flow
+Partner_type:0 = supplier_admin_id => KEY {Reseller-supplier_admin_id }
+Partner_type:1= partner_id {hotel_admin_id} => Key {Reseller-partner_id}
+Partner_type:2 = partner_id (distributor_id) => KEY {distributor_id}
+Partner_type:3 = partner_id(catalog_id) => KEY {distributor_id}
+Partner_type:4 = DOES NOT EXIST
+Partner_type:5 = partner_id(sub_catalog_id) => KEY {distributor_id}
+
+
+
+
+---- 
+
+
+SELECT * FROM `dynamic_price_variations` where partner_type = '1' and deleted = '0' and supplier_admin_id != '971' and end_date > CURRENT_DATE
+
