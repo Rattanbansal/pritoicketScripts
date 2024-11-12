@@ -15,8 +15,10 @@ previous_day=$(date -d "yesterday" +"%Y-%m-%d 00:00:01")
 
 echo "$previous_day"
 
+# exit;
+
 # Get all vt_group_no for the current ticket_id
-vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$SOURCE_DB_HOST" -u"$SOURCE_DB_USER" -p"$SOURCE_DB_PASSWORD" -D"$SOURCE_DB_NAME_S" -sN -e "SELECT distinct(visitor_group_no) as vt_group_no FROM prepaid_tickets WHERE order_confirm_date > '$previous_day'") || exit 1
+vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$SOURCE_DB_HOST" -u"$SOURCE_DB_USER" -p"$SOURCE_DB_PASSWORD" -D"$SOURCE_DB_NAME_S" -sN -e "select distinct(vt_group_no) as vt_group_no from (SELECT vt_group_no,transaction_id, max(row_type) as row_type FROM visitor_tickets WHERE order_confirm_date > '$previous_day' group by transaction_id, vt_group_no) as base where row_type <= '17'; ") || exit 1
 
 # Convert the vt_group_numbers into an array
 vt_group_array=($vt_group_numbers)
