@@ -100,4 +100,8 @@ insert into template_level_tickets (template_id, ticket_id, is_pos_list, is_susp
 
 
 
+Check entries on tlc level
 
+with distributors as (SELECT cod_id FROM qr_codes where reseller_id = '686' and cashier_type = '1') select d.* from distributors d left join ticket_level_commission tlc on d.cod_id = tlc.hotel_id and tlc.deleted = '0';
+
+mysql -h 10.10.10.19 -u pip -p'pip2024##' priopassdb -e "with distributors as (SELECT cod_id FROM qr_codes where reseller_id = '686' and cashier_type = '1') select d.*, tlc.* from distributors d left join ticket_level_commission tlc on d.cod_id = tlc.hotel_id and tlc.deleted = '0';" > tlcdata.csv

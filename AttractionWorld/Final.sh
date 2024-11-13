@@ -2,7 +2,7 @@ SOURCE_DB_HOST='10.10.10.19'
 SOURCE_DB_USER='pip'
 SOURCE_DB_PASSWORD='pip2024##'
 SOURCE_DB_NAME='priopassdb'
-CatalogID='140267947063130'
+CatalogID='168292237354238'
 ResellerId='686'
 
 
@@ -257,7 +257,9 @@ echo "$update_POS_LIST" >> running_queries.sql
 
 mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$update_POS_LIST"
 
-sleep 2
+curl https://cron.prioticket.com/backend/purge_fastly/Custom_purge_fastly_cache/1/0/$cod_id
+
+sleep 5
 
 
 done
@@ -306,3 +308,11 @@ done
 # Problem in data:
 
 # 1. Direct and Agent catalog have difference: Gagandeep sir suggested that we will do it for direct but when discussed with client then they mentioned we will start with agent so that still need to finalize
+
+
+# CREATE TABLE `exceptions` (
+#   `catalog_id` bigint NOT NULL,
+#   `ticket_id` int NOT NULL,
+#   `is_pos_list` int NOT NULL
+# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+# COMMIT;
