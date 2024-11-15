@@ -35,3 +35,22 @@ mysql -h 163.47.214.30 --port=3307 -u datalook -p'datalook2024$$' -e "select * f
 ---- Pricelist data if synched on tlc level then need to check
 
 with qr_codess as (select cod_id, reseller_id, sub_catalog_id from priopassdb.qr_codes where cashier_type = '1'), distributor as (select p.*, qc.cod_id, qc.sub_catalog_id from rattan.pricelist p left join qr_codess qc on p.reseller_id = qc.reseller_id), final as (select d.ticket_id as product_id, d.reseller_id as admin_id, d.commission, d.cod_id, d.sub_catalog_id, tlc.ticket_id, tlc.ticketpriceschedule_id, tlc.hotel_prepaid_commission_percentage, tlc.is_hotel_prepaid_commission_percentage, tlc.commission_on_sale_price, tlc.hotel_commission_net_price, tlc.ticket_net_price from distributor d left join priopassdb.ticket_level_commission tlc on d.cod_id = tlc.hotel_id and d.ticket_id = tlc.ticket_id and tlc.deleted = '0' and tlc.is_adjust_pricing = '1') select * from final where ticket_id is not NULL
+
+
+
+Steps:
+
+1. First of all all account leve setting difference need to check and need to update commission as per sheet
+
+2. after that another challenge that all product setting for the mentioned distributors should be on subcatalog level.
+
+3. if commission percentage mismatch then we need to update commission and rest need to allocate to purchase cost 
+
+4. But there are some records found where commission percentage are ok but rest amount allocated to hgs which should not be the case so we need to correct those records as well.
+
+5. if no entries on the sub catalog level then need to insert the new entries.
+
+6. there are 3 distributors that first need to check if we can link with any one sub catalog that has been assigned to vikash rana
+
+7. once all these things are done then need to update all orders for the month on november.
+
