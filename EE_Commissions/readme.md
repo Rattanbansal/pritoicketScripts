@@ -54,3 +54,6 @@ Steps:
 
 7. once all these things are done then need to update all orders for the month on november.
 
+
+
+gunzip < ticket_level_commission.sql.gz | mysql -u admin -predhat priopassdb
