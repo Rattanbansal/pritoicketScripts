@@ -29,6 +29,8 @@ else
 
 fi
 
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "delete from distributos where hotel_id = '0'; delete from distributos where ticket_id = '0';delete from pricelist where reseller_id = '0';delete from pricelist where ticket_id = '0';"
+
 mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "delete from priopassdb.ticket_level_commission where deleted = '1';delete from priopassdb.channel_level_commission where deleted = '1'"
 
 
