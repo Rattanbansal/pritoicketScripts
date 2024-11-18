@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e  # Exit immediately if any command exits with a non-zero status
-TIMEOUT_PERIOD=15
+TIMEOUT_PERIOD=300
 
 ### Database Credentials For 19 DB
 DB_HOST="10.10.10.19"
@@ -14,9 +14,9 @@ BackupFILETLC="/home/intersoft-admin/rattan/backup/$AccountLEVELTABLE.sql"
 BackupFILECLC="/home/intersoft-admin/rattan/backup/$AccountLEVELTABLE.sql"
 
 ### Database credentials for Local database so that can work without interuption
-LOCAL_HOST="localhost"
-LOCAL_USER="admin"
-LOCAL_PASS="redhat"
+LOCAL_HOST="10.10.10.19"
+LOCAL_USER="pip"
+LOCAL_PASS="pip2024##"
 LOCAL_NAME="priopassdb"
 LOCAL_NAME_1="priopassdb"
 GETBACKUP=$1
@@ -25,6 +25,14 @@ IMPORTDATATOHOST=$2
 if [[ $GETBACKUP == 2 ]]; then
 
     echo "Condition 2 Satisfied"
+
+    echo "Started Instering Data from Scratch"
+
+    mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D rattan -e "TRUNCATE TABLE pricelist; TRUNCATE TABLE distributors"
+
+    python pricelist.py pricelist.csv
+
+    python distributors.py distributors.csv
     # rm -f "$BackupFILETLC"
     # rm -f "$BackupFILECLC"
 
@@ -56,17 +64,31 @@ fi
 
 if [[ $IMPORTDATATOHOST == 2 ]]; then
 
+
     echo "IMPORT DATA TO HOST"
 
-    timeout $TIMEOUT_PERIOD time mysql -h"$LOCAL_HOST" -u"$LOCAL_USER" -p"$LOCAL_PASS" -D"$LOCAL_NAME" -e "TRUNCATE TABLE "$LOCAL_NAME_1".distributors;TRUNCATE TABLE "$LOCAL_NAME_1".pricelist" || exit 1
+    timeout $TIMEOUT_PERIOD time mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" rattan -e "delete from distributors where hotel_id = '0';delete from distributors where ticket_id = '0'; delete from pricelist where reseller_id = '0';delete from pricelist where ticket_id = '0';" || exit 1
 
-    timeout $TIMEOUT_PERIOD time mysqldump --single-transaction --skip-lock-tables  --no-create-info -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" rattan distributors >> distributors.sql || exit 1
+    echo "TRUNCATE TABLE Started"
+    timeout $TIMEOUT_PERIOD time mysql -h"$LOCAL_HOST" -u"$LOCAL_USER" -p"$LOCAL_PASS" -D"$LOCAL_NAME" -e "TRUNCATE TABLE "$LOCAL_NAME_1".distributors;TRUNCATE TABLE "$LOCAL_NAME_1".pricelist;" || exit 1
+    echo "TRUNCATE TABLE Ended"
 
+
+    echo "Distributor Dump Strated"
+    time mysqldump --single-transaction --skip-lock-tables  --no-create-info -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" rattan distributors > distributors.sql || exit 1
+    echo "Distributor Dump Ended"
+
+    echo "Distributor DUMP restore started"
     timeout $TIMEOUT_PERIOD time mysql -h"$LOCAL_HOST" -u"$LOCAL_USER" -p"$LOCAL_PASS" -D"$LOCAL_NAME" < distributors.sql || exit 1
+    echo "Distributor DUMP restore ended"
 
-    timeout $TIMEOUT_PERIOD time mysqldump --single-transaction --skip-lock-tables  --no-create-info -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" rattan pricelist >> pricelist.sql || exit 1
+    echo "Pricelist dump started"
+    time mysqldump --single-transaction --skip-lock-tables  --no-create-info -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" rattan pricelist > pricelist.sql || exit 1
+    echo "Pricelist dump ended"
 
+    echo "Pricelist Dump restore started"
     timeout $TIMEOUT_PERIOD time mysql -h"$LOCAL_HOST" -u"$LOCAL_USER" -p"$LOCAL_PASS" -D"$LOCAL_NAME" < pricelist.sql || exit 1
+    echo "Pricelist Dump restore ended"
 
     rm -f pricelist.sql
     rm -f distributors.sql
