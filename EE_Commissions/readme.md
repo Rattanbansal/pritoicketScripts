@@ -40,19 +40,21 @@ with qr_codess as (select cod_id, reseller_id, sub_catalog_id from priopassdb.qr
 
 Steps:
 
-1. First of all all account leve setting difference need to check and need to update commission as per sheet
+1. First of all we check mismatch of the provided commission from ticket_level_commission on basis of condition
+   sheet commission = tlc_commission
+   distributor+museum_commissin should = 100%
 
-2. after that another challenge that all product setting for the mentioned distributors should be on subcatalog level.
+2. if founf any mismatch then need to do update the commission as per the provided sheet
 
-3. if commission percentage mismatch then we need to update commission and rest need to allocate to purchase cost 
+3. Then for all the mentioned distributor we need to get the catalog_id and on basis of catalog id we need to found the commission mismatch in channel_level_commission table 
 
-4. But there are some records found where commission percentage are ok but rest amount allocated to hgs which should not be the case so we need to correct those records as well.
+4. if in condition 3 we found any difference then we need to update all the commission as per provided percentage and rest amount should be allocated to the museum and rest all level should be updated with 0 commission.
 
-5. if no entries on the sub catalog level then need to insert the new entries.
+5. Once these are ended then need to findout that any tps IDs are missing for the product then that entries we also need to insert as per the commission percentage provided in sheet
 
-6. there are 3 distributors that first need to check if we can link with any one sub catalog that has been assigned to vikash rana
+6. Once its done there are more level left where we have not any adjust_pricing = 1 but the total of hotel_prepaid_commission_percentage + hgs_commission_percentage > 0 thar records still need to discuss with Rutger
 
-7. once all these things are done then need to update all orders for the month on november.
+7. After complete all these steps we need to update commission for the november orders which is big process only for the partner_net_price column
 
 
 
