@@ -38,24 +38,33 @@ with qr_codess as (select cod_id, reseller_id, sub_catalog_id from priopassdb.qr
 
 
 
-Steps:
+Steps to Handle Commission and Data Updates
 
-1. First of all we check mismatch of the provided commission from ticket_level_commission on basis of condition
-   sheet commission = tlc_commission
-   distributor+museum_commissin should = 100%
+1.  Check for Commission Mismatch at Ticket Level
+        Validate the provided commission against the ticket_level_commission table based on the following conditions:
+            sheet_commission = tlc_commission
+            distributor_commission + museum_commission = 100%
+        If any mismatch is found, update the commission in the system as per the provided sheet.
 
-2. if founf any mismatch then need to do update the commission as per the provided sheet
+2.  Validate and Update Channel Level Commissions
+        For all mentioned distributors, retrieve the catalog_id.
+        Based on the catalog_id, check for commission mismatches in the channel_level_commission table.
+        If discrepancies are found:
+            Update all commissions as per the provided percentage.
+            Allocate the remaining amount to the museum.
+            Set all other levels to 0% commission.
 
-3. Then for all the mentioned distributor we need to get the catalog_id and on basis of catalog id we need to found the commission mismatch in channel_level_commission table 
+3.  Insert Missing TPS IDs
+        Identify any missing TPS IDs for the products.
+        Insert the missing entries as per the commission percentages provided in the sheet.
 
-4. if in condition 3 we found any difference then we need to update all the commission as per provided percentage and rest amount should be allocated to the museum and rest all level should be updated with 0 commission.
+4.  Handle Adjust Pricing and HGS Commission Cases
+        Identify records where adjust_pricing = 0 but the sum of hotel_prepaid_commission_percentage + hgs_commission_percentage > 0.
+        Discuss these records with Rutger to decide the next steps.
 
-5. Once these are ended then need to findout that any tps IDs are missing for the product then that entries we also need to insert as per the commission percentage provided in sheet
-
-6. Once its done there are more level left where we have not any adjust_pricing = 1 but the total of hotel_prepaid_commission_percentage + hgs_commission_percentage > 0 thar records still need to discuss with Rutger
-
-7. After complete all these steps we need to update commission for the november orders which is big process only for the partner_net_price column
-
+5.  Update Commissions for November Orders
+        After completing the above steps, update commissions specifically for November orders.
+        Focus on updating the partner_net_price column, as this is a complex process.
 
 
 gunzip < ticket_level_commission.sql.gz | mysql -u admin -predhat priopassdb
