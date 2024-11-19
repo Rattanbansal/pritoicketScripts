@@ -90,7 +90,7 @@ for cod_id in ${cod_ids}; do
     company,
     rezgo_ticket_id,
     rezgo_id,
-    'lll' AS rezgo_key,
+    rezgo_key,
     tourcms_tour_id,
     tourcms_channel_id,
     tax_value,
