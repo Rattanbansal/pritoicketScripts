@@ -179,7 +179,7 @@ select distinct(ticket_id) FROM channel_level_commission where ticket_id in (261
 
 ---duplicate entries inserted
 
-select vt_group_no, transaction_id, version, row_type, col2,action_performed, count(*) from visitor_tickets where vt_group_no = '172828256887987' group by vt_group_no, transaction_id, version, row_type, col2, action_performed having count(*) > '1' 
+select vt_group_no, transaction_id, version, row_type, col2,action_performed, count(*) from visitor_tickets where vt_group_no = '172631769876371' group by vt_group_no, transaction_id, version, row_type, col2, action_performed having count(*) > '1' 
 
 
 duplicate in tlc and clc
