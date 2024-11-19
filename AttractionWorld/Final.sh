@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e  # Exit immediately if any command exits with a non-zero status
+set -e # Exit immediately if any command exits with a non-zero status
 TIMEOUT_PERIOD=25
 
 SOURCE_DB_HOST='10.10.10.19'
@@ -19,18 +19,13 @@ BATCH_SIZE=30
 # ResellerId='686'
 # BATCH_SIZE=30
 
-
-
 Catalog_product_delete="update template_level_tickets set deleted = '8' where catalog_id = '$CatalogID' and deleted = '0' and template_id = '0'"
-
-
 
 Linked_Distributors_LIST="select distinct(cod_id) as cod_id from qr_codes where sub_catalog_id = '$CatalogID' and cashier_type = '1'"
 
 QueryTocheckProductNot_exist_in_Catalog="select * from (with allProducts as (select * from template_level_tickets where template_id in (select template_id from (select templatetype.*, catalogtype.catalog_id as subcatalog_id, catalogtype.catalog_type from (select base1.*, (case when resellers.template_id = base1.template_id then 2 else 1 end) as template_type from (select templates.template_id, templates.reseller_id, templates.is_default, templates.catalog_id from templates right join (select template_id, catalog_id from qr_codes where template_id in (SELECT distinct(template_id) FROM qr_codes where reseller_id = '$ResellerId' and cashier_type = '1') group by template_id, catalog_id) as base on base.template_id = templates.template_id where templates.catalog_id is not NULL group by templates.template_id, templates.reseller_id, templates.catalog_id) as base1 left join resellers on base1.reseller_id = resellers.reseller_id) as templatetype left join (SELECT catalog_id, reseller_id, catalog_type FROM catalogs where catalog_category = '2' and reseller_id = '$ResellerId' and is_deleted = '0' and catalog_id = '$CatalogID') as catalogtype on templatetype.reseller_id = catalogtype.reseller_id and templatetype.template_type = catalogtype.catalog_type) as bbb where subcatalog_id is not NULL) and deleted = '0' and publish_catalog = '1') select exceptions.catalog_id as exception_catalog_id, exceptions.is_pos_list as exception_pos_list, exceptions.ticket_id as exception_ticket_id, allProducts.* from exceptions left join allProducts on exceptions.ticket_id = allProducts.ticket_id) as final where ticket_id is not NULL and exception_catalog_id != '0' and ticket_id not in (select ticket_id from template_level_tickets where catalog_id = '$CatalogID' and deleted = '0' and publish_catalog = '1');"
 
 INSERT_QueryTocheckProductNot_exist_in_catalog="insert into template_level_tickets (template_id, ticket_id, is_pos_list, is_suspended, created_at, market_merchant_id, content_description_setting, last_modified_at, catalog_id, merchant_admin_id, publish_catalog, product_verify_status, deleted)  select '0' as template_id, ticket_id, exception_pos_list, is_suspended,CURRENT_TIMESTAMP as created_at,market_merchant_id,content_description_setting, CURRENT_TIMESTAMP as last_modified_at, exception_catalog_id as catalog_id, merchant_admin_id, publish_catalog, product_verify_status, deleted from (with allProducts as (select * from template_level_tickets where template_id in (select template_id from (select templatetype.*, catalogtype.catalog_id as subcatalog_id, catalogtype.catalog_type from (select base1.*, (case when resellers.template_id = base1.template_id then 2 else 1 end) as template_type from (select templates.template_id, templates.reseller_id, templates.is_default, templates.catalog_id from templates right join (select template_id, catalog_id from qr_codes where template_id in (SELECT distinct(template_id) FROM qr_codes where reseller_id = '$ResellerId' and cashier_type = '1') group by template_id, catalog_id) as base on base.template_id = templates.template_id where templates.catalog_id is not NULL group by templates.template_id, templates.reseller_id, templates.catalog_id) as base1 left join resellers on base1.reseller_id = resellers.reseller_id) as templatetype left join (SELECT catalog_id, reseller_id, catalog_type FROM catalogs where catalog_category = '2' and reseller_id = '$ResellerId' and is_deleted = '0' and catalog_id = '$CatalogID') as catalogtype on templatetype.reseller_id = catalogtype.reseller_id and templatetype.template_type = catalogtype.catalog_type) as bbb where subcatalog_id is not NULL) and deleted = '0' and publish_catalog = '1') select exceptions.catalog_id as exception_catalog_id, exceptions.is_pos_list as exception_pos_list, exceptions.ticket_id as exception_ticket_id, allProducts.* from exceptions left join allProducts on exceptions.ticket_id = allProducts.ticket_id) as final where ticket_id is not NULL and exception_catalog_id != '0' and ticket_id not in (select ticket_id from template_level_tickets where catalog_id = '$CatalogID' and deleted = '0' and publish_catalog = '1');"
-
 
 QueryTocheckProduct_exist_in_Catalog="select neww.*, tlts.catalog_id, tlts.ticket_id, tlts.is_pos_list from (select exception_catalog_id, exception_pos_list, exception_ticket_id from (with allProducts as (select * from template_level_tickets where template_id in (select template_id from (select templatetype.*, catalogtype.catalog_id as subcatalog_id, catalogtype.catalog_type from (select base1.*, (case when resellers.template_id = base1.template_id then 2 else 1 end) as template_type from (select templates.template_id, templates.reseller_id, templates.is_default, templates.catalog_id from templates right join (select template_id, catalog_id from qr_codes where template_id in (SELECT distinct(template_id) FROM qr_codes where reseller_id = '$ResellerId' and cashier_type = '1') group by template_id, catalog_id) as base on base.template_id = templates.template_id where templates.catalog_id is not NULL group by templates.template_id, templates.reseller_id, templates.catalog_id) as base1 left join resellers on base1.reseller_id = resellers.reseller_id) as templatetype left join (SELECT catalog_id, reseller_id, catalog_type FROM catalogs where catalog_category = '2' and reseller_id = '$ResellerId' and is_deleted = '0' and catalog_id = '$CatalogID') as catalogtype on templatetype.reseller_id = catalogtype.reseller_id and templatetype.template_type = catalogtype.catalog_type) as bbb where subcatalog_id is not NULL) and deleted = '0' and publish_catalog = '1') select exceptions.catalog_id as exception_catalog_id, exceptions.is_pos_list as exception_pos_list, exceptions.ticket_id as exception_ticket_id, allProducts.* from exceptions left join allProducts on exceptions.ticket_id = allProducts.ticket_id) as final where ticket_id is not NULL and exception_catalog_id != '0' and ticket_id in (select ticket_id from template_level_tickets where catalog_id = '$CatalogID' and deleted = '0' and publish_catalog = '1')) as neww join template_level_tickets tlts on tlts.catalog_id = neww.exception_catalog_id and tlts.ticket_id = neww.exception_ticket_id and tlts.is_pos_list != neww.exception_pos_list;"
 
@@ -39,8 +34,6 @@ Update_QueryTocheckProduct_exist_in_Catalog="update exceptions join template_lev
 LINKED_TEMPLATE="select template_id from (select templatetype.*, catalogtype.catalog_id as subcatalog_id, catalogtype.catalog_type from (select base1.*, (case when resellers.template_id = base1.template_id then 2 else 1 end) as template_type from (select templates.template_id, templates.reseller_id, templates.is_default, templates.catalog_id from templates right join (select template_id, catalog_id from qr_codes where template_id in (SELECT distinct(template_id) FROM qr_codes where reseller_id = '$ResellerId' and cashier_type = '1') group by template_id, catalog_id) as base on base.template_id = templates.template_id where templates.catalog_id is not NULL group by templates.template_id, templates.reseller_id, templates.catalog_id) as base1 left join resellers on base1.reseller_id = resellers.reseller_id) as templatetype left join (SELECT catalog_id, reseller_id, catalog_type FROM catalogs where catalog_category = '2' and reseller_id = '$ResellerId' and is_deleted = '0' and catalog_id = '$CatalogID') as catalogtype on templatetype.reseller_id = catalogtype.reseller_id and templatetype.template_type = catalogtype.catalog_type) as bbb where subcatalog_id is not NULL"
 
 echo "$Update_QueryTocheckProduct_exist_in_Catalog"
-
-
 
 update_POS_LIST="update pos_tickets poss join (select *, (case when tlc_is_pos_list is NULL and tlt_is_pos_list is NULL and main_template_pos_list is not NULL then main_template_pos_list when tlc_is_pos_list is NULL and tlt_is_pos_list is NOT NULL then tlt_is_pos_list when tlc_is_pos_list is not NULL then tlc_is_pos_list else pos_is_pos_list end) as should_be from (select base349.*, mec.postingEventTitle as product_title from 
 
@@ -53,11 +46,6 @@ update_POS_LIST="update pos_tickets poss join (select *, (case when tlc_is_pos_l
         ) 
         
         as base349 left join modeventcontent mec on base349.pos_ticket_id = mec.mec_id where mec.deleted = '0') as nnn) as setdata on poss.hotel_id = setdata.pos_hotel_id and poss.mec_id = setdata.pos_ticket_id and poss.is_pos_list != setdata.should_be set poss.is_pos_list = setdata.should_be; select ROW_COUNT();"
-
-
-
-
-
 
 echo "Delete Catalog entried started"
 timeout $TIMEOUT_PERIOD mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$Catalog_product_delete" || exit 1
@@ -78,24 +66,22 @@ sleep 2
 echo "Fetch Distributor ID started"
 cod_ids=$(timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$Linked_Distributors_LIST") || exit 1
 
-for cod_id in ${cod_ids}
+for cod_id in ${cod_ids}; do
 
-do
+    echo $cod_id
 
-echo $cod_id
+    #Remove hotel_level_exceptions
 
-#Remove hotel_level_exceptions
+    remove_account_level_exceptions="update ticket_level_commission tlcu join (select *, (case when sc_ticket_id is not NULL then CAST(sc_pos_list AS CHAR) when sc_ticket_id is NULL then CAST(default_pos_list AS CHAR) else CAST(tlc_pos_list AS CHAR) end) as shouldbe from (with qr_codess as (select cod_id, template_id, sub_catalog_id from qr_codes where cashier_type = '1' and cod_id = '$cod_id'), Accountlevel as (select qc.*, tlc.ticket_level_commission_id,tlc.hotel_id, tlc.ticket_id as tlc_ticket_id, (tlc.is_pos_list+0-1) as tlc_pos_list from qr_codess qc join ticket_level_commission tlc on qc.cod_id = tlc.hotel_id where tlc.deleted = '0'), subcatalog_level as (select a.*, sc.ticket_id as sc_ticket_id, sc.catalog_id, sc.is_pos_list as sc_pos_list from Accountlevel a left join template_level_tickets sc on a.tlc_ticket_id = sc.ticket_id and sc.catalog_id = a.sub_catalog_id and sc.template_id = '0' and sc.deleted = '0' and sc.catalog_id > '0' and sc.catalog_id is not NULL and a.sub_catalog_id is not NULL), defaultLevel as  (select sl.*, defaults.ticket_id as default_ticket_id, defaults.template_id as default_template_id, defaults.is_pos_list as default_pos_list from subcatalog_level sl left join template_level_tickets defaults on defaults.template_id = sl.template_id and defaults.ticket_id = sl.tlc_ticket_id and defaults.deleted = '0' and defaults.template_id > '0' and defaults.catalog_id = '0') select * from defaultLevel) as base where sc_ticket_id is not NULL or default_ticket_id is not null group by ticket_level_commission_id having shouldbe != tlc_pos_list) as cal on tlcu.ticket_level_commission_id = cal.ticket_level_commission_id set tlcu.is_pos_list = cal.shouldbe"
 
-remove_account_level_exceptions="update ticket_level_commission tlcu join (select *, (case when sc_ticket_id is not NULL then CAST(sc_pos_list AS CHAR) when sc_ticket_id is NULL then CAST(default_pos_list AS CHAR) else CAST(tlc_pos_list AS CHAR) end) as shouldbe from (with qr_codess as (select cod_id, template_id, sub_catalog_id from qr_codes where cashier_type = '1' and cod_id = '$cod_id'), Accountlevel as (select qc.*, tlc.ticket_level_commission_id,tlc.hotel_id, tlc.ticket_id as tlc_ticket_id, (tlc.is_pos_list+0-1) as tlc_pos_list from qr_codess qc join ticket_level_commission tlc on qc.cod_id = tlc.hotel_id where tlc.deleted = '0'), subcatalog_level as (select a.*, sc.ticket_id as sc_ticket_id, sc.catalog_id, sc.is_pos_list as sc_pos_list from Accountlevel a left join template_level_tickets sc on a.tlc_ticket_id = sc.ticket_id and sc.catalog_id = a.sub_catalog_id and sc.template_id = '0' and sc.deleted = '0' and sc.catalog_id > '0' and sc.catalog_id is not NULL and a.sub_catalog_id is not NULL), defaultLevel as  (select sl.*, defaults.ticket_id as default_ticket_id, defaults.template_id as default_template_id, defaults.is_pos_list as default_pos_list from subcatalog_level sl left join template_level_tickets defaults on defaults.template_id = sl.template_id and defaults.ticket_id = sl.tlc_ticket_id and defaults.deleted = '0' and defaults.template_id > '0' and defaults.catalog_id = '0') select * from defaultLevel) as base where sc_ticket_id is not NULL or default_ticket_id is not null group by ticket_level_commission_id having shouldbe != tlc_pos_list) as cal on tlcu.ticket_level_commission_id = cal.ticket_level_commission_id set tlcu.is_pos_list = cal.shouldbe"
+    echo "Update Exceptions on account Level Started"
+    timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$remove_account_level_exceptions" || exit 1
 
-echo "Update Exceptions on account Level Started"
-timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$remove_account_level_exceptions" || exit 1
+    echo "Update Exceptions on account Level ended"
 
-echo "Update Exceptions on account Level ended"
+    sleep 5
 
-sleep 5
-
-INSERT_MISSING_PRODUCT=" insert into pos_tickets (mec_id,cat_id,hotel_id,museum_id,product_type,company,rezgo_ticket_id,rezgo_id,rezgo_key,tourcms_tour_id,tourcms_channel_id,tax_value,service_cost,latest_sold_date,shortDesc,eventImage,ticketwithdifferentpricing,saveamount,ticketPrice,pricetext,ticket_net_price,newPrice,totalticketPrice,new_discount_price,is_reservation,agefrom,ageto,ticketType,is_combi_ticket_allowed,is_booking_combi_ticket_allowed,start_date,end_date,extra_text_field,deleted,is_updated,third_party_id,third_party_ticket_id,third_party_parameters) SELECT
+    INSERT_MISSING_PRODUCT=" insert into pos_tickets (mec_id,cat_id,hotel_id,museum_id,product_type,company,rezgo_ticket_id,rezgo_id,rezgo_key,tourcms_tour_id,tourcms_channel_id,tax_value,service_cost,latest_sold_date,shortDesc,eventImage,ticketwithdifferentpricing,saveamount,ticketPrice,pricetext,ticket_net_price,newPrice,totalticketPrice,new_discount_price,is_reservation,agefrom,ageto,ticketType,is_combi_ticket_allowed,is_booking_combi_ticket_allowed,start_date,end_date,extra_text_field,deleted,is_updated,third_party_id,third_party_ticket_id,third_party_parameters) SELECT
     mec_id,
     cat_id,
     hotel_id,
@@ -261,18 +247,18 @@ LEFT JOIN pos_tickets pos ON
 WHERE
     base_id IS NULL;select ROW_COUNT();"
 
-echo "----------INSERT_MISSING_PRODUCT----------" >> running_queries.sql
+    echo "----------INSERT_MISSING_PRODUCT----------" >>running_queries.sql
 
-echo "$INSERT_MISSING_PRODUCT" >> running_queries.sql
+    echo "$INSERT_MISSING_PRODUCT" >>running_queries.sql
 
-echo "Insert Missing Entries in Pos tickets Started"
+    echo "Insert Missing Entries in Pos tickets Started"
 
-timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$INSERT_MISSING_PRODUCT" || exit 1
-echo "Insert Missing Entries in Pos tickets Ended"
+    timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$INSERT_MISSING_PRODUCT" || exit 1
+    echo "Insert Missing Entries in Pos tickets Ended"
 
-sleep 5
+    sleep 5
 
-update_POS_LIST="update pos_tickets poss join (select *, (case when tlc_is_pos_list is NULL and tlt_is_pos_list is NULL and main_template_pos_list is not NULL then main_template_pos_list when tlc_is_pos_list is NULL and tlt_is_pos_list is NOT NULL then tlt_is_pos_list when tlc_is_pos_list is not NULL then tlc_is_pos_list else pos_is_pos_list end) as should_be from (select base349.*, mec.postingEventTitle as product_title from 
+    update_POS_LIST="update pos_tickets poss join (select *, (case when tlc_is_pos_list is NULL and tlt_is_pos_list is NULL and main_template_pos_list is not NULL then main_template_pos_list when tlc_is_pos_list is NULL and tlt_is_pos_list is NOT NULL then tlt_is_pos_list when tlc_is_pos_list is not NULL then tlc_is_pos_list else pos_is_pos_list end) as should_be from (select base349.*, mec.postingEventTitle as product_title from 
 
         (select * from 
         (select base.*, 'Product on Main Catalog' as type2,tlt.ticket_id as main_linked_ticket_id, tlt.template_id as main_template_id, tlt.is_pos_list as main_template_pos_list from (
@@ -284,49 +270,51 @@ update_POS_LIST="update pos_tickets poss join (select *, (case when tlc_is_pos_l
         
         as base349 left join modeventcontent mec on base349.pos_ticket_id = mec.mec_id where mec.deleted = '0') as nnn) as setdata on poss.hotel_id = setdata.pos_hotel_id and poss.mec_id = setdata.pos_ticket_id and poss.is_pos_list != setdata.should_be set poss.is_pos_list = setdata.should_be;select ROW_COUNT();"
 
-echo "---------Update POS MISMATCH-----------" >> running_queries.sql
+    echo "---------Update POS MISMATCH-----------" >>running_queries.sql
 
+    echo "$update_POS_LIST" >>running_queries.sql
 
-echo "$update_POS_LIST" >> running_queries.sql
+    echo "Update pos list started"
 
-echo "Update pos list started"
+    timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$update_POS_LIST" || exit 1
+    echo "Update pos list ended"
 
-timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$update_POS_LIST" || exit 1
-echo "Update pos list ended"
+    echo "Remove Duplicate Product started"
+    querystring1="select post.pos_ticket_id from pos_tickets post join (with pos_data as (select pos_ticket_id, hotel_id, mec_id,company, shortDesc, museum_id, is_pos_list from pos_tickets where hotel_id = '$cod_id' and deleted = '0'), get_template_id as (select ps.*, qc.template_id from pos_data ps left join qr_codes qc on ps.hotel_id = qc.cod_id where qc.cashier_type = '1'), finaldata as (select gti.*, tlt.template_id as template_template_id, tlt.ticket_id from get_template_id gti left join template_level_tickets tlt on gti.template_id = tlt.template_id and gti.mec_id = tlt.ticket_id) select * from finaldata where ticket_id is null) as base111 on post.pos_ticket_id = base111.pos_ticket_id where post.hotel_id = '$cod_id'"
 
-echo "Remove Duplicate Product started"
-querystring1="select post.pos_ticket_id from pos_tickets post join (with pos_data as (select pos_ticket_id, hotel_id, mec_id,company, shortDesc, museum_id, is_pos_list from pos_tickets where hotel_id = '$cod_id' and deleted = '0'), get_template_id as (select ps.*, qc.template_id from pos_data ps left join qr_codes qc on ps.hotel_id = qc.cod_id where qc.cashier_type = '1'), finaldata as (select gti.*, tlt.template_id as template_template_id, tlt.ticket_id from get_template_id gti left join template_level_tickets tlt on gti.template_id = tlt.template_id and gti.mec_id = tlt.ticket_id) select * from finaldata where ticket_id is null) as base111 on post.pos_ticket_id = base111.pos_ticket_id where post.hotel_id = '$cod_id'"
+    echo "$querystring1"
 
-echo "$querystring1"
+    pos_ticket_id=$(timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$querystring1") || exit 1
 
-pos_ticket_id=$(timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$querystring1") || exit 1
+    echo "Remove Duplicate Product Ended"
 
-echo "Remove Duplicate Product Ended"
+    # Convert the vt_group_numbers into an array
+    pos_ticket_array=($pos_ticket_id)
+    total_pos_ids=${#pos_ticket_array[@]}
 
-# Convert the vt_group_numbers into an array
-pos_ticket_array=($pos_ticket_id)
-total_pos_ids=${#pos_ticket_array[@]}
+    # Print the total count of vt_group_no for the current ticket_id
+    echo "Processing Ticket ID: $ticket_id with $total_pos_ids pos_ticket_id values"
 
-# Print the total count of vt_group_no for the current ticket_id
-echo "Processing Ticket ID: $ticket_id with $total_pos_ids pos_ticket_id values"
+    # Initialize the progress tracking for the current ticket_id
+    current_progress=0
 
-# Initialize the progress tracking for the current ticket_id
-current_progress=0
-
-# Loop through vt_group_no array in batches
-    for ((i=0; i<$total_pos_ids; i+=BATCH_SIZE)); do
+    # Loop through vt_group_no array in batches
+    for ((i = 0; i < $total_pos_ids; i += BATCH_SIZE)); do
         # Create a batch of vt_group_no values
         batch=("${pos_ticket_array[@]:$i:$BATCH_SIZE}")
         batch_size=${#batch[@]}
 
         # Calculate the current progress level for this ticket_id
         current_progress=$((i + batch_size))
-        
+
         # Join the batch into a comma-separated list
-        batch_str=$(IFS=,; echo "${batch[*]}")
+        batch_str=$(
+            IFS=,
+            echo "${batch[*]}"
+        )
 
         # Print progress information for the current ticket_id
-        echo "Processing batch of size $batch_size for Ticket ID: $cod_id ($current_progress / $total_pos_ids processed)" >> log.txt
+        echo "Processing batch of size $batch_size for Ticket ID: $cod_id ($current_progress / $total_pos_ids processed)" >>log.txt
 
         pos_update="update pos_tickets set deleted = '7' where pos_ticket_id in ($batch_str);select ROW_COUNT();"
 
@@ -334,13 +322,13 @@ current_progress=0
 
         if [ -z "$pos_ticket_id" ]; then
 
-            echo "No results found. Proceeding with further steps. for ($batch_str)" >> no_mismatch.txt
-        
+            echo "No results found. Proceeding with further steps. for ($batch_str)" >>no_mismatch.txt
+
         else
 
-            echo "------$(date '+%Y-%m-%d %H:%M:%S.%3N')--------" >> found_mismatch.txt 
-            echo "$batch_str" >> found_mismatch.txt
-            echo "Mismatch Out of above" >> found_mismatch.txt
+            echo "------$(date '+%Y-%m-%d %H:%M:%S.%3N')--------" >>found_mismatch.txt
+            echo "$batch_str" >>found_mismatch.txt
+            echo "Mismatch Out of above" >>found_mismatch.txt
             echo "Query returned results:"
 
             timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$pos_update"
@@ -349,19 +337,11 @@ current_progress=0
         sleep 5
     done
 
-curl https://cron.prioticket.com/backend/purge_fastly/Custom_purge_fastly_cache/1/0/$cod_id
+    curl https://cron.prioticket.com/backend/purge_fastly/Custom_purge_fastly_cache/1/0/$cod_id
 
-sleep 5
-
+    sleep 5
 
 done
-
-
-
-
-
-
-
 
 #------------------- Backup script for live with above same code--------------
 
@@ -373,13 +353,9 @@ done
 # echo "insertion for $product_id completed"
 # sleep 10
 
-
 # # curl https://cron.prioticket.com/backend/Update_posticket_poslist/update_poslist/$hotel_id/0/1 >> pos_tickets_enable_status.csv
 # curl https://cron.prioticket.com/backend/Update_posticket_poslist/update_poslist/0/$product_id/1 >> pos_tickets_enable_status.txt
 # echo "updations for $product_id completed"
-
-
-
 
 # Steps To Perform Attraction World Activity
 
@@ -387,20 +363,17 @@ done
 
 # 2. After that client will provide exception sheet that we will insert it in database and update/insert the records for related sub catalog
 
-# 3. Then for each distributor id we will prepare the queries for the missing entries in the pos_tickets 
+# 3. Then for each distributor id we will prepare the queries for the missing entries in the pos_tickets
 
 # 4. After Run the get quries in database we will run the update query for the pos_list mismatch
-
 
 # All these steps are manual
 
 # Earlier it was planned that queries will be run by rakesh sir but now I will try to run those queries.
 
-
 # Problem in data:
 
 # 1. Direct and Agent catalog have difference: Gagandeep sir suggested that we will do it for direct but when discussed with client then they mentioned we will start with agent so that still need to finalize
-
 
 # CREATE TABLE `exceptions` (
 #   `catalog_id` bigint NOT NULL,
