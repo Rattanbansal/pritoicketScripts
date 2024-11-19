@@ -119,3 +119,7 @@ update ticket_level_commission tlcu join (select *, (case when sc_ticket_id is n
 
 
 select * from pos_tickets post join (with pos_data as (select pos_ticket_id, hotel_id, mec_id,company, shortDesc, museum_id, is_pos_list from pos_tickets where hotel_id = '47726' and deleted = '0'), get_template_id as (select ps.*, qc.template_id from pos_data ps left join qr_codes qc on ps.hotel_id = qc.cod_id where qc.cashier_type = '1'), finaldata as (select gti.*, tlt.template_id as template_template_id, tlt.ticket_id from get_template_id gti left join template_level_tickets tlt on gti.template_id = tlt.template_id and gti.mec_id = tlt.ticket_id) select * from finaldata where ticket_id is null) as base111 on post.pos_ticket_id = base111.pos_ticket_id where post.hotel_id = '47726';
+
+---- get tlt product which are active
+
+SELECT template_level_tickets.ticket_id, template_level_tickets.is_pos_list FROM `template_level_tickets` join modeventcontent mec on template_level_tickets.ticket_id = mec.mec_id left join ticketpriceschedule tps on tps.ticket_id = mec.mec_id  WHERE template_level_tickets.template_id = '1452' and template_level_tickets.deleted = '0' and template_level_tickets.publish_catalog = '1' and mec.deleted = '0' and tps.deleted = '0' and mec.deleted = '0' and date(from_unixtime(if(mec.endDate like '9999999', '1794812755', mec.endDate))) > CURRENT_DATE and tps.deleted = '0' and date(from_unixtime(if(tps.end_date like '9999999', '1794812755', tps.end_date))) > CURRENT_DATE group by template_level_tickets.ticket_id, template_level_tickets.is_pos_list
