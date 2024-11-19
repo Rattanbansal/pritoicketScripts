@@ -1,14 +1,23 @@
 #!/bin/bash
 
 set -e  # Exit immediately if any command exits with a non-zero status
-TIMEOUT_PERIOD=15
+TIMEOUT_PERIOD=25
 
 SOURCE_DB_HOST='10.10.10.19'
 SOURCE_DB_USER='pip'
 SOURCE_DB_PASSWORD='pip2024##'
 SOURCE_DB_NAME='priopassdb'
-CatalogID='168292237354238'
+CatalogID='173082040311145'
 ResellerId='686'
+BATCH_SIZE=30
+
+# SOURCE_DB_HOST='production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com'
+# SOURCE_DB_USER='pipeuser'
+# SOURCE_DB_PASSWORD='d4fb46eccNRAL'
+# SOURCE_DB_NAME='priopassdb'
+# CatalogID='168292237354238'
+# ResellerId='686'
+# BATCH_SIZE=30
 
 
 
@@ -248,7 +257,7 @@ WHERE
 GROUP BY
     tlt.template_level_tickets_id, qc.cod_id, tps.ticket_id) AS base2
 LEFT JOIN pos_tickets pos ON
-    base2.cod_id = pos.hotel_id AND base2.ticket_id = pos.mec_id) AS final_missing_entries_in_pos_tickets
+    base2.cod_id = pos.hotel_id AND base2.ticket_id = pos.mec_id and pos.deleted = '0') AS final_missing_entries_in_pos_tickets
 WHERE
     base_id IS NULL;select ROW_COUNT();"
 
@@ -273,7 +282,7 @@ update_POS_LIST="update pos_tickets poss join (select *, (case when tlc_is_pos_l
             ) as base left join template_level_tickets tlt on tlt.template_id = base.company_template_id and tlt.ticket_id = base.pos_ticket_id and tlt.deleted = '0' left join qr_codes qrc on qrc.template_id = tlt.template_id and qrc.cod_id = base.pos_hotel_id) as base2 where  (if(tlc_ticket_id IS NOT NULL and pos_is_pos_list != tlc_is_pos_list, 1, 0) = 1 or if((tlc_ticket_id IS NULL and tlt_ticket_id IS NOT NULL) and pos_is_pos_list != tlt_is_pos_list, 1, 0) = 1 or if((tlc_ticket_id is NULL and tlt_ticket_id IS  NULL) and pos_is_pos_list != main_template_pos_list, 1, 0) = 1)
         ) 
         
-        as base349 left join modeventcontent mec on base349.pos_ticket_id = mec.mec_id where mec.deleted = '0') as nnn) as setdata on poss.hotel_id = setdata.pos_hotel_id and poss.mec_id = setdata.pos_ticket_id and poss.is_pos_list != setdata.should_be set poss.is_pos_list = setdata.should_be"
+        as base349 left join modeventcontent mec on base349.pos_ticket_id = mec.mec_id where mec.deleted = '0') as nnn) as setdata on poss.hotel_id = setdata.pos_hotel_id and poss.mec_id = setdata.pos_ticket_id and poss.is_pos_list != setdata.should_be set poss.is_pos_list = setdata.should_be;select ROW_COUNT();"
 
 echo "---------Update POS MISMATCH-----------" >> running_queries.sql
 
@@ -283,8 +292,62 @@ echo "$update_POS_LIST" >> running_queries.sql
 echo "Update pos list started"
 
 timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$update_POS_LIST" || exit 1
-
 echo "Update pos list ended"
+
+echo "Remove Duplicate Product started"
+querystring1="select post.pos_ticket_id from pos_tickets post join (with pos_data as (select pos_ticket_id, hotel_id, mec_id,company, shortDesc, museum_id, is_pos_list from pos_tickets where hotel_id = '$cod_id' and deleted = '0'), get_template_id as (select ps.*, qc.template_id from pos_data ps left join qr_codes qc on ps.hotel_id = qc.cod_id where qc.cashier_type = '1'), finaldata as (select gti.*, tlt.template_id as template_template_id, tlt.ticket_id from get_template_id gti left join template_level_tickets tlt on gti.template_id = tlt.template_id and gti.mec_id = tlt.ticket_id) select * from finaldata where ticket_id is null) as base111 on post.pos_ticket_id = base111.pos_ticket_id where post.hotel_id = '$cod_id'"
+
+echo "$querystring1"
+
+pos_ticket_id=$(timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$querystring1") || exit 1
+
+echo "Remove Duplicate Product Ended"
+
+# Convert the vt_group_numbers into an array
+pos_ticket_array=($pos_ticket_id)
+total_pos_ids=${#pos_ticket_array[@]}
+
+# Print the total count of vt_group_no for the current ticket_id
+echo "Processing Ticket ID: $ticket_id with $total_pos_ids pos_ticket_id values"
+
+# Initialize the progress tracking for the current ticket_id
+current_progress=0
+
+# Loop through vt_group_no array in batches
+    for ((i=0; i<$total_pos_ids; i+=BATCH_SIZE)); do
+        # Create a batch of vt_group_no values
+        batch=("${pos_ticket_array[@]:$i:$BATCH_SIZE}")
+        batch_size=${#batch[@]}
+
+        # Calculate the current progress level for this ticket_id
+        current_progress=$((i + batch_size))
+        
+        # Join the batch into a comma-separated list
+        batch_str=$(IFS=,; echo "${batch[*]}")
+
+        # Print progress information for the current ticket_id
+        echo "Processing batch of size $batch_size for Ticket ID: $cod_id ($current_progress / $total_pos_ids processed)" >> log.txt
+
+        pos_update="update pos_tickets set deleted = '7' where pos_ticket_id in ($batch_str);select ROW_COUNT();"
+
+        echo "$pos_update"
+
+        if [ -z "$pos_ticket_id" ]; then
+
+            echo "No results found. Proceeding with further steps. for ($batch_str)" >> no_mismatch.txt
+        
+        else
+
+            echo "------$(date '+%Y-%m-%d %H:%M:%S.%3N')--------" >> found_mismatch.txt 
+            echo "$batch_str" >> found_mismatch.txt
+            echo "Mismatch Out of above" >> found_mismatch.txt
+            echo "Query returned results:"
+
+            timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$pos_update"
+        fi
+
+        sleep 5
+    done
 
 curl https://cron.prioticket.com/backend/purge_fastly/Custom_purge_fastly_cache/1/0/$cod_id
 
