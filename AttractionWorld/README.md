@@ -123,3 +123,27 @@ select * from pos_tickets post join (with pos_data as (select pos_ticket_id, hot
 ---- get tlt product which are active
 
 SELECT template_level_tickets.ticket_id, template_level_tickets.is_pos_list FROM `template_level_tickets` join modeventcontent mec on template_level_tickets.ticket_id = mec.mec_id left join ticketpriceschedule tps on tps.ticket_id = mec.mec_id  WHERE template_level_tickets.template_id = '1452' and template_level_tickets.deleted = '0' and template_level_tickets.publish_catalog = '1' and mec.deleted = '0' and tps.deleted = '0' and mec.deleted = '0' and date(from_unixtime(if(mec.endDate like '9999999', '1794812755', mec.endDate))) > CURRENT_DATE and tps.deleted = '0' and date(from_unixtime(if(tps.end_date like '9999999', '1794812755', tps.end_date))) > CURRENT_DATE group by template_level_tickets.ticket_id, template_level_tickets.is_pos_list
+
+
+-- Now issue that we have default listing not correct
+
+SELECT ticket_id,from_unixtime(start_date) as start_date, from_unixtime(end_date) as end_date, max(default_listing) as default_listing, case when ticket_type_label = 'Adult' then '1' else 0 end as type, last_modified_at FROM `ticketpriceschedule` where ticket_id > '0' and  deleted = '0' and DATE(
+        FROM_UNIXTIME(
+            IF(
+                end_date LIKE '%9999999%',
+                '1750343264',
+                end_date
+            )
+        )
+    ) >= CURRENT_DATE() group by ticket_id, start_date, end_date having default_listing = '0' limit 100
+
+
+select id, ticket_type_label, default_listing,from_unixtime(start_date) as start_date, from_unixtime(end_date) as end_date  from ticketpriceschedule where ticket_id = '12484' and deleted = '0' and DATE(
+        FROM_UNIXTIME(
+            IF(
+                end_date LIKE '%9999999%',
+                '1750343264',
+                end_date
+            )
+        )
+    ) >= CURRENT_DATE() order by start_date, end_date asc
