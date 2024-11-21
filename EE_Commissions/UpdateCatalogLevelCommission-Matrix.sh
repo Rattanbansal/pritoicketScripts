@@ -20,6 +20,12 @@ LOCAL_PASS="pip2024##"
 LOCAL_NAME="priopassdb"
 LOCAL_NAME_1="priopassdb"
 
+# LOCAL_HOST="production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com"
+# LOCAL_USER="pipeuser"
+# LOCAL_PASS="d4fb46eccNRAL"
+# LOCAL_NAME="priopassdb"
+# LOCAL_NAME_1="priopassdb"
+
 echo "ticket_id,hotel_id,commission,reseller_id,cod_id,sub_catalog_id,channel_level_commission_id,ticketpriceschedule_id,resale_currency_level,currency,commission_on_sale_price,is_hotel_prepaid_commission_percentage,hotel_prepaid_commission_percentage,hgs_prepaid_commission_percentage,ticket_net_price,museum_net_commission,merchant_net_commission,hotel_commission_net_price,hgs_commission_net_price,hotel_commission_should_be,gap" > Catalog_level_mismatch.csv
 
 

@@ -21,6 +21,12 @@ LOCAL_PASS="pip2024##"
 LOCAL_NAME="priopassdb"
 LOCAL_NAME_1="priopassdb"
 
+# LOCAL_HOST="production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com"
+# LOCAL_USER="pipeuser"
+# LOCAL_PASS="d4fb46eccNRAL"
+# LOCAL_NAME="priopassdb"
+# LOCAL_NAME_1="priopassdb"
+
 ## GEt Distinct Reseller_id from Pricelist table
 
 
