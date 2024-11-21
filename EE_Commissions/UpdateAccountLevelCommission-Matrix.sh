@@ -13,7 +13,7 @@ ChannelLEVELTABLE=channel_level_commission
 BackupFILETLC="/home/intersoft-admin/rattan/backup/$AccountLEVELTABLE.sql"
 BackupFILECLC="/home/intersoft-admin/rattan/backup/$AccountLEVELTABLE.sql"
 
-### Database credentials for Local database so that can work without interuption
+## Database credentials for Local database so that can work without interuption
 LOCAL_HOST="10.10.10.19"
 LOCAL_USER="pip"
 LOCAL_PASS="pip2024##"
@@ -22,6 +22,14 @@ LOCAL_NAME_1="priopassdb"
 GETBACKUP=$1
 IMPORTDATATOHOST=$2
 
+# LOCAL_HOST="production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com"
+# LOCAL_USER="pipeuser"
+# LOCAL_PASS="d4fb46eccNRAL"
+# LOCAL_NAME="priopassdb"
+# LOCAL_NAME_1="priopassdb"
+# GETBACKUP=$1
+# IMPORTDATATOHOST=$2
+
 if [[ $GETBACKUP == 2 ]]; then
 
     echo "Condition 2 Satisfied"
@@ -29,6 +37,8 @@ if [[ $GETBACKUP == 2 ]]; then
     echo "Started Instering Data from Scratch"
 
     mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D rattan -e "TRUNCATE TABLE pricelist; TRUNCATE TABLE distributors"
+
+    sleep 5
 
     python pricelist.py pricelist.csv
 
@@ -82,6 +92,8 @@ if [[ $IMPORTDATATOHOST == 2 ]]; then
     timeout $TIMEOUT_PERIOD time mysql -h"$LOCAL_HOST" -u"$LOCAL_USER" -p"$LOCAL_PASS" -D"$LOCAL_NAME" < distributors.sql || exit 1
     echo "Distributor DUMP restore ended"
 
+    sleep 5
+
     echo "Pricelist dump started"
     time mysqldump --single-transaction --skip-lock-tables  --no-create-info -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" rattan pricelist > pricelist.sql || exit 1
     echo "Pricelist dump ended"
@@ -99,10 +111,14 @@ else
 
 fi
 
+exit 1
+
 
 product_ids=$(timeout $TIMEOUT_PERIOD time mysql -h"$LOCAL_HOST" -u"$LOCAL_USER" -p"$LOCAL_PASS" -D"$LOCAL_NAME" -sN -e "select distinct product_id from (SELECT d.ticket_id as product_id, d.hotel_id as distributor_id, d.commission as commission,tlc.ticket_id, tlc.hotel_prepaid_commission_percentage, tlc.is_hotel_prepaid_commission_percentage, tlc.commission_on_sale_price, tlc.ticket_net_price, tlc.museum_net_commission, tlc.merchant_net_commission, tlc.hotel_commission_net_price, tlc.hgs_commission_net_price FROM "$LOCAL_NAME_1".distributors d left join "$LOCAL_NAME".ticket_level_commission tlc on d.hotel_id = tlc.hotel_id and d.ticket_id = tlc.ticket_id and tlc.deleted = '0' and tlc.is_adjust_pricing = '1') as base where ticket_id is not NULL and (ABS(commission-hotel_prepaid_commission_percentage) > '0.01' or commission_on_sale_price != '1' or is_hotel_prepaid_commission_percentage != '1' or ABS(ticket_net_price-museum_net_commission-merchant_net_commission-hotel_commission_net_price-hgs_commission_net_price) > '0.02' or ABS(ticket_net_price-hgs_commission_net_price-hotel_commission_net_price) > '0.02')")
 
 echo "ticket_level_commission_id,product_id,distributor_id,commission,hotel_prepaid_commission_percentage,is_hotel_prepaid_commission_percentage,commission_on_sale_price,hgs_prepaid_commission_percentage,ticket_net_price,museum_net_commission,merchant_net_commission,hotel_commission_net_price,hgs_commission_net_price" > tlc_level_mismatch.csv
+
+exit 1
 
 for product_id in ${product_ids}
 
