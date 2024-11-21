@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e  # Exit immediately if any command exits with a non-zero status
-TIMEOUT_PERIOD=300
+TIMEOUT_PERIOD=20
 
 ### Database Credentials For 19 DB
 DB_HOST="10.10.10.19"
@@ -14,13 +14,13 @@ BackupFILETLC="/home/intersoft-admin/rattan/backup/$AccountLEVELTABLE.sql"
 BackupFILECLC="/home/intersoft-admin/rattan/backup/$AccountLEVELTABLE.sql"
 
 ## Database credentials for Local database so that can work without interuption
-LOCAL_HOST="10.10.10.19"
-LOCAL_USER="pip"
-LOCAL_PASS="pip2024##"
-LOCAL_NAME="priopassdb"
-LOCAL_NAME_1="priopassdb"
-GETBACKUP=$1
-IMPORTDATATOHOST=$2
+# LOCAL_HOST="10.10.10.19"
+# LOCAL_USER="pip"
+# LOCAL_PASS="pip2024##"
+# LOCAL_NAME="priopassdb"
+# LOCAL_NAME_1="priopassdb"
+# GETBACKUP=$1
+# IMPORTDATATOHOST=$2
 
 # LOCAL_HOST="production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com"
 # LOCAL_USER="pipeuser"
@@ -117,7 +117,6 @@ product_ids=$(timeout $TIMEOUT_PERIOD time mysql -h"$LOCAL_HOST" -u"$LOCAL_USER"
 
 echo "ticket_level_commission_id,product_id,distributor_id,commission,hotel_prepaid_commission_percentage,is_hotel_prepaid_commission_percentage,commission_on_sale_price,hgs_prepaid_commission_percentage,ticket_net_price,museum_net_commission,merchant_net_commission,hotel_commission_net_price,hgs_commission_net_price" > tlc_level_mismatch.csv
 
-exit 1
 
 for product_id in ${product_ids}
 
