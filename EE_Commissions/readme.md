@@ -88,3 +88,9 @@ with qr_codess as (select reseller_id,cod_id, sub_catalog_id from priopassdb.qr_
 -- Product not have custom pricing
 
 select * from (SELECT d.ticket_id as product_id, d.hotel_id as distributor_id, d.commission as commission,tlc.ticket_id, tlc.hotel_prepaid_commission_percentage, tlc.is_hotel_prepaid_commission_percentage, tlc.commission_on_sale_price, tlc.ticket_net_price, tlc.museum_net_commission, tlc.merchant_net_commission, tlc.hotel_commission_net_price, tlc.hgs_commission_net_price, tlc.hgs_prepaid_commission_percentage, tlc.is_adjust_pricing FROM priopassdb.distributors d left join priopassdb.ticket_level_commission tlc on d.hotel_id = tlc.hotel_id and d.ticket_id = tlc.ticket_id and tlc.deleted = '0' and tlc.is_adjust_pricing = '1') as base where ticket_id is not NULL and (hotel_prepaid_commission_percentage + hgs_prepaid_commission_percentage > '0.02') and is_adjust_pricing != '1';
+
+
+
+----------------Orders Related Process----------------------
+
+select concat(transaction_id,'R') as transaction_id, row_type, transaction_type_name, partner_net_price, hotel_id, ticketId, channel_id, ticketpriceschedule_id from visitor_tickets where transaction_id = '173175217632517003' 
