@@ -93,6 +93,8 @@ do
     # bq query --use_legacy_sql=False --format=prettyjson \
     # "with base as (SELECT tlc.*, clc.channel_level_commission_id as id FROM prioticket-reporting.prio_test.channel_level_commission_synch tlc left join prioticket-reporting.prio_olap.channel_level_commission clc on tlc.channel_level_commission_id = clc.channel_level_commission_id and tlc.ticket_id = clc.ticket_id and tlc.ticketpriceschedule_id = clc.ticketpriceschedule_id and tlc.last_modified_at = clc.last_modified_at) select * from base where id is NULL" > final_mismatch.csv
 
+    # (with tlc1 as (select *,row_number() over(partition by channel_level_commission_id order by last_modified_at desc ) as rn from prioticket-reporting.prio_test.channel_level_commission_synch),tlc as (select * from tlc1 where rn=1),clc1 as (select *,row_number() over(partition by channel_level_commission_id order by last_modified_at desc ) as rn from prioticket-reporting.prio_olap.channel_level_commission),clc as (select * from clc1 where rn=1),base as (SELECT tlc.*, clc.channel_level_commission_id as id FROM tlc left join  clc on tlc.channel_level_commission_id = clc.channel_level_commission_id and tlc.ticket_id = clc.ticket_id and tlc.ticketpriceschedule_id = clc.ticketpriceschedule_id) select *except(rn,id) from base where id is NULL and channel_level_commission_id =12053939)
+
     # mysql -h 10.10.10.19 -u pip -p'pip2024##' priopassdb -e "select count(*) from channel_level_commission"
 
     # rm -rf *.json

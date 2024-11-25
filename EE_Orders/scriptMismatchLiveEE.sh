@@ -4,10 +4,16 @@ set -e  # Exit immediately if any command exits with a non-zero status
 TIMEOUT_PERIOD=25
 
 
-DB_HOST='10.10.10.19'
-DB_USER='pip'
-DB_PASS='pip2024##'
-DB_NAME='rattan'
+# DB_HOST='10.10.10.19'
+# DB_USER='pip'
+# DB_PASS='pip2024##'
+# DB_NAME='rattan'
+# BATCH_SIZE=25
+
+DB_HOST='localhost'
+DB_USER='admin'
+DB_PASS='redhat'
+DB_NAME='dummy'
 BATCH_SIZE=25
 
 mysqlHost="prodrds.prioticket.com"
@@ -174,7 +180,7 @@ ON
 
             echo "No results found. Proceeding with further steps. for ($batch_str)" >> no_mismatch.txt
             # Add your further steps here
-            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "update orders set status = '1' where vt_group_no in ($batch_str)" || exit 1
+            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "update matrix set status = '1' where visitor_group_no in ($batch_str)" || exit 1
 
         else 
 
@@ -296,12 +302,12 @@ ON
             sleep 3
             timeout $TIMEOUT_PERIOD time mysql -h"$mysqlHost" -u"$mysqlUser" -p"$mysqlPassword" -D"$mysqlDatabase" -sN -e "$MISMATCHFInal" >> MismatchRecords.csv || exit 1
 
-            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "update orders set status = '2' where vt_group_no in ($mismatchvgn)" || exit 1
+            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "update matrix set status = '2' where visitor_group_no in ($mismatchvgn)" || exit 1
 
             
             echo "Sleep Started to Run next VGNS"
             echo "------$(date '+%Y-%m-%d %H:%M:%S.%3N')--------"
-            exit;
+
             sleep 3
 
         fi
