@@ -129,7 +129,7 @@ JOIN(
         vt_group_no,
         transaction_id,
         row_type,
-        max(partner_net_price) as salePrice,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
         MAX(VERSION) AS VERSION
     FROM
         visitor_tickets
@@ -256,7 +256,7 @@ JOIN(
         vt_group_no,
         transaction_id,
         row_type,
-        max(partner_net_price) as salePrice,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
         MAX(VERSION) AS VERSION
     FROM
         visitor_tickets
