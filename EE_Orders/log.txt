@@ -1,2 +1,0 @@
-Processing batch of size 25 for Ticket ID: 13928 (25 / 1756 processed)
-Processing batch of size 25 for Ticket ID: 13928 (25 / 1756 processed)
