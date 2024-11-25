@@ -63,3 +63,29 @@ for ((i=0; i<$total_vt_groups; i+=BATCH_SIZE)); do
     sleep 3
 
 done
+
+
+## Structure to Import record.csv data to database.
+
+# CREATE TABLE `evanorders` (
+#   `vt_group_no` bigint NOT NULL,
+#   `ticketId` int NOT NULL,
+#   `ticketpriceschedule_id` int NOT NULL,
+#   `channel_id` int NOT NULL,
+#   `hotel_id` int NOT NULL
+# ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+# --
+# -- Indexes for dumped tables
+# --
+
+# --
+# -- Indexes for table `evanorders`
+# --
+# ALTER TABLE `evanorders`
+#   ADD KEY `vt` (`vt_group_no`),
+#   ADD KEY `ticketid` (`ticketId`),
+#   ADD KEY `tps` (`ticketpriceschedule_id`),
+#   ADD KEY `ci` (`channel_id`),
+#   ADD KEY `hi` (`hotel_id`);
+# COMMIT;
