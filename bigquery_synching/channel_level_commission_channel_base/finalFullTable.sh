@@ -1,5 +1,8 @@
 #!/bin/bash
 
+
+set -e  # Exit immediately if any command exits with a non-zero status
+
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
@@ -15,7 +18,7 @@ gcloud config set project prioticket-reporting
 echo "------Started Fetching Channel Id from Bigquery--------"
 
 channel_id_bq=$(bq query --use_legacy_sql=False --max_rows=1000000 --format=csv \
-"select distinct channel_id FROM prioticket-reporting.prio_test.channel_level_commission_synch where 1=1 and channel_level_commission_id != 2" | tail -n +2)
+"select distinct channel_id FROM prioticket-reporting.prio_test.channel_level_commission_synch where 1=1 and channel_level_commission_id != 2" | tail -n +2) || exit 1
 
 
 echo "Entered Under Conditional Statement"
@@ -41,7 +44,7 @@ DBDATABASE="priopassdb"
 echo "select channel_id from channel_level_commission where last_modified_at > '2024-11-14 00:00:01' and deleted = '0' and channel_id > '0' "$exclude_clause" group by channel_id order by count(*) desc;"
 
 echo "--------------Started Running Mysql Query----------------"
-ticket_ids=$(mysql -h $DBHOST --user=$DBUSER --password=$DBPWD $DBDATABASE -N -e "select channel_id from channel_level_commission where last_modified_at > '2024-11-14 00:00:01' and deleted = '0' and channel_id > '0' $exclude_clause group by channel_id order by count(*) desc;")
+ticket_ids=$(mysql -h $DBHOST --user=$DBUSER --password=$DBPWD $DBDATABASE -N -e "select channel_id from channel_level_commission where last_modified_at > '2024-11-14 00:00:01' and deleted = '0' and channel_id > '0' $exclude_clause group by channel_id order by count(*) desc;") || exit 1
 
 echo $ticket_ids
 
@@ -56,7 +59,7 @@ do
     echo "Record from database Found using ticket_id id: $ticket_id" #>> inserted_data.txt
 
 
-    echo "select * from channel_level_commission where last_modified_at > '2024-11-14 00:00:01' and deleted = '0' and channel_id = '$ticket_id'" | time mysqlsh --sql --json --uri $DBUSER@$DBHOST -p$DBPWD --database=$DBDATABASE >> "$ticket_id"_primarypt.json
+    echo "select * from channel_level_commission where last_modified_at > '2024-11-14 00:00:01' and deleted = '0' and channel_id = '$ticket_id'" | time mysqlsh --sql --json --uri $DBUSER@$DBHOST -p$DBPWD --database=$DBDATABASE >> "$ticket_id"_primarypt.json || exit 1
 
     jq 'select(.warning | not)' "$ticket_id"_primarypt.json >> "$ticket_id"_primarypt1.json
 
@@ -75,7 +78,7 @@ do
     rm "$ticket_id"_primaryptrows.json
 
 
-    bq load --source_format=NEWLINE_DELIMITED_JSON  prio_test.channel_level_commission_synch "$ticket_id"_ndnewjson.json
+    bq load --source_format=NEWLINE_DELIMITED_JSON  prio_test.channel_level_commission_synch "$ticket_id"_ndnewjson.json || exit 1
 
     # exit
 
