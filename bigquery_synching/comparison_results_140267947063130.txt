@@ -1,0 +1,2 @@
+Comparing MySQL and BigQuery data for catalog_id: 140267947063130
+Data matches for catalog_id: 140267947063130
