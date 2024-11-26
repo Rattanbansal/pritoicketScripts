@@ -100,3 +100,22 @@ do
     # mysql -h 10.10.10.19 -u pip -p'pip2024##' priopassdb -e "select count(*) from channel_level_commission"
 
     # rm -rf *.json
+
+    # SELECT catalog_id,count(*) FROM `channel_level_commission` where last_modified_at > '2024-11-14 00:00:01' and channel_id = '0' and catalog_id > '0' and catalog_id = 140267947063130 and deleted = '0' group by catalog_id order by count(*) desc;
+
+#     SELECT
+#   catalog_id,
+#   COUNT(*)
+# FROM
+#   `prioticket-reporting.prio_test.channel_level_commission_synch`
+# WHERE
+#   last_modified_at > '2024-11-14 00:00:01'
+#   AND channel_id = 0
+#   AND catalog_id > 0
+#   AND deleted = 0
+# GROUP BY
+#   catalog_id
+# ORDER BY
+#   COUNT(*) DESC;
+
+# 2669879
