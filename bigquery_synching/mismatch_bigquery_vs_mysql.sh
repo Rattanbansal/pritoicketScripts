@@ -64,18 +64,18 @@ do
 
     echo "------$catalog_id - Started at: $(date '+%Y-%m-%d %H:%M:%S.%3N')--------"
 
-    mysql_data=$(echo "SELECT $selectQueryColumns FROM channel_level_commission WHERE deleted = '0' AND catalog_id > 2 and catalog_id = '$catalog_id' AND channel_id = 0 and channel_level_commission_id = '10072103';" | time mysqlsh --sql --json --uri $DBUSER@$DBHOST -p$DBPWD --database=$DBDATABASE | jq 'select(.warning | not) | .rows | map(.)')
+    mysql_data=$(echo "SELECT $selectQueryColumns FROM channel_level_commission WHERE deleted = '0' AND catalog_id > 2 and catalog_id = '$catalog_id' AND channel_id = 0 order by channel_level_commission_id asc;" | time mysqlsh --sql --json --uri $DBUSER@$DBHOST -p$DBPWD --database=$DBDATABASE | jq 'select(.warning | not) | .rows | map(.)')
     
 
-    bq_data=$(bq query --use_legacy_sql=False --max_rows=100000 --format=json \
-    "with final as (select $selectQueryColumns, row_number () over ( partition by $partition_column order by last_modified_at desc) as rn from prioticket-reporting.prio_test.channel_level_commission where catalog_id = $catalog_id and channel_level_commission_id = 10072103) select *except(rn) from final where rn = 1")
+    bq_data=$(bq query --use_legacy_sql=False --max_rows=1000000 --format=json \
+    "with final as (select $selectQueryColumns, row_number () over ( partition by $partition_column order by last_modified_at desc) as rn from prioticket-reporting.prio_olap.channel_level_commission where catalog_id = $catalog_id) select *except(rn) from final where rn = 1 and deleted = 0 order by channel_level_commission_id asc")
 
     # Normalize MySQL data
     mysql_data=$(normalize_mysql_data "$mysql_data")
 
     echo "-------------------MYSQL Data----------------"
 
-    echo "$mysql_data"
+    # echo "$mysql_data"
     
 
     echo "-------------------BQ Data----------------"
@@ -84,8 +84,13 @@ do
     bq_data=$(normalize_bq_data "$bq_data")
 
     # Compare normalized datasets
-    echo "Comparing MySQL and BigQuery data for catalog_id: $catalog_id" | tee -a "$output_file"
-    diff_output=$(diff <(echo "$mysql_data") <(echo "$bq_data"))
+
+    # Sort both datasets by a unique key (e.g., channel_level_commission_id) before comparison
+    sorted_mysql_data=$(echo "$mysql_data" | jq -S 'sort_by(.channel_level_commission_id)')
+    sorted_bq_data=$(echo "$bq_data" | jq -S 'sort_by(.channel_level_commission_id)')
+
+    # Perform comparison after sorting
+    diff_output=$(diff <(echo "$sorted_mysql_data") <(echo "$sorted_bq_data"))
 
     if [ -z "$diff_output" ]; then
         echo "Data matches for catalog_id: $catalog_id" | tee -a "$output_file"

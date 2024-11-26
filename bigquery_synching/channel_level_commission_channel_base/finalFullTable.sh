@@ -14,7 +14,7 @@ gcloud config set project prioticket-reporting
 
 echo "------Started Fetching Channel Id from Bigquery--------"
 
-channel_id_bq=$(bq query --use_legacy_sql=False --max_rows=100000 --format=csv \
+channel_id_bq=$(bq query --use_legacy_sql=False --max_rows=1000000 --format=csv \
 "select distinct channel_id FROM prioticket-reporting.prio_test.channel_level_commission_synch where 1=1 and channel_level_commission_id != 2" | tail -n +2)
 
 
@@ -38,10 +38,10 @@ DBPWD="pip2024##"
 DBDATABASE="priopassdb"
 
 
-echo "select channel_id from channel_level_commission where deleted = '0' and channel_id > '0' "$exclude_clause" group by channel_id order by count(*) desc;"
+echo "select channel_id from channel_level_commission where last_modified_at > '2024-11-14 00:00:01' and deleted = '0' and channel_id > '0' "$exclude_clause" group by channel_id order by count(*) desc;"
 
 echo "--------------Started Running Mysql Query----------------"
-ticket_ids=$(mysql -h $DBHOST --user=$DBUSER --password=$DBPWD $DBDATABASE -N -e "select channel_id from channel_level_commission where deleted = '0' and channel_id > '0' $exclude_clause group by channel_id order by count(*) desc;")
+ticket_ids=$(mysql -h $DBHOST --user=$DBUSER --password=$DBPWD $DBDATABASE -N -e "select channel_id from channel_level_commission where last_modified_at > '2024-11-14 00:00:01' and deleted = '0' and channel_id > '0' $exclude_clause group by channel_id order by count(*) desc;")
 
 echo $ticket_ids
 
@@ -56,7 +56,7 @@ do
     echo "Record from database Found using ticket_id id: $ticket_id" #>> inserted_data.txt
 
 
-    echo "select * from channel_level_commission where deleted = '0' and channel_id = '$ticket_id'" | time mysqlsh --sql --json --uri $DBUSER@$DBHOST -p$DBPWD --database=$DBDATABASE >> "$ticket_id"_primarypt.json
+    echo "select * from channel_level_commission where last_modified_at > '2024-11-14 00:00:01' and deleted = '0' and channel_id = '$ticket_id'" | time mysqlsh --sql --json --uri $DBUSER@$DBHOST -p$DBPWD --database=$DBDATABASE >> "$ticket_id"_primarypt.json
 
     jq 'select(.warning | not)' "$ticket_id"_primarypt.json >> "$ticket_id"_primarypt1.json
 
