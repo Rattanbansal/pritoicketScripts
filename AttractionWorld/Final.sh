@@ -1,23 +1,23 @@
 #!/bin/bash
 
 set -e # Exit immediately if any command exits with a non-zero status
-TIMEOUT_PERIOD=25
+TIMEOUT_PERIOD=40
 
-SOURCE_DB_HOST='10.10.10.19'
-SOURCE_DB_USER='pip'
-SOURCE_DB_PASSWORD='pip2024##'
-SOURCE_DB_NAME='priopassdb'
-CatalogID='173082040311145'
-ResellerId='686'
-BATCH_SIZE=30
-
-# SOURCE_DB_HOST='production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com'
-# SOURCE_DB_USER='pipeuser'
-# SOURCE_DB_PASSWORD='d4fb46eccNRAL'
+# SOURCE_DB_HOST='10.10.10.19'
+# SOURCE_DB_USER='pip'
+# SOURCE_DB_PASSWORD='pip2024##'
 # SOURCE_DB_NAME='priopassdb'
-# CatalogID='168292237354238'
+# CatalogID='173082040311145'
 # ResellerId='686'
 # BATCH_SIZE=30
+
+SOURCE_DB_HOST='production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com'
+SOURCE_DB_USER='pipeuser'
+SOURCE_DB_PASSWORD='d4fb46eccNRAL'
+SOURCE_DB_NAME='priopassdb'
+CatalogID='168190115258196'
+ResellerId='686'
+BATCH_SIZE=30
 
 Catalog_product_delete="update template_level_tickets set deleted = '8' where catalog_id = '$CatalogID' and deleted = '0' and template_id = '0'"
 

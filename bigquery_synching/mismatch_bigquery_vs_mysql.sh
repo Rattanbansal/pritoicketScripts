@@ -41,14 +41,20 @@ echo "-----------Started Fetching Data from BigQuery--------"
 gcloud config set project prioticket-reporting
 
 # MySQL connection details
-DBHOST="10.10.10.19"
-DBUSER="pip"
-DBPWD="pip2024##"
-DBDATABASE="priopassdb"
+# DBHOST="10.10.10.19"
+# DBUSER="pip"
+# DBPWD="pip2024##"
+# DBDATABASE="priopassdb"
+
+DBHOST='163.47.214.30'
+DBUSER='datalook'
+DBPWD='datalook2024$$'
+DBDATABASE='priopassdb'
+PORT="3307"
 
 # Fetch catalog IDs from MySQL
 echo "-----------Fetching Data from MySQL-----------"
-catalog_ids=$(mysql -h $DBHOST -u $DBUSER -p$DBPWD $DBDATABASE -N -e \
+catalog_ids=$(mysql -h $DBHOST -u $DBUSER --port=$PORT -p$DBPWD $DBDATABASE -N -e \
 "SELECT DISTINCT catalog_id 
  FROM channel_level_commission 
  WHERE deleted = '0' AND catalog_id > 2 AND channel_id = 0;" 2>/dev/null)
@@ -64,7 +70,7 @@ do
 
     echo "------$catalog_id - Started at: $(date '+%Y-%m-%d %H:%M:%S.%3N')--------"
 
-    mysql_data=$(echo "SELECT $selectQueryColumns FROM channel_level_commission WHERE deleted = '0' AND catalog_id > 2 and catalog_id = '$catalog_id' AND channel_id = 0 order by channel_level_commission_id asc;" | time mysqlsh --sql --json --uri $DBUSER@$DBHOST -p$DBPWD --database=$DBDATABASE | jq 'select(.warning | not) | .rows | map(.)')
+    mysql_data=$(echo "SELECT $selectQueryColumns FROM channel_level_commission WHERE deleted = '0' AND catalog_id > 2 and catalog_id = '$catalog_id' AND channel_id = 0 order by channel_level_commission_id asc;" | time mysqlsh --sql --json --uri $DBUSER@$DBHOST:$PORT -p$DBPWD --database=$DBDATABASE | jq 'select(.warning | not) | .rows | map(.)')
     
 
     bq_data=$(bq query --use_legacy_sql=False --max_rows=1000000 --format=json \
