@@ -7,7 +7,7 @@ TIMEOUT_PERIOD=40
 # SOURCE_DB_USER='pip'
 # SOURCE_DB_PASSWORD='pip2024##'
 # SOURCE_DB_NAME='priopassdb'
-# CatalogID='173082040311145'
+# CatalogID='140267947063130'
 # ResellerId='686'
 # BATCH_SIZE=30
 
@@ -15,9 +15,11 @@ SOURCE_DB_HOST='production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-
 SOURCE_DB_USER='pipeuser'
 SOURCE_DB_PASSWORD='d4fb46eccNRAL'
 SOURCE_DB_NAME='priopassdb'
-CatalogID='168190115258196'
+CatalogID='140267947063130'
 ResellerId='686'
-BATCH_SIZE=30
+BATCH_SIZE=50
+
+echo "data Run for Catalog_id :---- $CatalogID"
 
 Catalog_product_delete="update template_level_tickets set deleted = '8' where catalog_id = '$CatalogID' and deleted = '0' and template_id = '0'"
 
@@ -69,6 +71,8 @@ cod_ids=$(timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_US
 for cod_id in ${cod_ids}; do
 
     echo $cod_id
+
+    echo "data Run for Distributor :---- $cod_id"
 
     #Remove hotel_level_exceptions
 
@@ -272,6 +276,7 @@ WHERE
 
     echo "---------Update POS MISMATCH-----------" >>running_queries.sql
 
+    sleep 5
     echo "$update_POS_LIST" >>running_queries.sql
 
     echo "Update pos list started"
