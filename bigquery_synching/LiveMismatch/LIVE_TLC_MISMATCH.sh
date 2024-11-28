@@ -8,8 +8,8 @@ export LANGUAGE=en_US.UTF-8
 rm -rf *.json
 
 gcloud config set project prioticket-reporting
-# bq query --use_legacy_sql=False --format=prettyjson \
-# "delete FROM prioticket-reporting.prio_test.ticket_level_mismatch where 1=1"
+bq query --use_legacy_sql=False --format=prettyjson \
+"delete FROM prioticket-reporting.prio_test.ticket_level_mismatch where 1=1"
 
 maxLoopLimit=500
 limit=50000
