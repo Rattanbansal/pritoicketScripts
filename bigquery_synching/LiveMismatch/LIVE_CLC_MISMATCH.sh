@@ -5,7 +5,7 @@ export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
 
 
-rm -rf *.json
+rm -rf final_mismatch.json
 
 gcloud config set project prioticket-reporting
 bq query --use_legacy_sql=False --format=prettyjson \
@@ -74,7 +74,7 @@ if [[ $UploadData == 2 ]]; then
     offset=$((offset+$limit))
     i=$((i+1))
 
-    rm -rf *.json
+    rm -rf *_primarypt.json  *_primarypt1.json *_primarypt2.json *._primaryptrows.json *._ndnewjson.json
 
     done
 
