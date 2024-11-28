@@ -15,7 +15,7 @@ SOURCE_DB_HOST='production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-
 SOURCE_DB_USER='pipeuser'
 SOURCE_DB_PASSWORD='d4fb46eccNRAL'
 SOURCE_DB_NAME='priopassdb'
-CatalogID='140267947063130'
+CatalogID='168190198962842'
 ResellerId='686'
 BATCH_SIZE=50
 
@@ -64,6 +64,10 @@ sleep 2
 # mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$Update_QueryTocheckProduct_exist_in_Catalog"
 
 sleep 2
+
+Distribitorcount=$(timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "select count(*) from qr_codes where sub_catalog_id = '$CatalogID' and cashier_type = '1'") || exit 1
+
+echo "***********Total Distributors:   $Distribitorcount--****************"
 
 echo "Fetch Distributor ID started"
 cod_ids=$(timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$Linked_Distributors_LIST") || exit 1
