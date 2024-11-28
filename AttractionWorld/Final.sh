@@ -15,7 +15,7 @@ SOURCE_DB_HOST='production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-
 SOURCE_DB_USER='pipeuser'
 SOURCE_DB_PASSWORD='d4fb46eccNRAL'
 SOURCE_DB_NAME='priopassdb'
-CatalogID='168190215862291'
+CatalogID='168190099258426'
 ResellerId='686'
 BATCH_SIZE=50
 
