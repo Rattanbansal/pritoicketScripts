@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Path to the JSON file
-JSON_FILE="/home/intersoft-admin/rattan/pritoicketScripts/bigquery_synching/LiveMismatch/final_mismatch.json"
+JSON_FILE="/home/intersoft-admin/rattan/pritoicketScripts/bigquery_synching/LiveMismatch/final_mismatch_TLC.json"
 
 # Batch size
 BATCH_SIZE=50
@@ -29,7 +29,7 @@ for (( i=0; i<$total_ids; i+=$BATCH_SIZE )); do
     # Join ids with commas
     ids_joined=$(IFS=, ; echo "${batch[*]}")
     # Construct the MySQL update query
-    query="UPDATE channel_level_commission SET last_modified_at = CURRENT_TIMESTAMP WHERE channel_level_commission_id IN ($ids_joined);"
+    query="UPDATE ticket_level_commission SET last_modified_at = CURRENT_TIMESTAMP WHERE ticket_level_commission_id IN ($ids_joined);"
 
     echo "$query" 
     # Execute the query

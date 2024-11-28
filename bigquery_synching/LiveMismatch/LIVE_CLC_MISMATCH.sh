@@ -17,7 +17,8 @@ offset=0
 i=1
 
 SELECTCOLUMNS="channel_level_commission_id, ticket_id, ticketpriceschedule_id, last_modified_at"
-previous_date=$(date -d "yesterday" +"%Y-%m-%d 00:00:01")
+# previous_date=$(date -d "yesterday" +"%Y-%m-%d 00:00:01")
+previous_date=$(date -d "2 days ago" +"%Y-%m-%d 00:00:01")
 
 echo "$previous_date"
 
@@ -74,7 +75,7 @@ if [[ $UploadData == 2 ]]; then
     offset=$((offset+$limit))
     i=$((i+1))
 
-    rm -rf *_primarypt.json  *_primarypt1.json *_primarypt2.json *._primaryptrows.json *._ndnewjson.json
+    rm -rf *_primarypt.json  *_primarypt1.json *_primarypt2.json *_primaryptrows.json *_ndnewjson.json
 
     done
 

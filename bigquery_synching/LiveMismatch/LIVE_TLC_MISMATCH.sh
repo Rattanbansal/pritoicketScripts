@@ -73,7 +73,7 @@ if [[ $UploadData == 2 ]]; then
     offset=$((offset+$limit))
     i=$((i+1))
 
-    rm -rf *_primarypt.json  *_primarypt1.json *_primarypt2.json *._primaryptrows.json *._ndnewjson.json
+    rm -rf *_primarypt.json  *_primarypt1.json *_primarypt2.json *_primaryptrows.json *_ndnewjson.json
 
     done
 

@@ -15,15 +15,15 @@ SOURCE_DB_HOST='production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-
 SOURCE_DB_USER='pipeuser'
 SOURCE_DB_PASSWORD='d4fb46eccNRAL'
 SOURCE_DB_NAME='priopassdb'
-CatalogID='165244811465876'
+CatalogID='160260192352124'
 ResellerId='686'
 BATCH_SIZE=50
 
-echo "data Run for Catalog_id :---- $CatalogID" >> raja.txt
+echo "data Run for Catalog_id :---- $CatalogID" >> raja2.txt
 
 Catalog_product_delete="update template_level_tickets set deleted = '8' where catalog_id = '$CatalogID' and deleted = '0' and template_id = '0'"
 
-Linked_Distributors_LIST="select distinct(cod_id) as cod_id from qr_codes where sub_catalog_id = '$CatalogID' and cod_id not in (13900,13902,13903,13904,13905,13908,13908,13909,13910,13911,13912,13913,13915,13916,13918,13919,13963,13920,13922,13923,13925,13926,13930,13931,13932,13933,13934,13935,13936,13937,13938,13939,13940,13941,13942,13943,13944,13945,13946,13947,13948,35666,35668,35670,35672,35676,35678,35680,35682,35684,35686,35688,35690) and cashier_type = '1'"
+Linked_Distributors_LIST="select distinct(cod_id) as cod_id from qr_codes where sub_catalog_id = '$CatalogID' and cod_id not in (13963,14121,14122,14123,14124,14125,14126,14127,14128,14129,14130,14131,14132,14133,14134,14135,14136,14137,14138,14139,14141,14142,14143,14145,14146,14147,14148,14153,14154,14159,14160,14161,14162,14163,14165,14166,35760,35762,35764,35776,36068) and cashier_type = '1'"
 
 QueryTocheckProductNot_exist_in_Catalog="select * from (with allProducts as (select * from template_level_tickets where template_id in (select template_id from (select templatetype.*, catalogtype.catalog_id as subcatalog_id, catalogtype.catalog_type from (select base1.*, (case when resellers.template_id = base1.template_id then 2 else 1 end) as template_type from (select templates.template_id, templates.reseller_id, templates.is_default, templates.catalog_id from templates right join (select template_id, catalog_id from qr_codes where template_id in (SELECT distinct(template_id) FROM qr_codes where reseller_id = '$ResellerId' and cashier_type = '1') group by template_id, catalog_id) as base on base.template_id = templates.template_id where templates.catalog_id is not NULL group by templates.template_id, templates.reseller_id, templates.catalog_id) as base1 left join resellers on base1.reseller_id = resellers.reseller_id) as templatetype left join (SELECT catalog_id, reseller_id, catalog_type FROM catalogs where catalog_category = '2' and reseller_id = '$ResellerId' and is_deleted = '0' and catalog_id = '$CatalogID') as catalogtype on templatetype.reseller_id = catalogtype.reseller_id and templatetype.template_type = catalogtype.catalog_type) as bbb where subcatalog_id is not NULL) and deleted = '0' and publish_catalog = '1') select exceptions.catalog_id as exception_catalog_id, exceptions.is_pos_list as exception_pos_list, exceptions.ticket_id as exception_ticket_id, allProducts.* from exceptions left join allProducts on exceptions.ticket_id = allProducts.ticket_id) as final where ticket_id is not NULL and exception_catalog_id != '0' and ticket_id not in (select ticket_id from template_level_tickets where catalog_id = '$CatalogID' and deleted = '0' and publish_catalog = '1');"
 
@@ -76,7 +76,7 @@ for cod_id in ${cod_ids}; do
 
     echo $cod_id
 
-    echo "data Run for Distributor :---- $cod_id" >> raja.txt
+    echo "data Run for Distributor :---- $cod_id" >> raja2.txt
 
     #Remove hotel_level_exceptions
 
@@ -87,7 +87,7 @@ for cod_id in ${cod_ids}; do
 
     echo "Update Exceptions on account Level ended"
 
-    sleep 2
+    sleep 3
 
     INSERT_MISSING_PRODUCT="insert into pos_tickets (mec_id,cat_id,hotel_id,museum_id,product_type,company,rezgo_ticket_id,rezgo_id,rezgo_key,tourcms_tour_id,tourcms_channel_id,tax_value,service_cost,latest_sold_date,shortDesc,eventImage,ticketwithdifferentpricing,saveamount,ticketPrice,pricetext,ticket_net_price,newPrice,totalticketPrice,new_discount_price,is_reservation,agefrom,ageto,ticketType,is_combi_ticket_allowed,is_booking_combi_ticket_allowed,start_date,end_date,extra_text_field,deleted,is_updated,third_party_id,third_party_ticket_id,third_party_parameters) SELECT
     mec_id,
@@ -264,7 +264,7 @@ WHERE
     timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$INSERT_MISSING_PRODUCT" || exit 1
     echo "Insert Missing Entries in Pos tickets Ended"
 
-    sleep 2
+    sleep 3
 
     update_POS_LIST="update pos_tickets poss FORCE INDEX (hotel_id_is_pos_list_deleted) join (select pos_primary_key, pos_hotel_id, pos_ticket_id, should_be from (select *, (case when tlc_is_pos_list is NULL and tlt_is_pos_list is NULL and main_template_pos_list is not NULL then main_template_pos_list when tlc_is_pos_list is NULL and tlt_is_pos_list is NOT NULL then tlt_is_pos_list when tlc_is_pos_list is not NULL then tlc_is_pos_list else pos_is_pos_list end) as should_be from (select base349.*, mec.postingEventTitle as product_title from
         (select * from
@@ -276,7 +276,7 @@ WHERE
 
     echo "---------Update POS MISMATCH-----------" >>running_queries.sql
 
-    sleep 2
+    sleep 3
     echo "$update_POS_LIST" >>running_queries.sql
 
     echo "Update pos list started"
@@ -339,12 +339,12 @@ WHERE
             timeout $TIMEOUT_PERIOD time mysql -h $SOURCE_DB_HOST -u $SOURCE_DB_USER -p$SOURCE_DB_PASSWORD $SOURCE_DB_NAME -N -e "$pos_update"
         fi
 
-        sleep 2
+        sleep 3
     done
 
     curl https://cron.prioticket.com/backend/purge_fastly/Custom_purge_fastly_cache/1/0/$cod_id
 
-    sleep 5
+    sleep 8
 
 done
 #------------------- Backup script for live with above same code--------------
