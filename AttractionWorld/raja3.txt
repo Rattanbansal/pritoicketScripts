@@ -1,4 +1,3 @@
-data Run for Catalog_id :---- 160277418148092
 data Run for Distributor :---- 12917
 data Run for Distributor :---- 12918
 data Run for Distributor :---- 12919
