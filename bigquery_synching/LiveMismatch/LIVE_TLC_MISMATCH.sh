@@ -17,7 +17,7 @@ offset=0
 i=1
 
 SELECTCOLUMNS="ticket_level_commission_id, ticket_id, ticketpriceschedule_id, last_modified_at"
-previous_date=$(date -d "yesterday" +"%Y-%m-%d 00:00:01")
+previous_date=$(date -d "3 days ago" +"%Y-%m-%d 00:00:01")
 
 echo "$previous_date"
 
