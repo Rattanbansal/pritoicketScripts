@@ -1,1 +1,802 @@
-[]
+[
+  {
+    "channel_level_commission_id": "14863768", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 05:38:48", 
+    "rn": "1", 
+    "ticket_id": "19137", 
+    "ticketpriceschedule_id": "441766"
+  }, 
+  {
+    "channel_level_commission_id": "14864623", 
+    "id": null, 
+    "last_modified_at": "2023-12-17 04:00:19", 
+    "rn": "1", 
+    "ticket_id": "39352", 
+    "ticketpriceschedule_id": "441772"
+  }, 
+  {
+    "channel_level_commission_id": "14846458", 
+    "id": null, 
+    "last_modified_at": "2024-09-25 06:28:29", 
+    "rn": "1", 
+    "ticket_id": "17558", 
+    "ticketpriceschedule_id": "441326"
+  }, 
+  {
+    "channel_level_commission_id": "14568764", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 10:07:02", 
+    "rn": "1", 
+    "ticket_id": "87587", 
+    "ticketpriceschedule_id": "438549"
+  }, 
+  {
+    "channel_level_commission_id": "14858874", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 06:18:51", 
+    "rn": "1", 
+    "ticket_id": "13265", 
+    "ticketpriceschedule_id": "441614"
+  }, 
+  {
+    "channel_level_commission_id": "14842776", 
+    "id": null, 
+    "last_modified_at": "2024-11-25 14:04:22", 
+    "rn": "1", 
+    "ticket_id": "87455", 
+    "ticketpriceschedule_id": "437964"
+  }, 
+  {
+    "channel_level_commission_id": "14855468", 
+    "id": null, 
+    "last_modified_at": "2024-09-12 03:33:39", 
+    "rn": "1", 
+    "ticket_id": "64104", 
+    "ticketpriceschedule_id": "441579"
+  }, 
+  {
+    "channel_level_commission_id": "14864815", 
+    "id": null, 
+    "last_modified_at": "2023-12-19 12:23:56", 
+    "rn": "1", 
+    "ticket_id": "39352", 
+    "ticketpriceschedule_id": "441774"
+  }, 
+  {
+    "channel_level_commission_id": "14861685", 
+    "id": null, 
+    "last_modified_at": "2024-10-23 20:55:03", 
+    "rn": "1", 
+    "ticket_id": "84407", 
+    "ticketpriceschedule_id": "441676"
+  }, 
+  {
+    "channel_level_commission_id": "14864936", 
+    "id": null, 
+    "last_modified_at": "2024-06-13 00:00:00", 
+    "rn": "1", 
+    "ticket_id": "39352", 
+    "ticketpriceschedule_id": "441775"
+  }, 
+  {
+    "channel_level_commission_id": "14847778", 
+    "id": null, 
+    "last_modified_at": "2023-12-14 05:35:10", 
+    "rn": "1", 
+    "ticket_id": "41438", 
+    "ticketpriceschedule_id": "441374"
+  }, 
+  {
+    "channel_level_commission_id": "14626090", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 11:55:41", 
+    "rn": "1", 
+    "ticket_id": "59468", 
+    "ticketpriceschedule_id": "284767"
+  }, 
+  {
+    "channel_level_commission_id": "14854252", 
+    "id": null, 
+    "last_modified_at": "2024-09-25 05:33:44", 
+    "rn": "1", 
+    "ticket_id": "64095", 
+    "ticketpriceschedule_id": "441563"
+  }, 
+  {
+    "channel_level_commission_id": "14847060", 
+    "id": null, 
+    "last_modified_at": "2024-09-23 08:06:11", 
+    "rn": "1", 
+    "ticket_id": "22911", 
+    "ticketpriceschedule_id": "441331"
+  }, 
+  {
+    "channel_level_commission_id": "14628294", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 11:55:43", 
+    "rn": "1", 
+    "ticket_id": "59984", 
+    "ticketpriceschedule_id": "287299"
+  }, 
+  {
+    "channel_level_commission_id": "14847070", 
+    "id": null, 
+    "last_modified_at": "2024-03-07 09:34:04", 
+    "rn": "1", 
+    "ticket_id": "22911", 
+    "ticketpriceschedule_id": "441331"
+  }, 
+  {
+    "channel_level_commission_id": "14865519", 
+    "id": null, 
+    "last_modified_at": "2023-12-31 17:01:52", 
+    "rn": "1", 
+    "ticket_id": "64167", 
+    "ticketpriceschedule_id": "441783"
+  }, 
+  {
+    "channel_level_commission_id": "14844461", 
+    "id": null, 
+    "last_modified_at": "2024-11-26 18:08:24", 
+    "rn": "1", 
+    "ticket_id": "82162", 
+    "ticketpriceschedule_id": "441186"
+  }, 
+  {
+    "channel_level_commission_id": "14865036", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 05:35:27", 
+    "rn": "1", 
+    "ticket_id": "39352", 
+    "ticketpriceschedule_id": "441776"
+  }, 
+  {
+    "channel_level_commission_id": "14853838", 
+    "id": null, 
+    "last_modified_at": "2024-08-21 11:52:25", 
+    "rn": "1", 
+    "ticket_id": "13262", 
+    "ticketpriceschedule_id": "441559"
+  }, 
+  {
+    "channel_level_commission_id": "14855285", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 06:32:09", 
+    "rn": "1", 
+    "ticket_id": "64104", 
+    "ticketpriceschedule_id": "441578"
+  }, 
+  {
+    "channel_level_commission_id": "14846820", 
+    "id": null, 
+    "last_modified_at": "2024-09-09 16:33:54", 
+    "rn": "1", 
+    "ticket_id": "17561", 
+    "ticketpriceschedule_id": "441329"
+  }, 
+  {
+    "channel_level_commission_id": "14856037", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 05:51:44", 
+    "rn": "1", 
+    "ticket_id": "14582", 
+    "ticketpriceschedule_id": "441585"
+  }, 
+  {
+    "channel_level_commission_id": "14846776", 
+    "id": null, 
+    "last_modified_at": "2024-05-01 02:30:40", 
+    "rn": "1", 
+    "ticket_id": "17561", 
+    "ticketpriceschedule_id": "441329"
+  }, 
+  {
+    "channel_level_commission_id": "14858733", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 05:38:48", 
+    "rn": "1", 
+    "ticket_id": "13265", 
+    "ticketpriceschedule_id": "441613"
+  }, 
+  {
+    "channel_level_commission_id": "14855651", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 05:35:27", 
+    "rn": "1", 
+    "ticket_id": "64104", 
+    "ticketpriceschedule_id": "441581"
+  }, 
+  {
+    "channel_level_commission_id": "14622108", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 11:55:40", 
+    "rn": "1", 
+    "ticket_id": "57859", 
+    "ticketpriceschedule_id": "278801"
+  }, 
+  {
+    "channel_level_commission_id": "14853413", 
+    "id": null, 
+    "last_modified_at": "2024-06-25 09:12:36", 
+    "rn": "1", 
+    "ticket_id": "13262", 
+    "ticketpriceschedule_id": "441555"
+  }, 
+  {
+    "channel_level_commission_id": "14847763", 
+    "id": null, 
+    "last_modified_at": "2024-02-06 08:02:06", 
+    "rn": "1", 
+    "ticket_id": "41438", 
+    "ticketpriceschedule_id": "441374"
+  }, 
+  {
+    "channel_level_commission_id": "14847065", 
+    "id": null, 
+    "last_modified_at": "2024-09-09 16:50:37", 
+    "rn": "1", 
+    "ticket_id": "22911", 
+    "ticketpriceschedule_id": "441331"
+  }, 
+  {
+    "channel_level_commission_id": "14852244", 
+    "id": null, 
+    "last_modified_at": "2023-12-31 17:53:36", 
+    "rn": "1", 
+    "ticket_id": "64166", 
+    "ticketpriceschedule_id": "441543"
+  }, 
+  {
+    "channel_level_commission_id": "14858196", 
+    "id": null, 
+    "last_modified_at": "2024-06-26 03:21:13", 
+    "rn": "1", 
+    "ticket_id": "13265", 
+    "ticketpriceschedule_id": "441604"
+  }, 
+  {
+    "channel_level_commission_id": "14854312", 
+    "id": null, 
+    "last_modified_at": "2024-08-19 10:16:23", 
+    "rn": "1", 
+    "ticket_id": "64095", 
+    "ticketpriceschedule_id": "441564"
+  }, 
+  {
+    "channel_level_commission_id": "14864440", 
+    "id": null, 
+    "last_modified_at": "2023-12-06 02:30:12", 
+    "rn": "1", 
+    "ticket_id": "39352", 
+    "ticketpriceschedule_id": "441771"
+  }, 
+  {
+    "channel_level_commission_id": "14858725", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 05:19:26", 
+    "rn": "1", 
+    "ticket_id": "13265", 
+    "ticketpriceschedule_id": "441613"
+  }, 
+  {
+    "channel_level_commission_id": "14864752", 
+    "id": null, 
+    "last_modified_at": "2024-05-20 07:09:46", 
+    "rn": "1", 
+    "ticket_id": "39352", 
+    "ticketpriceschedule_id": "441773"
+  }, 
+  {
+    "channel_level_commission_id": "14848687", 
+    "id": null, 
+    "last_modified_at": "2024-02-06 08:02:15", 
+    "rn": "1", 
+    "ticket_id": "42274", 
+    "ticketpriceschedule_id": "441392"
+  }, 
+  {
+    "channel_level_commission_id": "14622831", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 11:55:40", 
+    "rn": "1", 
+    "ticket_id": "57882", 
+    "ticketpriceschedule_id": "279402"
+  }, 
+  {
+    "channel_level_commission_id": "14864732", 
+    "id": null, 
+    "last_modified_at": "2023-12-16 04:00:18", 
+    "rn": "1", 
+    "ticket_id": "39352", 
+    "ticketpriceschedule_id": "441773"
+  }, 
+  {
+    "channel_level_commission_id": "14858245", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 06:29:16", 
+    "rn": "1", 
+    "ticket_id": "13265", 
+    "ticketpriceschedule_id": "441605"
+  }, 
+  {
+    "channel_level_commission_id": "14623265", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 11:55:41", 
+    "rn": "1", 
+    "ticket_id": "58103", 
+    "ticketpriceschedule_id": "280133"
+  }, 
+  {
+    "channel_level_commission_id": "14858501", 
+    "id": null, 
+    "last_modified_at": "2024-11-14 10:01:35", 
+    "rn": "1", 
+    "ticket_id": "13265", 
+    "ticketpriceschedule_id": "441611"
+  }, 
+  {
+    "channel_level_commission_id": "14565460", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 04:49:55", 
+    "rn": "1", 
+    "ticket_id": "87581", 
+    "ticketpriceschedule_id": "438527"
+  }, 
+  {
+    "channel_level_commission_id": "14849590", 
+    "id": null, 
+    "last_modified_at": "2024-11-12 10:05:00", 
+    "rn": "1", 
+    "ticket_id": "74801", 
+    "ticketpriceschedule_id": "441503"
+  }, 
+  {
+    "channel_level_commission_id": "14854048", 
+    "id": null, 
+    "last_modified_at": "2024-06-25 09:09:02", 
+    "rn": "1", 
+    "ticket_id": "13262", 
+    "ticketpriceschedule_id": "441560"
+  }, 
+  {
+    "channel_level_commission_id": "14565401", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 05:12:32", 
+    "rn": "1", 
+    "ticket_id": "81763", 
+    "ticketpriceschedule_id": "438841"
+  }, 
+  {
+    "channel_level_commission_id": "14856108", 
+    "id": null, 
+    "last_modified_at": "2024-09-20 11:17:42", 
+    "rn": "1", 
+    "ticket_id": "14582", 
+    "ticketpriceschedule_id": "441585"
+  }, 
+  {
+    "channel_level_commission_id": "14863284", 
+    "id": null, 
+    "last_modified_at": "2024-11-14 10:36:10", 
+    "rn": "1", 
+    "ticket_id": "19137", 
+    "ticketpriceschedule_id": "441762"
+  }, 
+  {
+    "channel_level_commission_id": "14865587", 
+    "id": null, 
+    "last_modified_at": "2023-12-30 15:58:31", 
+    "rn": "1", 
+    "ticket_id": "64167", 
+    "ticketpriceschedule_id": "441785"
+  }, 
+  {
+    "channel_level_commission_id": "14846675", 
+    "id": null, 
+    "last_modified_at": "2024-09-10 07:36:47", 
+    "rn": "1", 
+    "ticket_id": "17561", 
+    "ticketpriceschedule_id": "441328"
+  }, 
+  {
+    "channel_level_commission_id": "14865101", 
+    "id": null, 
+    "last_modified_at": "2023-12-16 04:00:18", 
+    "rn": "1", 
+    "ticket_id": "39352", 
+    "ticketpriceschedule_id": "441776"
+  }, 
+  {
+    "channel_level_commission_id": "14844434", 
+    "id": null, 
+    "last_modified_at": "2024-11-26 18:08:24", 
+    "rn": "1", 
+    "ticket_id": "82162", 
+    "ticketpriceschedule_id": "441184"
+  }, 
+  {
+    "channel_level_commission_id": "14863507", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 05:19:26", 
+    "rn": "1", 
+    "ticket_id": "19137", 
+    "ticketpriceschedule_id": "441764"
+  }, 
+  {
+    "channel_level_commission_id": "14864561", 
+    "id": null, 
+    "last_modified_at": "2023-12-19 12:23:56", 
+    "rn": "1", 
+    "ticket_id": "39352", 
+    "ticketpriceschedule_id": "441772"
+  }, 
+  {
+    "channel_level_commission_id": "14863347", 
+    "id": null, 
+    "last_modified_at": "2023-12-18 04:00:19", 
+    "rn": "1", 
+    "ticket_id": "19137", 
+    "ticketpriceschedule_id": "441762"
+  }, 
+  {
+    "channel_level_commission_id": "14863622", 
+    "id": null, 
+    "last_modified_at": "2024-06-20 00:00:00", 
+    "rn": "1", 
+    "ticket_id": "19137", 
+    "ticketpriceschedule_id": "441764"
+  }, 
+  {
+    "channel_level_commission_id": "14865562", 
+    "id": null, 
+    "last_modified_at": "2024-06-25 11:03:54", 
+    "rn": "1", 
+    "ticket_id": "64167", 
+    "ticketpriceschedule_id": "441784"
+  }, 
+  {
+    "channel_level_commission_id": "14855313", 
+    "id": null, 
+    "last_modified_at": "2024-09-11 09:58:33", 
+    "rn": "1", 
+    "ticket_id": "64104", 
+    "ticketpriceschedule_id": "441578"
+  }, 
+  {
+    "channel_level_commission_id": "14862181", 
+    "id": null, 
+    "last_modified_at": "2024-11-12 10:05:00", 
+    "rn": "1", 
+    "ticket_id": "86299", 
+    "ticketpriceschedule_id": "441732"
+  }, 
+  {
+    "channel_level_commission_id": "14622939", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 11:55:40", 
+    "rn": "1", 
+    "ticket_id": "57882", 
+    "ticketpriceschedule_id": "279463"
+  }, 
+  {
+    "channel_level_commission_id": "14842490", 
+    "id": null, 
+    "last_modified_at": "2024-11-25 14:02:25", 
+    "rn": "1", 
+    "ticket_id": "87456", 
+    "ticketpriceschedule_id": "440948"
+  }, 
+  {
+    "channel_level_commission_id": "14863902", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 05:58:00", 
+    "rn": "1", 
+    "ticket_id": "19137", 
+    "ticketpriceschedule_id": "441767"
+  }, 
+  {
+    "channel_level_commission_id": "14565416", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 05:14:34", 
+    "rn": "1", 
+    "ticket_id": "81763", 
+    "ticketpriceschedule_id": "438841"
+  }, 
+  {
+    "channel_level_commission_id": "14565593", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 07:44:23", 
+    "rn": "1", 
+    "ticket_id": "84374", 
+    "ticketpriceschedule_id": "420442"
+  }, 
+  {
+    "channel_level_commission_id": "14568917", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 10:06:01", 
+    "rn": "1", 
+    "ticket_id": "86198", 
+    "ticketpriceschedule_id": "428606"
+  }, 
+  {
+    "channel_level_commission_id": "14863873", 
+    "id": null, 
+    "last_modified_at": "2024-08-19 10:02:26", 
+    "rn": "1", 
+    "ticket_id": "19137", 
+    "ticketpriceschedule_id": "441766"
+  }, 
+  {
+    "channel_level_commission_id": "14856191", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 06:25:32", 
+    "rn": "1", 
+    "ticket_id": "14582", 
+    "ticketpriceschedule_id": "441586"
+  }, 
+  {
+    "channel_level_commission_id": "14847087", 
+    "id": null, 
+    "last_modified_at": "2024-10-02 06:46:13", 
+    "rn": "1", 
+    "ticket_id": "22911", 
+    "ticketpriceschedule_id": "441331"
+  }, 
+  {
+    "channel_level_commission_id": "14565526", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 05:52:01", 
+    "rn": "1", 
+    "ticket_id": "84393", 
+    "ticketpriceschedule_id": "420506"
+  }, 
+  {
+    "channel_level_commission_id": "14865475", 
+    "id": null, 
+    "last_modified_at": "2023-12-22 04:21:24", 
+    "rn": "1", 
+    "ticket_id": "64167", 
+    "ticketpriceschedule_id": "441782"
+  }, 
+  {
+    "channel_level_commission_id": "14864920", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 05:58:29", 
+    "rn": "1", 
+    "ticket_id": "39352", 
+    "ticketpriceschedule_id": "441775"
+  }, 
+  {
+    "channel_level_commission_id": "14627938", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 11:55:43", 
+    "rn": "1", 
+    "ticket_id": "59620", 
+    "ticketpriceschedule_id": "286188"
+  }, 
+  {
+    "channel_level_commission_id": "14858286", 
+    "id": null, 
+    "last_modified_at": "2024-11-14 10:01:35", 
+    "rn": "1", 
+    "ticket_id": "13265", 
+    "ticketpriceschedule_id": "441605"
+  }, 
+  {
+    "channel_level_commission_id": "14842380", 
+    "id": null, 
+    "last_modified_at": "2024-11-25 14:04:13", 
+    "rn": "1", 
+    "ticket_id": "87456", 
+    "ticketpriceschedule_id": "440939"
+  }, 
+  {
+    "channel_level_commission_id": "14568824", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 10:08:17", 
+    "rn": "1", 
+    "ticket_id": "87659", 
+    "ticketpriceschedule_id": "438801"
+  }, 
+  {
+    "channel_level_commission_id": "14855658", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 05:56:34", 
+    "rn": "1", 
+    "ticket_id": "64104", 
+    "ticketpriceschedule_id": "441581"
+  }, 
+  {
+    "channel_level_commission_id": "14863948", 
+    "id": null, 
+    "last_modified_at": "2023-12-17 04:00:19", 
+    "rn": "1", 
+    "ticket_id": "19137", 
+    "ticketpriceschedule_id": "441767"
+  }, 
+  {
+    "channel_level_commission_id": "14858744", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 06:16:43", 
+    "rn": "1", 
+    "ticket_id": "13265", 
+    "ticketpriceschedule_id": "441613"
+  }, 
+  {
+    "channel_level_commission_id": "14842382", 
+    "id": null, 
+    "last_modified_at": "2024-11-25 14:02:25", 
+    "rn": "1", 
+    "ticket_id": "87456", 
+    "ticketpriceschedule_id": "440940"
+  }, 
+  {
+    "channel_level_commission_id": "14862001", 
+    "id": null, 
+    "last_modified_at": "2024-08-29 18:48:42", 
+    "rn": "1", 
+    "ticket_id": "77849", 
+    "ticketpriceschedule_id": "441729"
+  }, 
+  {
+    "channel_level_commission_id": "14853204", 
+    "id": null, 
+    "last_modified_at": "2024-08-21 12:00:52", 
+    "rn": "1", 
+    "ticket_id": "13262", 
+    "ticketpriceschedule_id": "441554"
+  }, 
+  {
+    "channel_level_commission_id": "14863657", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 06:20:36", 
+    "rn": "1", 
+    "ticket_id": "19137", 
+    "ticketpriceschedule_id": "441765"
+  }, 
+  {
+    "channel_level_commission_id": "14847073", 
+    "id": null, 
+    "last_modified_at": "2024-09-09 16:51:48", 
+    "rn": "1", 
+    "ticket_id": "22911", 
+    "ticketpriceschedule_id": "441331"
+  }, 
+  {
+    "channel_level_commission_id": "14620791", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 11:55:39", 
+    "rn": "1", 
+    "ticket_id": "57776", 
+    "ticketpriceschedule_id": "277828"
+  }, 
+  {
+    "channel_level_commission_id": "14864826", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 06:26:00", 
+    "rn": "1", 
+    "ticket_id": "39352", 
+    "ticketpriceschedule_id": "441774"
+  }, 
+  {
+    "channel_level_commission_id": "14861723", 
+    "id": null, 
+    "last_modified_at": "2024-11-12 10:05:00", 
+    "rn": "1", 
+    "ticket_id": "84407", 
+    "ticketpriceschedule_id": "441678"
+  }, 
+  {
+    "channel_level_commission_id": "14846811", 
+    "id": null, 
+    "last_modified_at": "2024-09-19 04:43:06", 
+    "rn": "1", 
+    "ticket_id": "17561", 
+    "ticketpriceschedule_id": "441329"
+  }, 
+  {
+    "channel_level_commission_id": "14856159", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 05:34:58", 
+    "rn": "1", 
+    "ticket_id": "14582", 
+    "ticketpriceschedule_id": "441586"
+  }, 
+  {
+    "channel_level_commission_id": "14568806", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 09:54:30", 
+    "rn": "1", 
+    "ticket_id": "87628", 
+    "ticketpriceschedule_id": "438733"
+  }, 
+  {
+    "channel_level_commission_id": "14852214", 
+    "id": null, 
+    "last_modified_at": "2023-12-31 17:53:36", 
+    "rn": "1", 
+    "ticket_id": "64166", 
+    "ticketpriceschedule_id": "441542"
+  }, 
+  {
+    "channel_level_commission_id": "14864607", 
+    "id": null, 
+    "last_modified_at": "2023-12-16 04:00:18", 
+    "rn": "1", 
+    "ticket_id": "39352", 
+    "ticketpriceschedule_id": "441772"
+  }, 
+  {
+    "channel_level_commission_id": "14863667", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 06:29:16", 
+    "rn": "1", 
+    "ticket_id": "19137", 
+    "ticketpriceschedule_id": "441765"
+  }, 
+  {
+    "channel_level_commission_id": "14565270", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 05:02:57", 
+    "rn": "1", 
+    "ticket_id": "74633", 
+    "ticketpriceschedule_id": "438840"
+  }, 
+  {
+    "channel_level_commission_id": "14621998", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 11:55:40", 
+    "rn": "1", 
+    "ticket_id": "57846", 
+    "ticketpriceschedule_id": "278623"
+  }, 
+  {
+    "channel_level_commission_id": "14861373", 
+    "id": null, 
+    "last_modified_at": "2024-06-20 00:00:00", 
+    "rn": "1", 
+    "ticket_id": "69378", 
+    "ticketpriceschedule_id": "441646"
+  }, 
+  {
+    "channel_level_commission_id": "14842805", 
+    "id": null, 
+    "last_modified_at": "2024-11-25 14:04:22", 
+    "rn": "1", 
+    "ticket_id": "87455", 
+    "ticketpriceschedule_id": "440995"
+  }, 
+  {
+    "channel_level_commission_id": "14864923", 
+    "id": null, 
+    "last_modified_at": "2024-11-15 06:15:19", 
+    "rn": "1", 
+    "ticket_id": "39352", 
+    "ticketpriceschedule_id": "441775"
+  }, 
+  {
+    "channel_level_commission_id": "14865200", 
+    "id": null, 
+    "last_modified_at": "2024-05-20 07:09:46", 
+    "rn": "1", 
+    "ticket_id": "39352", 
+    "ticketpriceschedule_id": "441777"
+  }, 
+  {
+    "channel_level_commission_id": "14565278", 
+    "id": null, 
+    "last_modified_at": "2024-11-18 04:56:07", 
+    "rn": "1", 
+    "ticket_id": "74633", 
+    "ticketpriceschedule_id": "438840"
+  }, 
+  {
+    "channel_level_commission_id": "14853089", 
+    "id": null, 
+    "last_modified_at": "2024-11-01 16:49:17", 
+    "rn": "1", 
+    "ticket_id": "13262", 
+    "ticketpriceschedule_id": "441553"
+  }
+]
