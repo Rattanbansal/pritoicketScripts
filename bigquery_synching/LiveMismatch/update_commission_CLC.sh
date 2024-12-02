@@ -44,6 +44,8 @@ for (( i=0; i<$total_ids; i+=$BATCH_SIZE )); do
     query="UPDATE channel_level_commission SET last_modified_at = CURRENT_TIMESTAMP WHERE channel_level_commission_id IN ($ids_joined);"
 
     echo "$query" >> Updatequery.sql
+
+    sleep 2
     # Execute the query
     # mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -e "$query"
 done

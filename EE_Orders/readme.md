@@ -31,3 +31,9 @@ update matrix m join (SELECT e.vt_group_no FROM evanorders e join distributors d
 select * from (with qr_codess as (select channel_id, reseller_id, reseller_name from priopassdb.qr_codes where cashier_type = '1' and channel_id > '0' group by channel_id, reseller_id) SELECT e.*, qc.channel_id as pricelist_id, qc.reseller_id, qc.reseller_name FROM rattan.evanorders e join qr_codess qc on e.channel_id = qc.channel_id) as final where reseller_name like '%Evan%';  
 
 update matrixReseller m join (select * from (with qr_codess as (select channel_id, reseller_id, reseller_name from priopassdb.qr_codes where cashier_type = '1' and channel_id > '0' group by channel_id, reseller_id) SELECT e.*, qc.channel_id as pricelist_id, qc.reseller_id, qc.reseller_name FROM rattan.evanorders e join qr_codess qc on e.channel_id = qc.channel_id) as final where reseller_name like '%Evan%') as tp on tp.vt_group_no = m.visitor_group_no set status = '2'; 
+
+
+
+-- query to fetch commission on basis of latest version
+
+select * from (select vt.vt_group_no,vt.row_type, vt.version, vt.ticketId, vt.ticketpriceschedule_id, vt.partner_net_price from visitor_tickets vt join (select vt_group_no,row_type, max(version) as version, ticketId, ticketpriceschedule_id from visitor_tickets where row_type = '3' and vt_group_no in (173265893518877) and transaction_type_name not like '%Extra%' and ticket_title not like '%Discount%' and transaction_type_name not like '%Reprice%' group by vt_group_no, ticketId, ticketpriceschedule_id) as base on vt.vt_group_no = base.vt_group_no and vt.ticketId = base.ticketId and vt.ticketpriceschedule_id = base.ticketpriceschedule_id and ABS(vt.version-base.version) = '0' and vt.row_type = base.row_type where vt.vt_group_no in (173265893518877)) as base group by vt_group_no,row_type,version, ticketId,ticketpriceschedule_id,partner_net_price
