@@ -2,6 +2,7 @@
 
 # Path to the JSON file
 JSON_FILE="final_mismatch_TLC.json"
+rm -f Updatequerytlc.sql
 
 # Check if the file exists
 if [ ! -f "$JSON_FILE" ]; then
@@ -43,7 +44,7 @@ for (( i=0; i<$total_ids; i+=$BATCH_SIZE )); do
     # Construct the MySQL update query
     query="UPDATE ticket_level_commission SET last_modified_at = CURRENT_TIMESTAMP WHERE ticket_level_commission_id IN ($ids_joined);"
 
-    echo "$query" >> Updatequery.sql
+    echo "$query" >> Updatequerytlc.sql
     sleep 2
     # Execute the query
     # mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -e "$query"

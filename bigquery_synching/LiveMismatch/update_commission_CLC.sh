@@ -2,7 +2,7 @@
 
 # Path to the JSON file
 JSON_FILE="final_mismatch.json"
-
+rm -f Updatequeryclc.sql
 # Check if the file exists
 if [ ! -f "$JSON_FILE" ]; then
     echo "Error: File '$JSON_FILE' not found."
@@ -43,7 +43,7 @@ for (( i=0; i<$total_ids; i+=$BATCH_SIZE )); do
     # Construct the MySQL update query
     query="UPDATE channel_level_commission SET last_modified_at = CURRENT_TIMESTAMP WHERE channel_level_commission_id IN ($ids_joined);"
 
-    echo "$query" >> Updatequery.sql
+    echo "$query" >> Updatequeryclc.sql
 
     sleep 2
     # Execute the query
