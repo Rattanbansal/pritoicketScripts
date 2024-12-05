@@ -94,3 +94,9 @@ select * from (SELECT d.ticket_id as product_id, d.hotel_id as distributor_id, d
 ----------------Orders Related Process----------------------
 
 select concat(transaction_id,'R') as transaction_id, row_type, transaction_type_name, partner_net_price, hotel_id, ticketId, channel_id, ticketpriceschedule_id from visitor_tickets where transaction_id = '173175217632517003' 
+
+
+
+------------Get List of Linked catalogs---------
+
+SELECT qc.cod_id, qc.company, qc.sub_catalog_id, qc.own_supplier_id, c.catalog_name, case when c.catalog_category = '1' then 'Main_catalog' when c.catalog_category = '2' then 'Sub_catalog' else 'No Condition' end as catalog_category, case when c.catalog_type = '1' then 'agent_catalog' when c.catalog_type = '2' then 'direct_catalog' else 'No condition' end as catalog_type FROM qr_codes qc left join catalogs c on qc.sub_catalog_id = c.catalog_id where qc.reseller_id = '541' and qc.cashier_type = '1'
