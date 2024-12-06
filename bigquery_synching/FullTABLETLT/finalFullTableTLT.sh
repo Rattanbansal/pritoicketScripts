@@ -13,16 +13,16 @@ echo "-----------Started Deleting all records for bigquery--------"
 gcloud config set project prioticket-reporting
 
 
-# DBHOST='163.47.214.30'
-# DBUSER='datalook'
-# DBPWD='datalook2024$$'
-# DBDATABASE='priopassdb'
-# PORT="3307"
-DBHOST='production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com'
-DBUSER='pipeuser'
-DBPWD='d4fb46eccNRAL'
+DBHOST='163.47.214.30'
+DBUSER='datalook'
+DBPWD='datalook2024$$'
 DBDATABASE='priopassdb'
-PORT="3306"
+PORT="3307"
+# DBHOST='production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com'
+# DBUSER='pipeuser'
+# DBPWD='d4fb46eccNRAL'
+# DBDATABASE='priopassdb'
+# PORT="3306"
 UploadData=$1
 
 LIMIT=150000
