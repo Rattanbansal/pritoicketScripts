@@ -78,5 +78,5 @@ fi
 
   echo "Rattan"
 
-  bq query --use_legacy_sql=False --format=prettyjson \
+  bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
   "with oact as (select *,row_number() over(partition by id order by last_modified_at desc ) as rn from prio_test.own_account_commissions), oacl as (select *,row_number() over(partition by id order by last_modified_at desc ) as rn from prio_olap.own_account_commissions), oactrn as (select * from oact where rn = 1), oaclrn as (select * from oacl where rn = 1), final as (select oactrn.*, oaclrn.id as ids from oactrn left join oaclrn on oactrn.id = oaclrn.id and (oactrn.last_modified_at = oaclrn.last_modified_at or oactrn.last_modified_at < oaclrn.last_modified_at)) select *except(rn,ids) from final where ids is NULL" > mismatch.json
