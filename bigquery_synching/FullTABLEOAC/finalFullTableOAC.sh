@@ -11,9 +11,6 @@ rm -rf *.json
 
 echo "-----------Started Deleting all records for bigquery--------"
 gcloud config set project prioticket-reporting
-bq query --use_legacy_sql=False --format=prettyjson \
-"delete FROM prioticket-reporting.prio_test.own_account_commissions_synch where 1=1"
-
 
 DBHOST='163.47.214.30'
 DBUSER='datalook'
@@ -31,6 +28,9 @@ LIMIT=100000
 OFFSET=0
 
 if [[ $UploadData == 2 ]]; then
+
+  bq query --use_legacy_sql=False --format=prettyjson \
+  "delete FROM prioticket-reporting.prio_test.own_account_commissions_synch where 1=1"
 
   while :; do
 
