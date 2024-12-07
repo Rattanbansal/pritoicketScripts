@@ -36,10 +36,16 @@ echo "$previous_date" >> rattan.txt
 # DBUSER="pip"
 # DBPWD="pip2024##"
 # DBDATABASE="priopassdb"
-DBHOST='production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com'
-DBUSER='pipeuser'
-DBPWD='d4fb46eccNRAL'
+DBHOST='163.47.214.30'
+DBUSER='datalook'
+DBPWD='datalook2024$$'
 DBDATABASE='priopassdb'
+PORT="3307"
+# DBHOST='production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com'
+# DBUSER='pipeuser'
+# DBPWD='d4fb46eccNRAL'
+# DBDATABASE='priopassdb'
+# PORT="3306"
 UploadData=$1
 
 rm -f final_mismatch.json
@@ -52,7 +58,7 @@ if [[ $UploadData == 2 ]]; then
 
     do
 
-    RecordCount=$(mysql -h $DBHOST --user=$DBUSER --password=$DBPWD $DBDATABASE -N -e "select count(*) from (select * from channel_level_commission where deleted = '0' and last_modified_at > '$previous_date' limit $offset, $limit) as base;")
+    RecordCount=$(mysql -h $DBHOST --user=$DBUSER --port=$PORT --password=$DBPWD $DBDATABASE -N -e "select count(*) from (select * from channel_level_commission where deleted = '0' and last_modified_at > '$previous_date' limit $offset, $limit) as base;")
 
     echo $RecordCount
             
@@ -68,7 +74,7 @@ if [[ $UploadData == 2 ]]; then
     echo "Record from database Found offset : $offset and limit : $limit"
 
 
-    echo "select $SELECTCOLUMNS from channel_level_commission where deleted = '0' and last_modified_at > '$previous_date' limit $offset, $limit" | time mysqlsh --sql --json --uri $DBUSER@$DBHOST -p$DBPWD --database=$DBDATABASE >> "$offset"_primarypt.json
+    echo "select $SELECTCOLUMNS from channel_level_commission where deleted = '0' and last_modified_at > '$previous_date' limit $offset, $limit" | time mysqlsh --sql --json --uri $DBUSER@$DBHOST:$PORT -p$DBPWD --database=$DBDATABASE >> "$offset"_primarypt.json
 
     jq 'select(.warning | not)' "$offset"_primarypt.json >> "$offset"_primarypt1.json
 

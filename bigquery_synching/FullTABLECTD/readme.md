@@ -1,0 +1,1 @@
+update cluster_tickets_detail set created_at = last_modified_at, updated_at = last_modified_at, last_modified_at = last_modified_at where created_at like '%0000-00-00 00:00:00%' or updated_at like '%0000-00-00 00:00:00%';
