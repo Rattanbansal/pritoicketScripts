@@ -24,16 +24,9 @@ total_ids=${#ids_array[@]}
 
 # Exit if total_ids is blank or zero
 if [ -z "$total_ids" ] || [ "$total_ids" -eq 0 ]; then
-    echo "Error: No channel_level_commission_id values found in the JSON file."
+    echo "Error: No ticket_level_commission_id values found in the JSON file."
     exit 1
 fi
-
-# MySQL credentials
-DBHOST='163.47.214.30'
-DBUSER='datalook'
-DBPWD='datalook2024$$'
-DBDATABASE='priopassdb'
-PORT="3307"
 
 # Process ids in batches
 for (( i=0; i<$total_ids; i+=$BATCH_SIZE )); do
@@ -42,10 +35,10 @@ for (( i=0; i<$total_ids; i+=$BATCH_SIZE )); do
     # Join ids with commas
     ids_joined=$(IFS=, ; echo "${batch[*]}")
     # Construct the MySQL update query
-    query="UPDATE ticket_level_commission SET last_modified_at = CURRENT_TIMESTAMP WHERE ticket_level_commission_id IN ($ids_joined);"
+    query="UPDATE ticket_level_commission SET last_modified_at = CURRENT_TIMESTAMP WHERE ticket_level_commission_id IN ($ids_joined);select ROW_COUNT();"
 
     echo "$query" >> Updatequerytlc.sql
     sleep 2
     # Execute the query
-    # mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE" -e "$query"
+    mysql -u "$DBUSER" -h "$DBHOST" --port=$PORT -p"$DBPWD" "$DBDATABASE" -e "$query"
 done
