@@ -35,13 +35,13 @@ if [[ $UploadData == 2 ]]; then
 
   while :; do
 
-    records=$(mysql -h $DBHOST --user=$DBUSER --port=$PORT --password=$DBPWD $DBDATABASE -N -e "select count(*) from (select * from ticket_destinations where deleted = '0' limit $OFFSET, $LIMIT) as base;") || exit 1
+    records=$(mysql -h $DBHOST --user=$DBUSER --port=$PORT --password=$DBPWD $DBDATABASE -N -e "select count(*) from (select * from ticket_destinations limit $OFFSET, $LIMIT) as base;") || exit 1
 
     echo "$records"
 
     echo "limit $OFFSET, $LIMIT"
 
-    echo "select * from ticket_destinations where deleted = '0' limit $OFFSET, $LIMIT" | time mysqlsh --sql --json --uri $DBUSER@$DBHOST:$PORT -p$DBPWD --database=$DBDATABASE >> ticket_destinations.json || exit 1
+    echo "select * from ticket_destinations limit $OFFSET, $LIMIT" | time mysqlsh --sql --json --uri $DBUSER@$DBHOST:$PORT -p$DBPWD --database=$DBDATABASE >> ticket_destinations.json || exit 1
 
     jq 'select(.warning | not)' ticket_destinations.json >> ticket_destinations1.json
 
@@ -75,9 +75,7 @@ if [[ $UploadData == 2 ]]; then
     fi
   done
 
-else
-
-  bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
-  "with tdt as (select *,row_number() over(partition by destination_id order by last_modified_at desc ) as rn from prio_test.ticket_destinations_synch), tdl as (select *,row_number() over(partition by destination_id order by last_modified_at desc ) as rn from prio_olap.ticket_destinations), tdtrn as (select * from tdt where rn = 1), tdlrn as (select * from tdl where rn = 1), final as (select tdtrn.*, tdlrn.destination_id as ids from tdtrn left join tdlrn on tdtrn.destination_id = tdlrn.destination_id and (tdtrn.last_modified_at = tdlrn.last_modified_at or tdtrn.last_modified_at < tdlrn.last_modified_at)) select *except(rn, ids) from final where ids is NULL" > mismatch.json
-
 fi
+
+bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
+"with tdt as (select *,row_number() over(partition by destination_id order by last_modified_at desc ) as rn from prio_test.ticket_destinations_synch), tdl as (select *,row_number() over(partition by destination_id order by last_modified_at desc ) as rn from prio_olap.ticket_destinations), tdtrn as (select * from tdt where rn = 1), tdlrn as (select * from tdl where rn = 1), final as (select tdtrn.*, tdlrn.destination_id as ids from tdtrn left join tdlrn on tdtrn.destination_id = tdlrn.destination_id and (tdtrn.last_modified_at = tdlrn.last_modified_at or tdtrn.last_modified_at < tdlrn.last_modified_at)) select *except(rn, ids) from final where ids is NULL" > mismatch.json

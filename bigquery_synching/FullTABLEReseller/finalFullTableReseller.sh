@@ -35,13 +35,13 @@ if [[ $UploadData == 2 ]]; then
 
   while :; do
 
-    records=$(mysql -h $DBHOST --user=$DBUSER --port=$PORT --password=$DBPWD $DBDATABASE -N -e "select count(*) from (select * from resellers where deleted = '0' limit $OFFSET, $LIMIT) as base;") || exit 1
+    records=$(mysql -h $DBHOST --user=$DBUSER --port=$PORT --password=$DBPWD $DBDATABASE -N -e "select count(*) from (select * from resellers limit $OFFSET, $LIMIT) as base;") || exit 1
 
     echo "$records"
 
     echo "limit $OFFSET, $LIMIT"
 
-    echo "select * from resellers where deleted = '0' limit $OFFSET, $LIMIT" | time mysqlsh --sql --json --uri $DBUSER@$DBHOST:$PORT -p$DBPWD --database=$DBDATABASE >> resellers.json || exit 1
+    echo "select * from resellers limit $OFFSET, $LIMIT" | time mysqlsh --sql --json --uri $DBUSER@$DBHOST:$PORT -p$DBPWD --database=$DBDATABASE >> resellers.json || exit 1
 
     jq 'select(.warning | not)' resellers.json >> resellers1.json
 
@@ -75,9 +75,7 @@ if [[ $UploadData == 2 ]]; then
     fi
   done
 
-else
-
-  bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
-  "with resellerst as (select *,row_number() over(partition by reseller_id order by last_modified_at desc ) as rn from prio_test.resellers_synch), reellersl as (select *,row_number() over(partition by reseller_id order by last_modified_at desc ) as rn from prio_olap.resellers), resellerstrn as (select * from resellerst where rn = 1), reellerslrn as (select * from reellersl where rn = 1), final as (select resellerstrn.*, reellerslrn.reseller_id as ids from resellerstrn left join reellerslrn on resellerstrn.reseller_id = reellerslrn.reseller_id and (resellerstrn.last_modified_at = reellerslrn.last_modified_at or resellerstrn.last_modified_at < reellerslrn.last_modified_at)) select *except(rn, ids) from final where ids is NULL" > mismatch.json
-
 fi
+
+bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
+"with resellerst as (select *,row_number() over(partition by reseller_id order by last_modified_at desc ) as rn from prio_test.resellers_synch), reellersl as (select *,row_number() over(partition by reseller_id order by last_modified_at desc ) as rn from prio_olap.resellers), resellerstrn as (select * from resellerst where rn = 1), reellerslrn as (select * from reellersl where rn = 1), final as (select resellerstrn.*, reellerslrn.reseller_id as ids from resellerstrn left join reellerslrn on resellerstrn.reseller_id = reellerslrn.reseller_id and (resellerstrn.last_modified_at = reellerslrn.last_modified_at or resellerstrn.last_modified_at < reellerslrn.last_modified_at)) select *except(rn, ids) from final where ids is NULL" > mismatch.json

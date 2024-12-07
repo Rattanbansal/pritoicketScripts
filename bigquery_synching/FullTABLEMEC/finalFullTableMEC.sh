@@ -75,9 +75,7 @@ if [[ $UploadData == 2 ]]; then
     fi
   done
 
-else
-
-  bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
-  "with mect as (select *,row_number() over(partition by mec_id order by last_modified_at desc ) as rn from prio_test.modeventcontent_synch), mecl as (select *,row_number() over(partition by mec_id order by last_modified_at desc ) as rn from prio_olap.modeventcontent), mectrn as (select * from mect where rn = 1), meclrn as (select * from mecl where rn = 1), final as (select mectrn.*, meclrn.mec_id as ids from mectrn left join meclrn on mectrn.mec_id = meclrn.mec_id and (mectrn.last_modified_at = meclrn.last_modified_at or mectrn.last_modified_at < meclrn.last_modified_at)) select *except(rn, ids) from final where ids is NULL" > mismatch.json
-
 fi
+
+bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
+"with mect as (select *,row_number() over(partition by mec_id order by last_modified_at desc ) as rn from prio_test.modeventcontent_synch), mecl as (select *,row_number() over(partition by mec_id order by last_modified_at desc ) as rn from prio_olap.modeventcontent), mectrn as (select * from mect where rn = 1), meclrn as (select * from mecl where rn = 1), final as (select mectrn.*, meclrn.mec_id as ids from mectrn left join meclrn on mectrn.mec_id = meclrn.mec_id and (mectrn.last_modified_at = meclrn.last_modified_at or mectrn.last_modified_at < meclrn.last_modified_at)) select *except(rn, ids) from final where ids is NULL" > mismatch.json

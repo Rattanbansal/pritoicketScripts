@@ -76,9 +76,7 @@ if [[ $UploadData == 2 ]]; then
     fi
   done
 
-else
-
-  bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
-  "with tltt as (select *,row_number() over(partition by template_level_tickets_id order by last_modified_at desc ) as rn from prio_test.template_level_tickets), tltl as (select *,row_number() over(partition by template_level_tickets_id order by last_modified_at desc ) as rn from prio_olap.template_level_tickets), tlttrn as (select * from tltt where rn = 1), tltlrn as (select * from tltl where rn = 1), final as (select tlttrn.*, tltlrn.template_level_tickets_id as ids from tlttrn left join tltlrn on tlttrn.template_level_tickets_id = tltlrn.template_level_tickets_id and (tlttrn.last_modified_at = tltlrn.last_modified_at or tlttrn.last_modified_at < tltlrn.last_modified_at)) select template_level_tickets_id, template_id, ticket_id, is_pos_list, is_suspended, created_at, market_merchant_id, content_description_setting, last_modified_at, catalog_id, merchant_admin_id, publish_catalog, product_verify_status, deleted from final where ids is NULL" > mismatch.json
-
 fi
+
+bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
+"with tltt as (select *,row_number() over(partition by template_level_tickets_id order by last_modified_at desc ) as rn from prio_test.template_level_tickets), tltl as (select *,row_number() over(partition by template_level_tickets_id order by last_modified_at desc ) as rn from prio_olap.template_level_tickets), tlttrn as (select * from tltt where rn = 1), tltlrn as (select * from tltl where rn = 1), final as (select tlttrn.*, tltlrn.template_level_tickets_id as ids from tlttrn left join tltlrn on tlttrn.template_level_tickets_id = tltlrn.template_level_tickets_id and (tlttrn.last_modified_at = tltlrn.last_modified_at or tlttrn.last_modified_at < tltlrn.last_modified_at)) select template_level_tickets_id, template_id, ticket_id, is_pos_list, is_suspended, created_at, market_merchant_id, content_description_setting, last_modified_at, catalog_id, merchant_admin_id, publish_catalog, product_verify_status, deleted from final where ids is NULL" > mismatch.json

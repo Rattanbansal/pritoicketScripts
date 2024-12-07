@@ -75,9 +75,7 @@ if [[ $UploadData == 2 ]]; then
     fi
   done
 
-else
-
-  bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
-  "with tpst as (select *,row_number() over(partition by id order by last_modified_at desc ) as rn from prio_test.ticketpriceschedule_synch), tpsl as (select *,row_number() over(partition by id order by last_modified_at desc ) as rn from prio_olap.ticketpriceschedule), tpstrn as (select * from tpst where rn = 1), tpslrn as (select * from tpsl where rn = 1), final as (select tpstrn.*, tpslrn.id as ids from tpstrn left join tpslrn on tpstrn.id = tpslrn.id and (tpstrn.last_modified_at = tpslrn.last_modified_at or tpstrn.last_modified_at < tpslrn.last_modified_at)) select *except(rn, ids) from final where ids is NULL" > mismatch.json
-
 fi
+
+bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
+"with tpst as (select *,row_number() over(partition by id order by last_modified_at desc ) as rn from prio_test.ticketpriceschedule_synch), tpsl as (select *,row_number() over(partition by id order by last_modified_at desc ) as rn from prio_olap.ticketpriceschedule), tpstrn as (select * from tpst where rn = 1), tpslrn as (select * from tpsl where rn = 1), final as (select tpstrn.*, tpslrn.id as ids from tpstrn left join tpslrn on tpstrn.id = tpslrn.id and (tpstrn.last_modified_at = tpslrn.last_modified_at or tpstrn.last_modified_at < tpslrn.last_modified_at)) select *except(rn, ids) from final where ids is NULL" > mismatch.json
