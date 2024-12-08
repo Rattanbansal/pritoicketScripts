@@ -17,10 +17,15 @@ DB_NAME='dummy'
 BATCH_SIZE=30
 tableName=$1
 
-mysqlHost="prodrds.prioticket.com"
-mysqlUser=pipeuser
-mysqlPassword=d4fb46eccNRAL
-mysqlDatabase="prioprodrds"
+# mysqlHost="prodrds.prioticket.com"
+# mysqlUser=pipeuser
+# mysqlPassword=d4fb46eccNRAL
+# mysqlDatabase="prioprodrds"
+
+mysqlDatabase='priopassdb'
+mysqlHost='production-secondary-db-node.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com'
+mysqlUser='pipeuser'
+mysqlPassword='d4fb46eccNRAL'
 
 echo "vt_group_no,transaction_id,hotel_id,ticketId,selected_date,version,admin_currency_code,quantity,saleprice,purchaseprice,commission,hgscommission,merchantcommission,salepriceDiscount,purchasepriceDiscount,commissionDiscount,hgscommissionDiscount,merchantcommissionDiscount" > Iceland.csv
 
