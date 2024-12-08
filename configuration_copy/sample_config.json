@@ -1,0 +1,18 @@
+{
+    "table": "modeventcontent",
+    "where": {
+        "product_id": 12345
+    },
+    "related_tables": [
+        {
+            "table": "ticketpriceschedule",
+            "foreign_key": "ticket_id",
+            "related_tables": []
+        },
+        {
+            "table": "standardticketopeninghours",
+            "foreign_key": "shared_capacity_id",
+            "related_tables": []
+        }
+    ]
+}
