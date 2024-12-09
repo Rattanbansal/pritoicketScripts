@@ -40,5 +40,5 @@ for (( i=0; i<$total_ids; i+=$BATCH_SIZE )); do
     echo "$query" >> Updatequerytlc.sql
     sleep 2
     # Execute the query
-    mysql -u "$DBUSER" -h "$DBHOST" --port=$PORT -p"$DBPWD" "$DBDATABASE" -e "$query"
+    # mysql -u "$DBUSER" -h "$DBHOST" --port=$PORT -p"$DBPWD" "$DBDATABASE" -e "$query"
 done
