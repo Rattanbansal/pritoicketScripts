@@ -11,7 +11,7 @@ gcloud config set project prioticket-reporting
 UploadData=$1
 noofdays=$2
 DATABSETYPE=$3
-LIMIT=25000
+LIMIT=50000
 OFFSET=0
 
 # Check if the required arguments are provided
@@ -99,4 +99,6 @@ if [[ $UploadData == 2 ]]; then
 fi 
 
 bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
-"with tlc1 as (select *,row_number() over(partition by ticket_level_commission_id order by last_modified_at desc ) as rn from prioticket-reporting.prio_test.ticket_level_mismatch), tlc as (select * from tlc1 where rn=1 and last_modified_at > TIMESTAMP(CONCAT(CAST(DATE(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL $noofdays DAY)) AS STRING), ' 00:00:00')) AND last_modified_at <= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 45 MINUTE)), clc1 as (select *,row_number() over(partition by ticket_level_commission_id order by last_modified_at desc ) as rn from prioticket-reporting.prio_olap.ticket_level_commission), clc as (select * from clc1 where rn=1 and last_modified_at > TIMESTAMP(CONCAT(CAST(DATE(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL $noofdays DAY)) AS STRING), ' 00:00:00')) AND last_modified_at <= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 45 MINUTE)), base as (SELECT tlc.*, clc.ticket_level_commission_id as id FROM tlc left join  clc on tlc.ticket_level_commission_id = clc.ticket_level_commission_id and tlc.ticket_id = clc.ticket_id and tlc.ticketpriceschedule_id = clc.ticketpriceschedule_id and (tlc.last_modified_at = clc.last_modified_at or tlc.last_modified_at <= clc.last_modified_at)) select * from base where id is NULL" > mismatch.json || exit 1
+"with tlc1 as (select *,row_number() over(partition by ticket_level_commission_id order by last_modified_at desc ) as rn from prioticket-reporting.prio_test.ticket_level_commission_synch), tlc as (select * from tlc1 where rn=1 and last_modified_at > TIMESTAMP(CONCAT(CAST(DATE(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL $noofdays DAY)) AS STRING), ' 00:00:00')) AND last_modified_at <= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 45 MINUTE)), clc1 as (select *,row_number() over(partition by ticket_level_commission_id order by last_modified_at desc ) as rn from prioticket-reporting.prio_olap.ticket_level_commission), clc as (select * from clc1 where rn=1 and last_modified_at > TIMESTAMP(CONCAT(CAST(DATE(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL $noofdays DAY)) AS STRING), ' 00:00:00')) AND last_modified_at <= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 45 MINUTE)), base as (SELECT tlc.*, clc.ticket_level_commission_id as id FROM tlc left join  clc on tlc.ticket_level_commission_id = clc.ticket_level_commission_id and tlc.ticket_id = clc.ticket_id and tlc.ticketpriceschedule_id = clc.ticketpriceschedule_id and (tlc.last_modified_at = clc.last_modified_at or tlc.last_modified_at <= clc.last_modified_at)) select * from base where id is NULL" > mismatch.json || exit 1
+
+source update_commission_TLC.sh
