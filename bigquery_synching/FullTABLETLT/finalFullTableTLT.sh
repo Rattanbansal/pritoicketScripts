@@ -10,7 +10,7 @@ gcloud config set project prioticket-reporting
 
 UploadData=$1
 DATABSETYPE=$2
-LIMIT=5000
+LIMIT=25000
 OFFSET=0
 
 # Check if the required arguments are provided
