@@ -55,3 +55,5 @@ done
 # jq -r '.response.data.order | "\(.order_reference): \(.order_status)"' response.json
 
 # jq -r '.response.data.order | "\(.order_reference): \(.order_status)"' response.json response1.json response2.json response3.json > test.json
+
+# jq -r '.response.data.order | "\(.order_reference): \(.order_status)"' response.json
