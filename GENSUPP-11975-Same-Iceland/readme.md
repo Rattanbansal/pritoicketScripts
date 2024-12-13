@@ -21,7 +21,7 @@ select vt.vt_group_no, concat(vt.transaction_id, 'R') as transaction_id,vt.hotel
 select vt_group_no, transaction_id, version, row_type,ticketId, ticketpriceschedule_id, action_performed, is_refunded, deleted from visitor_tickets where vt_group_no = '169539844481350' order by version, transaction_id, row_type limit 500
 
 
-select prepaid_ticket_id, version, is_refunded, action_performed, is_addon_ticket, quantity, pax, last_modified_at from prepaid_tickets where visitor_group_no = '169539844481350' limit 200 
+select prepaid_ticket_id, version, is_refunded, action_performed, is_addon_ticket, quantity, pax, last_modified_at from prepaid_tickets where visitor_group_no = '172328655950718' limit 200 
 
 
 ---- Need to findout orders where last version is_refunded = 0 entries with admin_correction but still in that version is_refunded = 1 entries are missing

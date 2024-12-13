@@ -25,10 +25,10 @@ select pt.visitor_group_no,pt.ticket_booking_id, pt.prepaid_ticket_id, pt.versio
 
 select vt.vt_group_no, concat(vt.transaction_id, 'R') as transaction_id,vt.hotel_id,vt.ticketId,vt.selected_date, vt.version, vt.row_type, vt.admin_currency_code, vt.partner_net_price, vt.partner_gross_price, vt.tax_value, vt.transaction_type_name, vt.col2, vt.is_refunded, vt.action_performed from visitor_tickets vt where vt.transaction_id = '167248376982761010' order by vt.version, vt.transaction_id, vt.row_type limit 200
 
-select vt_group_no, transaction_id, version, row_type,ticketId, ticketpriceschedule_id, action_performed, is_refunded, deleted, transaction_type_name from visitor_tickets where vt_group_no = '167853484878817' and transaction_type_name not like '%Reprice%' order by version, transaction_id, row_type limit 500
+select vt_group_no, transaction_id, version, row_type,ticketId, ticketpriceschedule_id, action_performed, is_refunded, deleted, transaction_type_name from visitor_tickets where vt_group_no = '169946088980166' and transaction_type_name not like '%Reprice%' order by version, transaction_id, row_type limit 500
 
 
-select prepaid_ticket_id, version, is_refunded, action_performed, is_addon_ticket, quantity, pax, last_modified_at, deleted from prepaid_tickets where visitor_group_no = '167853484878817' limit 200 
+select prepaid_ticket_id, version, is_refunded, action_performed, is_addon_ticket, quantity, pax, last_modified_at, deleted from prepaid_tickets where visitor_group_no = '169946088980166' limit 200 
 
 
 ---- Need to findout orders where last version is_refunded = 0 entries with admin_correction but still in that version is_refunded = 1 entries are missing
