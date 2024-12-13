@@ -80,3 +80,9 @@ FROM
     visitor_tickets
 WHERE
     vt_group_no IN(167344709177764) AND transaction_type_name NOT LIKE '%Reprice%' AND action_performed LIKE '%IcelandPriceUpdate'
+
+delete
+FROM
+    prepaid_tickets
+WHERE
+    visitor_group_no IN(166479565998130) AND action_performed LIKE '%IcelandPriceUpdate'
