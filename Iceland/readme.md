@@ -18,7 +18,7 @@ sum(case when row_type = '17' and transaction_type_name like '%Reprice%' then pa
 
 select vt.vt_group_no, concat(vt.transaction_id, 'R') as transaction_id,vt.hotel_id,vt.ticketId,vt.selected_date, vt.version, vt.row_type, vt.admin_currency_code, vt.partner_net_price, vt.partner_gross_price, vt.tax_value, vt.transaction_type_name, vt.col2, vt.is_refunded, vt.action_performed from visitor_tickets vt where vt.transaction_id = '167248376982761010' order by vt.version, vt.transaction_id, vt.row_type limit 200
 
-select vt_group_no, transaction_id, version, row_type,ticketId, ticketpriceschedule_id, action_performed, is_refunded, deleted, transaction_type_name from visitor_tickets where vt_group_no = '169953032643531' and transaction_type_name not like '%Reprice%' order by version, transaction_id, row_type limit 500
+select vt_group_no, transaction_id, version, row_type,ticketId, ticketpriceschedule_id, action_performed, is_refunded, deleted, transaction_type_name from visitor_tickets where vt_group_no = '166479565998130' and transaction_type_name not like '%Reprice%' order by version, transaction_id, row_type limit 500
 
 
 select prepaid_ticket_id, version, is_refunded, action_performed, is_addon_ticket, quantity, pax, last_modified_at from prepaid_tickets where visitor_group_no = '167248376982761' limit 200 
@@ -65,48 +65,8 @@ update visitor_tickets set deleted = '3', action_performed = concat(action_perfo
 
 ---------- Working queries---------
 
-SELECT
-    vt_group_no, transaction_id, row_type, version, action_performed
+delete
 FROM
     visitor_tickets
 WHERE
-    vt_group_no IN(
-        166479565998130,
-        166619082215900,
-        166566300362270,
-        166617955254508,
-        166550016510238,
-        166704761600113,
-        166620653865328,
-        167146123356834,
-        168017372314133,
-        167344709177764,
-        167465893687046,
-        169435301311337,
-        167248376982761,
-        167853484878817,
-        168838417240142,
-        169417073716836,
-        169538189794274,
-        169088832708543,
-        169953032643531,
-        168839505735620,
-        170600691669516,
-        170532183947668,
-        169280417854457,
-        169401014699369,
-        169539844481350,
-        169606418364958,
-        168665177092016,
-        168371889682501,
-        170611862739977,
-        169988386359790,
-        170645273475634,
-        168321532684477,
-        170307822913479,
-        168718701147284,
-        168355137442404,
-        170680299145206,
-        170066269101366,
-        169504657161944
-    ) AND transaction_type_name NOT LIKE '%Reprice%' AND action_performed LIKE '%IcelandPriceUpdate' order by vt_group_no, version, transaction_id, row_type limit 1000
+    vt_group_no IN(167344709177764) AND transaction_type_name NOT LIKE '%Reprice%' AND action_performed LIKE '%IcelandPriceUpdate'

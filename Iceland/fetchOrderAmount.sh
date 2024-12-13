@@ -14,7 +14,7 @@ DB_HOST='localhost'
 DB_USER='admin'
 DB_PASS='redhat'
 DB_NAME='dummy'
-BATCH_SIZE=30
+BATCH_SIZE=50
 tableName=$1
 
 # mysqlHost="prodrds.prioticket.com"
