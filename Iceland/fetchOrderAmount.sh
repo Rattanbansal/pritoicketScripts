@@ -53,11 +53,13 @@ for ((i=0; i<$total_vt_groups; i+=BATCH_SIZE)); do
 
     echo "$MISMATCHFInal"
     # sleep 3
-    timeout $TIMEOUT_PERIOD time mysql -h"$mysqlHost" -u"$mysqlUser" -p"$mysqlPassword" -D"$mysqlDatabase" -sN -e "$MISMATCHFInal" >> Iceland.csv || exit 1
+    # timeout $TIMEOUT_PERIOD time mysql -h"$mysqlHost" -u"$mysqlUser" -p"$mysqlPassword" -D"$mysqlDatabase" -sN -e "$MISMATCHFInal" >> Iceland.csv || exit 1
 
     
     echo "Sleep Started to Run next VGNS"
     echo "------$(date '+%Y-%m-%d %H:%M:%S.%3N')--------"
+
+    curl https://report.prioticket.com/Insert_api_data_nested/api_results_v2/$batch_str
 
     sleep 5
 done

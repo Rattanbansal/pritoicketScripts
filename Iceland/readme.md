@@ -10,18 +10,25 @@ select * from (select vt.vt_group_no, concat(vt.transaction_id, 'R') as transact
 
 ---- Query to get the total order id amount
 
+-- vt
+
 select vt_group_no, transaction_id, hotel_id, ticketId, selected_date, version, max(admin_currency_code) as admin_currency_code,sum(case when row_type = '1' and transaction_type_name not like '%Reprice%' then 1 else 0 end) as quantity,sum(case when row_type = '1' and transaction_type_name not like '%Reprice%' then partner_net_price else 0 end) as saleprice,sum(case when row_type = '2' and transaction_type_name not like '%Reprice%' then partner_net_price else 0 end) as purchaseprice,sum(case when row_type = '3' and transaction_type_name not like '%Reprice%' then partner_net_price else 0 end) as commission,sum(case when row_type = '4' and transaction_type_name not like '%Reprice%' then partner_net_price else 0 end) as hgscommission,sum(case when row_type = '17' and transaction_type_name not like '%Reprice%' then partner_net_price else 0 end) as merchantcommission,sum(case when row_type = '1' and transaction_type_name like '%Reprice%' then partner_net_price else 0 end) as salepriceDiscount,sum(case when row_type = '2' and transaction_type_name like '%Reprice%' then partner_net_price else 0 end) as purchasepriceDiscount,sum(case when row_type = '3' and transaction_type_name like '%Reprice%' then partner_net_price else 0 end) as commissionDiscount,sum(case when row_type = '4' and transaction_type_name like '%Reprice%' then partner_net_price else 0 end) as hgscommissionDiscount,
 sum(case when row_type = '17' and transaction_type_name like '%Reprice%' then partner_net_price else 0 end) as merchantcommissionDiscount  from (select vt.vt_group_no, concat(vt.transaction_id, 'R') as transaction_id,vt.hotel_id,vt.ticketId,vt.ticketpriceschedule_id,vt.selected_date, vt.version, vt.row_type, vt.admin_currency_code, vt.partner_net_price, vt.partner_gross_price, vt.tax_value, vt.transaction_type_name, vt.col2, vt.is_refunded from visitor_tickets vt join (select vt_group_no, transaction_id, row_type, max(version) as version from visitor_tickets where vt_group_no = '167344709177764' and col2 != '2' group by vt_group_no, transaction_id, row_type, ticketId, ticketpriceschedule_id) as maxv on maxv.vt_group_no = vt.vt_group_no and maxv.transaction_id = vt.transaction_id and maxv.row_type = vt.row_type and ABS(ROUND(maxv.version-vt.version,1)) = '0' where vt.is_refunded = '0') as base group by vt_group_no, ticketId, ticketpriceschedule_id
+
+-- Pt
+
+select pt.visitor_group_no,pt.ticket_booking_id, pt.prepaid_ticket_id, pt.version, pt.ticket_id, pt.tps_id, pt.is_addon_ticket, pt.is_refunded, sum(pt.oroginal_price) as oroginal_price, sum(pt.price) as price, sum(pt.order_currency_oroginal_price) as order_currency_oroginal_price, sum(pt.order_currency_price) as order_currency_price, pt.order_currency_code, pt.admin_currency_code from prepaid_tickets pt join (select prepaid_ticket_id, visitor_group_no, max(version) as version from prepaid_tickets where visitor_group_no = '167853484878817' group by visitor_group_no, prepaid_ticket_id) as base on pt.visitor_group_no = base.visitor_group_no and pt.prepaid_ticket_id = base.prepaid_ticket_id and ABS(pt.version-base.version) = '0' and pt.is_refunded = '0' group by pt.visitor_group_no, pt.ticket_booking_id
+
 
 
 --- Gneeral query
 
 select vt.vt_group_no, concat(vt.transaction_id, 'R') as transaction_id,vt.hotel_id,vt.ticketId,vt.selected_date, vt.version, vt.row_type, vt.admin_currency_code, vt.partner_net_price, vt.partner_gross_price, vt.tax_value, vt.transaction_type_name, vt.col2, vt.is_refunded, vt.action_performed from visitor_tickets vt where vt.transaction_id = '167248376982761010' order by vt.version, vt.transaction_id, vt.row_type limit 200
 
-select vt_group_no, transaction_id, version, row_type,ticketId, ticketpriceschedule_id, action_performed, is_refunded, deleted, transaction_type_name from visitor_tickets where vt_group_no = '166479565998130' and transaction_type_name not like '%Reprice%' order by version, transaction_id, row_type limit 500
+select vt_group_no, transaction_id, version, row_type,ticketId, ticketpriceschedule_id, action_performed, is_refunded, deleted, transaction_type_name from visitor_tickets where vt_group_no = '167853484878817' and transaction_type_name not like '%Reprice%' order by version, transaction_id, row_type limit 500
 
 
-select prepaid_ticket_id, version, is_refunded, action_performed, is_addon_ticket, quantity, pax, last_modified_at, deleted from prepaid_tickets where visitor_group_no = '166479565998130' limit 200 
+select prepaid_ticket_id, version, is_refunded, action_performed, is_addon_ticket, quantity, pax, last_modified_at, deleted from prepaid_tickets where visitor_group_no = '167853484878817' limit 200 
 
 
 ---- Need to findout orders where last version is_refunded = 0 entries with admin_correction but still in that version is_refunded = 1 entries are missing
