@@ -93,3 +93,11 @@ FROM
     prepaid_tickets
 WHERE
     visitor_group_no IN(166479565998130) AND action_performed LIKE '%IcelandPriceUpdate'
+
+
+-------------order_payment_details queries to match data with prepaid tickets---------------
+
+select pt.visitor_group_no,pt.ticket_booking_id, pt.prepaid_ticket_id, pt.version, pt.ticket_id, pt.tps_id, pt.is_addon_ticket, pt.is_refunded, sum(pt.quantity) as quantity, sum(pt.price) as price, sum(pt.order_currency_oroginal_price) as order_currency_oroginal_price, sum(pt.order_currency_price) as order_currency_price, pt.order_currency_code, pt.admin_currency_code from prepaid_tickets pt join (select prepaid_ticket_id, visitor_group_no, max(version) as version from prepaid_tickets where visitor_group_no in (165591353002572) group by visitor_group_no, prepaid_ticket_id) as base on pt.visitor_group_no = base.visitor_group_no and pt.prepaid_ticket_id = base.prepaid_ticket_id and ABS(pt.version-base.version) = '0' group by pt.visitor_group_no, pt.ticket_booking_id, pt.is_refunded order by pt.ticket_booking_id
+
+
+SELECT visitor_group_no, ticket_booking_id,amount, total, order_amount, order_total, booking_currency_amount, booking_amount, status, deleted, currency_rate  FROM `order_payment_details` where visitor_group_no in (165591353002572) and deleted = '0'
