@@ -32,7 +32,7 @@ popd > /dev/null
 sleep 5
 
 pushd ./FullTABLEOAC > /dev/null
-/bin/bash finalFullTableOAC.sh 2 PROD
+/bin/bash finalFullTableOAC.sh 2 15 PROD
 popd > /dev/null
 
 sleep 5

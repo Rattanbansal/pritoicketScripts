@@ -1,1 +1,0 @@
-UPDATE qr_codes SET last_modified_at = CURRENT_TIMESTAMP WHERE cod_id IN (30793,43467,43465,41649,38430);select ROW_COUNT();

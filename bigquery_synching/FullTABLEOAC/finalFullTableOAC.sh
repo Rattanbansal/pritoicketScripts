@@ -9,16 +9,21 @@ rm -rf *.json
 gcloud config set project prioticket-reporting
 
 UploadData=$1
-DATABSETYPE=$2
+noofdays=$2
+DATABSETYPE=$3
 LIMIT=25000
 OFFSET=0
 
 # Check if the required arguments are provided
-if [ -z "$1" ] || [ -z "$2" ]; then
+if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
     echo "Error: All arguments are required."
-    echo "Usage: $0 UploadData datasetType"
+    echo "Usage: $0 UploadData noofdays datasetType"
     exit 1
 fi
+
+previous_date=$(date -d "$noofdays days ago" +"%Y-%m-%d 00:00:01")
+echo "$noofdays"
+echo "$previous_date"
 
 echo "condition Satisfy with Both Argument"
 
@@ -46,18 +51,19 @@ fi
 
 if [[ $UploadData == 2 ]]; then
 
-  bq query --use_legacy_sql=False --format=prettyjson \
-  "delete FROM prioticket-reporting.prio_test.own_account_commissions_synch where 1=1"
+  echo "Uploading Data"
+  # bq query --use_legacy_sql=False --format=prettyjson \
+  # "delete FROM prioticket-reporting.prio_test.own_account_commissions_synch where 1=1"
 
   while :; do
 
-    records=$(timeout $TIMEOUT_PERIOD time mysql -h $DBHOST --user=$DBUSER --port=$PORT --password=$DBPWD $DBDATABASE -N -e "select count(*) from (select * from own_account_commissions where deleted = '0' limit $OFFSET, $LIMIT) as base;") || exit 1
+    records=$(timeout $TIMEOUT_PERIOD time mysql -h $DBHOST --user=$DBUSER --port=$PORT --password=$DBPWD $DBDATABASE -N -e "select count(*) from (select * from own_account_commissions where deleted = '0' and last_modified_at > '$previous_date' limit $OFFSET, $LIMIT) as base;") || exit 1
 
     echo "$records"
 
     echo "limit $OFFSET, $LIMIT"
 
-    echo "select * from own_account_commissions where deleted = '0' limit $OFFSET, $LIMIT" | timeout $TIMEOUT_PERIOD time mysqlsh --sql --json --uri $DBUSER@$DBHOST:$PORT -p$DBPWD --database=$DBDATABASE >> own_account_commissions.json || exit 1
+    echo "select * from own_account_commissions where deleted = '0' and last_modified_at > '$previous_date' limit $OFFSET, $LIMIT" | timeout $TIMEOUT_PERIOD time mysqlsh --sql --json --uri $DBUSER@$DBHOST:$PORT -p$DBPWD --database=$DBDATABASE >> own_account_commissions.json || exit 1
 
     jq 'select(.warning | not)' own_account_commissions.json >> own_account_commissions1.json
 
@@ -89,6 +95,7 @@ if [[ $UploadData == 2 ]]; then
       echo "No more records to fetch. Exiting loop."
       break
     fi
+
   done
 
 fi
@@ -96,6 +103,6 @@ fi
 echo "Rattan"
 
 bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
-"with oact as (select *,row_number() over(partition by id order by last_modified_at desc ) as rn from prio_test.own_account_commissions), oacl as (select *,row_number() over(partition by id order by last_modified_at desc ) as rn from prio_olap.own_account_commissions), oactrn as (select * from oact where rn = 1), oaclrn as (select * from oacl where rn = 1), final as (select oactrn.*, oaclrn.id as ids from oactrn left join oaclrn on oactrn.id = oaclrn.id and (oactrn.last_modified_at = oaclrn.last_modified_at or oactrn.last_modified_at < oaclrn.last_modified_at)) select id, last_modified_at from final where ids is NULL" > mismatch.json
+"with oact as (select *,row_number() over(partition by id order by last_modified_at desc ) as rn from prio_test.own_account_commissions), oacl as (select *,row_number() over(partition by id order by last_modified_at desc ) as rn from prio_olap.own_account_commissions), oactrn as (select * from oact where rn = 1 and last_modified_at > TIMESTAMP(CONCAT(CAST(DATE(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL $noofdays DAY)) AS STRING), ' 00:00:00')) AND last_modified_at <= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 45 MINUTE)), oaclrn as (select * from oacl where rn = 1 and last_modified_at > TIMESTAMP(CONCAT(CAST(DATE(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL $noofdays DAY)) AS STRING), ' 00:00:00')) AND last_modified_at <= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 45 MINUTE)), final as (select oactrn.*, oaclrn.id as ids from oactrn left join oaclrn on oactrn.id = oaclrn.id and (oactrn.last_modified_at = oaclrn.last_modified_at or oactrn.last_modified_at < oaclrn.last_modified_at)) select id, last_modified_at from final where ids is NULL" > mismatch.json
 
 source update_commission_OAC.sh
