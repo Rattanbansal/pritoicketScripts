@@ -1,27 +1,141 @@
-import json
-from deepdiff import DeepDiff
 import pandas as pd
+import json
+from datetime import datetime
+import argparse
+import os
 
-# Load JSON data fetched from BigQuery
-with open('qr_codes_data.json', 'r') as file:
-    data = json.load(file)
+def load_data(input_file):
+    try:
+        with open(input_file, 'r') as file:
+            data = json.load(file)
+        df = pd.DataFrame(data)
+        # Convert rn to integer if it's not already
+        df['rn'] = pd.to_numeric(df['rn'], errors='coerce')
+        return df
+    except Exception as e:
+        print(f"Error loading JSON file: {e}")
+        return None
 
-# Step 1: Convert data into a DataFrame for grouping
-df = pd.DataFrame(data)
-
-# Step 2: Group data by `cod_id` and compare rows
-for cod_id, group in df.groupby("cod_id"):
-    group = group.sort_values(by='rn')  # Sort by rn to ensure correct order
-    json_old = json.loads(group[group['rn'] == 2]['json_data'].values[0])  # Old record (rn=2)
-    json_new = json.loads(group[group['rn'] == 1]['json_data'].values[0])  # New record (rn=1)
+def compare_records(df, primary_key):
+    if primary_key not in df.columns:
+        raise ValueError(f"Primary key column '{primary_key}' not found in the data. Available columns: {', '.join(df.columns)}")
     
-    print(f"\n=== Differences for cod_id: {cod_id} ===")
-    diff = DeepDiff(json_old, json_new, ignore_order=True, verbose_level=2)
+    # Convert DataFrame to dictionary grouped by primary_key
+    grouped = df.groupby(primary_key)
     
-    if diff:
-        for change_type, changes in diff.items():
-            print(f"{change_type}:")
-            for key, value in changes.items():
-                print(f"  {key}: {value}")
-    else:
-        print("No differences found!")
+    changes = []
+    skipped = 0
+    
+    for key_value, group in grouped:
+        # Convert group to DataFrame if it's not already
+        group_df = pd.DataFrame(group)
+        
+        # Check if we have both rn=1 and rn=2
+        rn1_exists = (group_df['rn'] == 1).any()
+        rn2_exists = (group_df['rn'] == 2).any()
+        
+        if not (rn1_exists and rn2_exists):
+            skipped += 1
+            continue
+            
+        try:
+            new_record = group_df[group_df['rn'] == 1].iloc[0]
+            old_record = group_df[group_df['rn'] == 2].iloc[0]
+            
+            # Compare all columns except certain ones we want to exclude
+            exclude_columns = {'rn', 'last_modified_at'}
+            
+            changes_for_id = []
+            for column in df.columns:
+                if column not in exclude_columns:
+                    old_val = old_record[column]
+                    new_val = new_record[column]
+                    
+                    # Only record if values are different and not null
+                    if pd.notna(old_val) and pd.notna(new_val) and old_val != new_val:
+                        changes_for_id.append({
+                            'column': column,
+                            'old_value': str(old_val),
+                            'new_value': str(new_val),
+                            'modified_at': str(new_record['last_modified_at']) if 'last_modified_at' in new_record else None
+                        })
+            
+            if changes_for_id:
+                changes.append({
+                    primary_key: str(key_value),
+                    'changes': changes_for_id
+                })
+                
+        except Exception as e:
+            print(f"Error processing {primary_key} {key_value}: {e}")
+            continue
+    
+    summary = {
+        'total_records_processed': len(df),
+        f'unique_{primary_key}s': df[primary_key].nunique(),
+        'records_with_rn1': len(df[df['rn'] == 1]),
+        'records_with_rn2': len(df[df['rn'] == 2]),
+        'skipped_records': skipped,
+        'changes_found': len(changes),
+        'generated_at': datetime.now().isoformat(),
+        'primary_key_used': primary_key
+    }
+    
+    return {
+        'summary': summary,
+        'changes': changes
+    }
+
+def save_report(report_data, output_file):
+    try:
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(os.path.abspath(output_file)), exist_ok=True)
+        
+        with open(output_file, 'w') as f:
+            json.dump(report_data, f, indent=2)
+        print(f"\nReport saved to {output_file}")
+        
+        # Print summary
+        summary = report_data['summary']
+        print("\nProcessing Summary:")
+        print(f"Total records processed: {summary['total_records_processed']}")
+        print(f"Unique {summary['primary_key_used']}s: {summary[f'unique_{summary['primary_key_used']}s']}")
+        print(f"Records with rn=1: {summary['records_with_rn1']}")
+        print(f"Records with rn=2: {summary['records_with_rn2']}")
+        print(f"Skipped records: {summary['skipped_records']}")
+        print(f"Changes found: {summary['changes_found']}")
+        print(f"Generated at: {summary['generated_at']}")
+        
+    except Exception as e:
+        print(f"Error saving report to file: {e}")
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='Compare records from JSON file based on primary key and row number.')
+    parser.add_argument('input_file', help='Input JSON file path')
+    parser.add_argument('primary_key', help='Primary key column name (e.g., cod_id)')
+    parser.add_argument('output_file', help='Output JSON file path')
+    return parser.parse_args()
+
+def main():
+    # Parse command line arguments
+    args = parse_arguments()
+    
+    print(f"Loading data from {args.input_file}...")
+    df = load_data(args.input_file)
+    
+    if df is None:
+        print("Failed to load data from JSON file")
+        return
+    
+    print(f"\nComparing records using primary key: {args.primary_key}...")
+    try:
+        report_data = compare_records(df, args.primary_key)
+    except ValueError as e:
+        print(f"Error: {e}")
+        return
+    
+    print("\nSaving report...")
+    save_report(report_data, args.output_file)
+
+if __name__ == "__main__":
+    main()
