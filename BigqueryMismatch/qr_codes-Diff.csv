@@ -916,10 +916,6 @@ cod_id,52079,modified_at,2024-12-13 02:39:56,2024-12-17 08:52:23,2024-12-17 08:5
 cod_id,52079,reseller_name,mauricio luna,Fotografiska Stockholm AB,2024-12-17 08:52:23
 cod_id,52159,modified_at,2024-12-13 02:39:56,2024-12-17 08:52:23,2024-12-17 08:52:23
 cod_id,52159,reseller_name,mauricio luna,Fotografiska Stockholm AB,2024-12-17 08:52:23
-cod_id,52177,IsActive,1,0,2024-12-16 05:16:48
-cod_id,52177,cashier_type,1,0,2024-12-16 05:16:48
-cod_id,52177,modified_at,2024-07-31 05:28:01,2024-12-16 05:16:48,2024-12-16 05:16:48
-cod_id,52177,updated_by,rohit.singh@prioticket.com,"updated_by, ritugujjar@gmail.com",2024-12-16 05:16:48
 cod_id,52179,cod_title,Data Tourism LLC,NOT IN USE - Data Tourism LLC,2024-12-18 05:36:06
 cod_id,52179,company,Data Tourism LLC,NOT IN USE - Data Tourism LLC,2024-12-18 05:36:06
 cod_id,52179,modified_at,2024-07-15 07:31:40,2024-12-18 05:36:06,2024-12-18 05:36:06
@@ -965,8 +961,6 @@ cod_id,53126,modified_at,2024-10-10 10:27:47,2024-12-17 14:11:15,2024-12-17 14:1
 cod_id,53126,reseller_name,Test CultureHosts,Test CreativeTourist,2024-12-17 14:11:15
 cod_id,53127,modified_at,2024-10-10 10:27:47,2024-12-17 14:11:15,2024-12-17 14:11:15
 cod_id,53127,reseller_name,Test CultureHosts,Test CreativeTourist,2024-12-17 14:11:15
-cod_id,53141,modified_at,2024-11-29 05:06:27,2024-12-16 11:23:18,2024-12-16 11:23:18
-cod_id,53141,pos_payment_option,"1,4,2",27,2024-12-16 11:23:18
 cod_id,53153,modified_at,2024-12-13 02:39:56,2024-12-17 08:52:23,2024-12-17 08:52:23
 cod_id,53153,reseller_name,mauricio luna,Fotografiska Stockholm AB,2024-12-17 08:52:23
 cod_id,53176,IsActive,1,0,2024-12-18 08:21:23
@@ -990,8 +984,6 @@ cod_id,53515,modified_at,2024-12-13 02:39:56,2024-12-17 08:52:23,2024-12-17 08:5
 cod_id,53515,reseller_name,mauricio luna,Fotografiska Stockholm AB,2024-12-17 08:52:23
 cod_id,53526,modified_at,2024-12-03 10:42:03,2024-12-17 14:11:04,2024-12-17 14:11:04
 cod_id,53526,reseller_name,CultureHosts,CreativeTourist,2024-12-17 14:11:04
-cod_id,53539,modified_at,2024-11-29 05:06:06,2024-12-16 11:22:31,2024-12-16 11:22:31
-cod_id,53539,pos_payment_option,"1,4",27,2024-12-16 11:22:31
 cod_id,53591,modified_at,2024-11-28 20:59:43,2024-12-17 11:26:32,2024-12-17 11:26:32
 cod_id,53599,modified_at,2024-12-06 14:10:09,2024-12-17 14:11:04,2024-12-17 14:11:04
 cod_id,53599,reseller_name,CultureHosts,CreativeTourist,2024-12-17 14:11:04
@@ -1002,10 +994,6 @@ cod_id,53613,modified_at,2024-12-13 02:39:56,2024-12-17 08:52:23,2024-12-17 08:5
 cod_id,53613,reseller_name,mauricio luna,Fotografiska Stockholm AB,2024-12-17 08:52:23
 cod_id,537,modified_at,2024-12-13 02:39:56,2024-12-17 08:52:23,2024-12-17 08:52:23
 cod_id,537,reseller_name,mauricio luna,Fotografiska Stockholm AB,2024-12-17 08:52:23
-cod_id,53865,modified_at,2024-12-12 13:19:28,2024-12-16 16:12:51,2024-12-16 16:12:51
-cod_id,53865,sub_catalog_id,0,171640784610681,2024-12-16 16:12:51
-cod_id,53865,updated_at,2024-12-12 13:19:28,2024-12-16 16:12:51,2024-12-16 16:12:51
-cod_id,53865,updated_by,a.goyal@prioticket.com,rita.ditch@evanevanstours.co.uk,2024-12-16 16:12:51
 cod_id,53868,modified_at,2024-12-13 02:44:50,2024-12-17 08:52:23,2024-12-17 08:52:23
 cod_id,53869,modified_at,2024-12-13 02:44:50,2024-12-17 08:52:23,2024-12-17 08:52:23
 cod_id,53871,currency_code,USD,EUR,2024-12-17 11:25:54
@@ -1016,10 +1004,6 @@ cod_id,53872,hex_code,&#x24;,&#xa3;,2024-12-17 11:27:04
 cod_id,53872,modified_at,2024-12-13 19:13:21,2024-12-17 11:27:04,2024-12-17 11:27:04
 cod_id,53878,modified_at,2024-12-16 11:12:06,2024-12-17 14:11:04,2024-12-17 14:11:04
 cod_id,53878,reseller_name,CultureHosts,CreativeTourist,2024-12-17 14:11:04
-cod_id,53879,modified_at,2024-12-16 12:04:26,2024-12-16 15:23:02,2024-12-16 15:23:02
-cod_id,53879,sub_catalog_id,0,171640784610681,2024-12-16 15:23:02
-cod_id,53879,updated_at,2024-12-16 12:03:43,2024-12-16 15:21:21,2024-12-16 15:23:02
-cod_id,53879,updated_by,tania.sanchez@evanevanstours.co.uk,rita.ditch@evanevanstours.co.uk,2024-12-16 15:23:02
 cod_id,53880,modified_at,2024-12-16 16:38:27,2024-12-17 14:11:04,2024-12-17 14:11:04
 cod_id,53880,reseller_name,CultureHosts,CreativeTourist,2024-12-17 14:11:04
 cod_id,53886,customize_default_content,1,0,2024-12-17 13:06:35

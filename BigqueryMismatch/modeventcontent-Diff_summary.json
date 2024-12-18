@@ -1,0 +1,10 @@
+{
+  "total_records_processed": 14158,
+  "unique_mec_ids": 7107,
+  "records_with_rn1": 7107,
+  "records_with_rn2": 7051,
+  "skipped_records": 56,
+  "changes_found": 8292,
+  "generated_at": "2024-12-18T16:12:27.709591",
+  "primary_key_used": "mec_id"
+}

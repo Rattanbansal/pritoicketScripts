@@ -8,6 +8,7 @@ partitioncolumn=cod_id
 
 rm -f *.json
 rm -f *.csv
+rm -f *.txt
 
 # Check if the required arguments are provided
 if [ -z "$1" ]; then
@@ -20,16 +21,50 @@ source fetchdata.sh $tablename $days $tablename.json $partitioncolumn
 
 python compare_record.py $tablename.json $partitioncolumn $tablename-Diff.csv
 
-# tablename=modeventcontent
-# partitioncolumn=mec_id
+python create_pivot.py $tablename-Diff.csv
 
-# source fetchdata.sh $tablename $days $tablename.json $partitioncolumn
+rm -f $tablename.json
 
-# python compare_record.py $tablename.json $partitioncolumn $tablename-Diff.csv
+tablename=channel_level_commission
+partitioncolumn=channel_level_commission_id
 
-# tablename=ticketpriceschedule
-# partitioncolumn=id
+source fetchdata.sh $tablename $days $tablename.json $partitioncolumn
 
-# source fetchdata.sh $tablename $days $tablename.json $partitioncolumn
+python compare_record.py $tablename.json $partitioncolumn $tablename-Diff.csv
 
-# python compare_record.py $tablename.json $partitioncolumn $tablename-Diff.csv
+python create_pivot.py $tablename-Diff.csv
+
+rm -f $tablename.json
+
+tablename=ticket_level_commission
+partitioncolumn=ticket_level_commission_id
+
+source fetchdata.sh $tablename $days $tablename.json $partitioncolumn
+
+python compare_record.py $tablename.json $partitioncolumn $tablename-Diff.csv
+
+python create_pivot.py $tablename-Diff.csv
+
+rm -f $tablename.json
+
+tablename=ticketpriceschedule
+partitioncolumn=id
+
+source fetchdata.sh $tablename $days $tablename.json $partitioncolumn
+
+python compare_record.py $tablename.json $partitioncolumn $tablename-Diff.csv
+
+python create_pivot.py $tablename-Diff.csv
+
+rm -f $tablename.json
+
+
+tablename=modeventcontent
+partitioncolumn=mec_id
+
+source fetchdata.sh $tablename $days $tablename.json $partitioncolumn
+
+python compare_record_json.py $tablename.json $partitioncolumn $tablename-Diff.json
+
+
+rm -f $tablename.json

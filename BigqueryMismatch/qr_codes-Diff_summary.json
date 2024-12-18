@@ -1,0 +1,10 @@
+{
+  "total_records_processed": 1266,
+  "unique_cod_ids": 636,
+  "records_with_rn1": 636,
+  "records_with_rn2": 630,
+  "skipped_records": 6,
+  "changes_found": 1279,
+  "generated_at": "2024-12-18T16:09:43.312178",
+  "primary_key_used": "cod_id"
+}

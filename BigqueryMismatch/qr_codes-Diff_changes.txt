@@ -4999,25 +4999,6 @@ Column: reseller_name
   New Value: Fotografiska Stockholm AB
 ------------------------------
 
-Key Value: 52177
-==================================================
-Column: IsActive
-  Old Value: 1
-  New Value: 0
-------------------------------
-Column: cashier_type
-  Old Value: 1
-  New Value: 0
-------------------------------
-Column: modified_at
-  Old Value: 2024-07-31 05:28:01
-  New Value: 2024-12-16 05:16:48
-------------------------------
-Column: updated_by
-  Old Value: rohit.singh@prioticket.com
-  New Value: "updated_by
-------------------------------
-
 Key Value: 52179
 ==================================================
 Column: cod_title
@@ -5261,17 +5242,6 @@ Column: reseller_name
   New Value: Test CreativeTourist
 ------------------------------
 
-Key Value: 53141
-==================================================
-Column: modified_at
-  Old Value: 2024-11-29 05:06:27
-  New Value: 2024-12-16 11:23:18
-------------------------------
-Column: pos_payment_option
-  Old Value: "1
-  New Value: 4
-------------------------------
-
 Key Value: 53153
 ==================================================
 Column: modified_at
@@ -5397,17 +5367,6 @@ Column: reseller_name
   New Value: CreativeTourist
 ------------------------------
 
-Key Value: 53539
-==================================================
-Column: modified_at
-  Old Value: 2024-11-29 05:06:06
-  New Value: 2024-12-16 11:22:31
-------------------------------
-Column: pos_payment_option
-  Old Value: "1
-  New Value: 4"
-------------------------------
-
 Key Value: 53591
 ==================================================
 Column: modified_at
@@ -5463,25 +5422,6 @@ Column: reseller_name
   New Value: Fotografiska Stockholm AB
 ------------------------------
 
-Key Value: 53865
-==================================================
-Column: modified_at
-  Old Value: 2024-12-12 13:19:28
-  New Value: 2024-12-16 16:12:51
-------------------------------
-Column: sub_catalog_id
-  Old Value: 0
-  New Value: 171640784610681
-------------------------------
-Column: updated_at
-  Old Value: 2024-12-12 13:19:28
-  New Value: 2024-12-16 16:12:51
-------------------------------
-Column: updated_by
-  Old Value: a.goyal@prioticket.com
-  New Value: rita.ditch@evanevanstours.co.uk
-------------------------------
-
 Key Value: 53868
 ==================================================
 Column: modified_at
@@ -5535,25 +5475,6 @@ Column: modified_at
 Column: reseller_name
   Old Value: CultureHosts
   New Value: CreativeTourist
-------------------------------
-
-Key Value: 53879
-==================================================
-Column: modified_at
-  Old Value: 2024-12-16 12:04:26
-  New Value: 2024-12-16 15:23:02
-------------------------------
-Column: sub_catalog_id
-  Old Value: 0
-  New Value: 171640784610681
-------------------------------
-Column: updated_at
-  Old Value: 2024-12-16 12:03:43
-  New Value: 2024-12-16 15:21:21
-------------------------------
-Column: updated_by
-  Old Value: tania.sanchez@evanevanstours.co.uk
-  New Value: rita.ditch@evanevanstours.co.uk
 ------------------------------
 
 Key Value: 53880
