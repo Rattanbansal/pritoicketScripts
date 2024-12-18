@@ -23,7 +23,7 @@ def compare_records(df, primary_key):
     # Convert DataFrame to dictionary grouped by primary_key
     grouped = df.groupby(primary_key)
     
-    changes = []
+    changes_list = []  # List to store changes in a format suitable for DataFrame
     skipped = 0
     
     for key_value, group in grouped:
@@ -45,7 +45,6 @@ def compare_records(df, primary_key):
             # Compare all columns except certain ones we want to exclude
             exclude_columns = {'rn', 'last_modified_at'}
             
-            changes_for_id = []
             for column in df.columns:
                 if column not in exclude_columns:
                     old_val = old_record[column]
@@ -53,22 +52,21 @@ def compare_records(df, primary_key):
                     
                     # Only record if values are different and not null
                     if pd.notna(old_val) and pd.notna(new_val) and old_val != new_val:
-                        changes_for_id.append({
-                            'column': column,
+                        changes_list.append({
+                            'primary_key': primary_key,
+                            'key_value': str(key_value),
+                            'column_name': column,
                             'old_value': str(old_val),
                             'new_value': str(new_val),
                             'modified_at': str(new_record['last_modified_at']) if 'last_modified_at' in new_record else None
                         })
-            
-            if changes_for_id:
-                changes.append({
-                    primary_key: str(key_value),
-                    'changes': changes_for_id
-                })
                 
         except Exception as e:
             print(f"Error processing {primary_key} {key_value}: {e}")
             continue
+    
+    # Create DataFrame from changes
+    changes_df = pd.DataFrame(changes_list)
     
     summary = {
         'total_records_processed': len(df),
@@ -76,14 +74,14 @@ def compare_records(df, primary_key):
         'records_with_rn1': len(df[df['rn'] == 1]),
         'records_with_rn2': len(df[df['rn'] == 2]),
         'skipped_records': skipped,
-        'changes_found': len(changes),
+        'changes_found': len(changes_list),
         'generated_at': datetime.now().isoformat(),
         'primary_key_used': primary_key
     }
     
     return {
         'summary': summary,
-        'changes': changes
+        'changes_df': changes_df
     }
 
 def save_report(report_data, output_file):
@@ -91,9 +89,18 @@ def save_report(report_data, output_file):
         # Create directory if it doesn't exist
         os.makedirs(os.path.dirname(os.path.abspath(output_file)), exist_ok=True)
         
-        with open(output_file, 'w') as f:
-            json.dump(report_data, f, indent=2)
-        print(f"\nReport saved to {output_file}")
+        # Save changes to CSV
+        csv_file = output_file.rsplit('.', 1)[0] + '.csv'
+        if not report_data['changes_df'].empty:
+            report_data['changes_df'].to_csv(csv_file, index=False)
+        
+        # Save summary to JSON
+        summary_file = output_file.rsplit('.', 1)[0] + '_summary.json'
+        with open(summary_file, 'w') as f:
+            json.dump(report_data['summary'], f, indent=2)
+        
+        print(f"\nChanges saved to {csv_file}")
+        print(f"Summary saved to {summary_file}")
         
         # Print summary
         summary = report_data['summary']

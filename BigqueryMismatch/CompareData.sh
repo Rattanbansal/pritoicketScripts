@@ -7,6 +7,7 @@ days=$1
 partitioncolumn=cod_id
 
 rm -f *.json
+rm -f *.csv
 
 # Check if the required arguments are provided
 if [ -z "$1" ]; then
@@ -17,18 +18,18 @@ fi
 
 source fetchdata.sh $tablename $days $tablename.json $partitioncolumn
 
-python compare_record.py $tablename.json $partitioncolumn $tablename-Diff.json
+python compare_record.py $tablename.json $partitioncolumn $tablename-Diff.csv
 
-tablename=modeventcontent
-partitioncolumn=mec_id
+# tablename=modeventcontent
+# partitioncolumn=mec_id
 
-source fetchdata.sh $tablename $days $tablename.json $partitioncolumn
+# source fetchdata.sh $tablename $days $tablename.json $partitioncolumn
 
-python compare_record.py $tablename.json $partitioncolumn $tablename-Diff.json
+# python compare_record.py $tablename.json $partitioncolumn $tablename-Diff.csv
 
-tablename=ticketpriceschedule
-partitioncolumn=id
+# tablename=ticketpriceschedule
+# partitioncolumn=id
 
-source fetchdata.sh $tablename $days $tablename.json $partitioncolumn
+# source fetchdata.sh $tablename $days $tablename.json $partitioncolumn
 
-python compare_record.py $tablename.json $partitioncolumn $tablename-Diff.json
+# python compare_record.py $tablename.json $partitioncolumn $tablename-Diff.csv
