@@ -1,7 +1,0 @@
-ticket_level_commission_id,product_id,admin_id,commission,hotel_prepaid_commission_percentage,is_hotel_prepaid_commission_percentage,commission_on_sale_price,hgs_prepaid_commission_percentage,ticket_net_price,museum_net_commission,merchant_net_commission,hotel_commission_net_price,hgs_commission_net_price
-7580176	59436	69	20	0.00	1	0	100.00	55.00	41.25	0.00	0.00	13.75
-7580171	60608	69	20	0.00	1	0	100.00	119.00	89.25	0.00	0.00	29.75
-7580172	60608	69	20	0.00	1	0	100.00	125.00	93.75	0.00	0.00	31.25
-7580174	60609	69	20	0.00	1	0	100.00	99.00	74.25	0.00	0.00	24.75
-7580173	60608	69	20	0.00	1	0	100.00	125.00	93.75	0.00	0.00	31.25
-7580175	60609	69	20	0.00	1	0	100.00	125.00	93.75	0.00	0.00	31.25
