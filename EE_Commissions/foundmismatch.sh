@@ -17,11 +17,13 @@ if [[ $Insertdata == 2 ]]; then
 
     echo "Started Instering Data from Scratch"
 
-    mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "TRUNCATE TABLE pricelist; TRUNCATE TABLE distributors"
+    mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "TRUNCATE TABLE pricelist; TRUNCATE TABLE distributors; TRUNCATE TABLE catalog_distributors;"
 
     python pricelist.py pricelist.csv
 
     python distributors.py distributors.csv
+
+    python catalog_distributors.py
 
 else
 
