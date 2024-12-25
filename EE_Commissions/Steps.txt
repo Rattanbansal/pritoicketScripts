@@ -1,0 +1,61 @@
+Hi Rutger
+
+As per V version of Matrix Sheet and Reseller Matrix I have go through with database relation and found many points, So if I wil start update only for the available data then may be in future we again need to work on that part.So I have prepare an overview which I am sharing with you if you can discuss with them and take necessary step and get there approval on that points
+
+Reference sheet : https://docs.google.com/spreadsheets/d/150Ro-l6YDX1coaQfF_iywp5G0LPx6q8Ig4q2AIsejKg/edit?gid=1835203195#gid=1835203195
+
+Point 1: As per data provided in the matrix sheet we still have 94 distributor left for which we have not any catalog linking provided. refer sheet name in above doc : Overview-Catalog_Linking_Not_In_matrix
+
+Point 2: One sheet has been forwarded where its mentioned that which distributor linked to which distributor I have highlighted it RED in sheet name "Catalog_Wrongly_Linked" but that are already correct but as per matrix sheet we have still wrong linking which I have mentioned in the left side of highlighted area in the same sheet so please review it once - Sheet Name: Catalog_Wrongly_Linked
+
+Point 3: In the matrix Sheet there aresome distributor which are mentioned twice, which create confusion because they are coming under different catalog so that you need to check it once : reference sheet: Duplicate_Disctributor_with_different_status
+
+Point 4: We tried to findout product which are sold after June from the whole order table for all products linked to Evan Evans and after that we queried it with the data provided in the matrix and matrix reseller sheet still there are many product has been there for that commission not provided in the both sheet please refer sheet : Matrix-ProductIdINSoldLIstButNotINMatrix + ProductIdSoldByReseller-But Not INMatrixrReseller
+
+Point 5: As per above point we also findout all distributors which sold products of evan evans and also reseller which sold product of evans evans then we queries it with list of distributors provided in the matrix sheet and also with the reseller list in the matrix reseller sheet provided by you and found some distributrs and resellers not provided in the sheet for which there are chance that we can miss the commission allotment. Please refer sheet name: DistributorSold_NotInMatrix + DistributorSold_NotInMatrix
+
+Point 6: And Then we think another point that we can compare list of products provided in the matrix and matrixreseller sheet with overall product and there also dfound gap of 300+ active product which you need to look into it, If that is not required then its fine we will follow procedure of update accordingly. Please refer sheet: Overall_missing_product_Matrix + Overall_missing_product_Matrix
+
+Point 7: I also want to check that if any distributor and reseller which not sold the product but commission assignment not provided for future so if we need to check that as well then please let me know I will add the same also in the doc of EE_Review.
+
+Once you will confirm this then we again need to check another step which we can look into it after confirmation on above because its linked to it. so please review and reply me asap
+
+
+Hi Rutger,
+As per the V version of the Matrix Sheet and Reseller Matrix, I have analyzed the database relations and identified several key points. If we proceed with updates only for the currently available data, we might need to revisit these areas again in the future. Therefore, I have prepared an overview highlighting these observations. Please review them, discuss them with the relevant team, and take the necessary steps to get their approval.
+Reference Sheet: Google Sheet Link
+Key Observations:
+
+Catalog Linking Missing:
+There are still 94 distributors without any catalog linking provided.
+Reference Sheet: Overview-Catalog_Linking_Not_In_Matrix
+
+Incorrect Catalog Linking:
+A sheet was forwarded showing distributor linkages, with incorrect mappings highlighted in RED.
+While some are correct, discrepancies still exist on the left side of the highlighted section.
+Reference Sheet: Catalog_Wrongly_Linked
+
+Duplicate Distributors with Different Statuses:
+Some distributors are listed twice in the Matrix Sheet under different catalogs, causing confusion.
+Reference Sheet: Duplicate_Distributor_with_different_status
+
+Untracked Commission for Sold Products:
+Products sold after June were queried from the order table and cross-referenced with the Matrix and Reseller Matrix sheets.
+Several products still lack commission details in both sheets.
+Reference Sheets: Matrix-ProductIdINSoldLIstButNotINMatrix and ProductIdSoldByReseller-ButNotINMatrixReseller
+
+Missing Distributors and Resellers in Matrix Sheets:
+Distributors and Resellers who sold Evan Evans products were compared against the lists in the Matrix and Reseller sheets.
+Some are missing, which could lead to missed commission assignments.
+Reference Sheets: DistributorSold_NotInMatrix and ResellerSold_NotInMatrix
+
+Gaps in Active Products List:
+A comparison between the overall product list and the Matrix/Reseller sheets revealed 300+ active products missing from the sheets.
+If these are not required, we can proceed with the current update procedure.
+Reference Sheets: Overall_missing_product_Matrix and Overall_missing_product_Matrix
+
+Future Commission Assignment:
+There might be distributors and resellers who haven't sold products yet but still need commission assignments for future transactions.
+Please confirm if we need to include this aspect in the EE_Review document.
+
+Once you confirm these points, we can proceed to the next steps, which are interlinked with the above observations.Looking forward to your feedback at the earliest.

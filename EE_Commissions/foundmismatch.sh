@@ -18,6 +18,8 @@ echo "" > Product_id_Sold_But_not_In_matrix.csv
 echo "" > Product_id_Sold_But_not_In_matrixReseller.csv
 echo "" > distributor_id_Sold_But_not_In_matrix.csv
 echo "" > reseller_id_Sold_But_not_In_matrixreseller.csv
+echo "" > Overall_product_missing_distributor.csv
+echo "" > Overall_product_missing_reseller.csv
 
 if [[ $Insertdata == 2 ]]; then
 
@@ -71,6 +73,13 @@ read -r user_input
 mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select * from (select * from (select DISTINCT(reseller_id) as order_reseller_id from bigqueryData where reseller_id != '541') as orderData left join (select distinct(reseller_id) as reseller_id from pricelist) d on orderData.order_reseller_id = d.reseller_id) as final where reseller_id is NULL limit 100;" >> reseller_id_Sold_But_not_In_matrixreseller.csv ## product oid sold but these product id commission not provided in the sheet of Matrix
 
 read -r user_input
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select * from (SELECT base1.*, d.ticket_id from (select DISTINCT(mec_id) as mec_id from (with mec as (select mec_id, reseller_id, cod_id, museum_name from modeventcontent where reseller_id = '541' and deleted = '0' and date(from_unixtime(if(endDate like '%999999%', '1798191975', endDate))) > date_sub(CURRENT_DATE, interval 1 day)), tps as (select ticket_id, id from ticketpriceschedule  where deleted = '0' and date(from_unixtime(if(end_date like '%999999%', '1798191975', end_date))) > date_sub(CURRENT_DATE, interval 1 day)) select * from mec join tps on tps.ticket_id = mec.mec_id) as base) as base1 left join (select DISTINCT ticket_id from distributors) as d on base1.mec_id = d.ticket_id) as tt where ticket_id is NULL" >> Overall_product_missing_distributor.csv ## Commission for these products not provided from the overall active product list of evan evans
+
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select * from (SELECT base1.*, d.ticket_id from (select DISTINCT(mec_id) as mec_id from (with mec as (select mec_id, reseller_id, cod_id, museum_name from modeventcontent where reseller_id = '541' and deleted = '0' and date(from_unixtime(if(endDate like '%999999%', '1798191975', endDate))) > date_sub(CURRENT_DATE, interval 1 day)), tps as (select ticket_id, id from ticketpriceschedule  where deleted = '0' and date(from_unixtime(if(end_date like '%999999%', '1798191975', end_date))) > date_sub(CURRENT_DATE, interval 1 day)) select * from mec join tps on tps.ticket_id = mec.mec_id) as base) as base1 left join (select DISTINCT ticket_id from pricelist) as d on base1.mec_id = d.ticket_id) as tt where ticket_id is NULL" >> Overall_product_missing_reseller.csv ## Commission for these products not provided from the overall active product list of evan evans
+
+ 
 
 # mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "with qr_codess as (select reseller_id, channel_id from priopassdb.qr_codes where cashier_type = '1' and channel_id is not NULL group by reseller_id, channel_id), channels as (select d.*, qc.reseller_id as qc_reseller_id, qc.channel_id from rattan.pricelist d left join qr_codess qc on d.reseller_id = qc.reseller_id), final as (select c.*, clc.ticketpriceschedule_id, clc.resale_currency_level, clc.currency, clc.commission_on_sale_price, clc.is_hotel_prepaid_commission_percentage, clc.hotel_prepaid_commission_percentage, clc.ticket_net_price, clc.hotel_commission_net_price, (clc.ticket_net_price*c.commission/100) as hotel_commission_should_be from channels c left join priopassdb.channel_level_commission clc on c.channel_id = clc.channel_id and c.ticket_id = clc.ticket_id and clc.deleted = '0' and clc.is_adjust_pricing = '1') select *, ABS(hotel_commission_net_price - hotel_commission_should_be) as gap from final where ABS(hotel_commission_net_price - hotel_commission_should_be) > '0.05' or commission_on_sale_price != '1' or is_hotel_prepaid_commission_percentage != '1' or ticketpriceschedule_id is NULL;" >> channel_level_mismatch.csv
 
