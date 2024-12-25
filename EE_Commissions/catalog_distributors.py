@@ -6,7 +6,7 @@ DB_CONFIG = {
     'host': '10.10.10.19',  # Change this if your DB is on another server
     'user': 'pip',
     'password': 'pip2024##',
-    'database': 'rattan'
+    'database': 'priopassdb'
 }
 
 # Load and Process Catalog Data

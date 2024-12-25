@@ -11,7 +11,7 @@ def create_connection():
             host='10.10.10.19',      # e.g., 'localhost' or IP address
             user='pip',      # your MySQL username
             password='pip2024##',  # your MySQL password
-            database='rattan'     # your database name
+            database='priopassdb'     # your database name
         )
         if connection.is_connected():
             print("Connected to MySQL database")

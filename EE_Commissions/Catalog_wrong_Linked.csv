@@ -1,0 +1,7 @@
+
+cod_id	company	sub_catalog_id	own_supplier_id	catalog_name	catalog_category	catalog_type	client_provided_catalog_name	distributor_id
+44063	Project Expedition LLC	171640808526563	0	HIGHER	Sub_catalog	agent_catalog	BASE	44063
+7919	Holiday Inn London Kensington 	171640808526563	0	HIGHER	Sub_catalog	agent_catalog	MID 	7919
+7655	Rosewood London 	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	MID 	7655
+7205	Grosvenor House Hotel 	171640781409394	0	NIL 0%	Sub_catalog	agent_catalog	MID 	7205
+6809	We Know London Group	171640797655057	0	MID 28%	Sub_catalog	agent_catalog	HIGHER	6809

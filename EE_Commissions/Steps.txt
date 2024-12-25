@@ -1,3 +1,0 @@
-1. Insert data in the distributors and pricelist table after extracting it from the Google sheet shared by client
-
-2. 

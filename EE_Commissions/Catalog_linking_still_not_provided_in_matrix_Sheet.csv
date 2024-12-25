@@ -1,0 +1,96 @@
+
+cod_id	company	sub_catalog_id	own_supplier_id	catalog_name	catalog_category	catalog_type	client_provided_catalog_name	distributor_id
+5960	Evan Evans Tours Ltd CMS 	0	5702	NULL	No Condition	No condition	NULL	NULL
+5963	Evan Evans Tours Ltd. Contact Centre	0	5702	NULL	No Condition	No condition	NULL	NULL
+8729	Evan Evans Tours Ltd Mobile Sales	0	5702	NULL	No Condition	No condition	NULL	NULL
+8879	Evan Evans Tours Ltd. Welcome Desk	0	1	NULL	No Condition	No condition	NULL	NULL
+8942	Evan Evans Sales  	0	5702	NULL	No Condition	No condition	NULL	NULL
+10736	Evan Evans Tours Ltd. Groups	0	10733	NULL	No Condition	No condition	NULL	NULL
+11975	Demo widget account EET	0	5702	NULL	No Condition	No condition	NULL	NULL
+27420	Evan Evans	0	3580	NULL	No Condition	No condition	NULL	NULL
+34364	Test	0	3580	NULL	No Condition	No condition	NULL	NULL
+41905	TEST 	0	1	NULL	No Condition	No condition	NULL	NULL
+42257	City Sightseeing London C/O Crown Sightseeing Ltd (Portal sales)	0	1	NULL	No Condition	No condition	NULL	NULL
+45290	TEST 123 - DO NOT USE	0	1	NULL	No Condition	No condition	NULL	NULL
+45821	Evan Evans Staff Tours Experience Programme	0	1	NULL	No Condition	No condition	NULL	NULL
+48832	Evan Evans app	0	5702	NULL	No Condition	No condition	NULL	NULL
+50444	TEST 123	0	5702	NULL	No Condition	No condition	NULL	NULL
+51232	Travcorp.UK Ltd - Monika Daujotaite	171032708087365	0	Travcorp Hosts	Sub_catalog	agent_catalog	NULL	NULL
+51233	Travcorp.UK Ltd - Daisy Das	171032708087365	0	Travcorp Hosts	Sub_catalog	agent_catalog	NULL	NULL
+51235	Travcorp.UK Ltd - Fabian Szpajda	171032708087365	0	Travcorp Hosts	Sub_catalog	agent_catalog	NULL	NULL
+51236	Travcorp.UK Ltd – Annika MacFarlane	171032708087365	0	Travcorp Hosts	Sub_catalog	agent_catalog	NULL	NULL
+51237	Travcorp.UK Ltd – John Suarez	171032708087365	0	Travcorp Hosts	Sub_catalog	agent_catalog	NULL	NULL
+51238	Travcorp.UK Ltd – Gabriel Dossantos	171032708087365	0	Travcorp Hosts	Sub_catalog	agent_catalog	NULL	NULL
+51239	Travcorp.UK Ltd – Dishita Dandona	171032708087365	0	Travcorp Hosts	Sub_catalog	agent_catalog	NULL	NULL
+51240	Travcorp.UK Ltd – Jodi Roberts	171032708087365	0	Travcorp Hosts	Sub_catalog	agent_catalog	NULL	NULL
+51241	Travcorp.UK Ltd – Margaret Oladele	171032708087365	0	Travcorp Hosts	Sub_catalog	agent_catalog	NULL	NULL
+51243	Travcorp.UK Ltd – Cindi Jackson	171032708087365	0	Travcorp Hosts	Sub_catalog	agent_catalog	NULL	NULL
+51244	Travcorp.UK Ltd – Robert Ward	171032708087365	0	Travcorp Hosts	Sub_catalog	agent_catalog	NULL	NULL
+51334	Anglo Chinese Executive Travel	0	0	NULL	No Condition	No condition	NULL	NULL
+51337	Nexus DMC	0	0	NULL	No Condition	No condition	NULL	NULL
+51349	Mandarin Oriental Mayfair	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+51402	Richmond Hill Hotel	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+51403	Plenustour Japan LLC	0	0	NULL	No Condition	No condition	NULL	NULL
+51421	TOP SIGHTS TOURS LLC	0	0	NULL	No Condition	No condition	NULL	NULL
+51462	Bicester Village	171640781409394	0	NIL 0%	Sub_catalog	agent_catalog	NULL	NULL
+51537	Xtravel Group Ltd	0	0	NULL	No Condition	No condition	NULL	NULL
+51550	Gateway Destinations	0	0	NULL	No Condition	No condition	NULL	NULL
+51553	Travelzoo	0	0	NULL	No Condition	No condition	NULL	NULL
+51554	Diversa Turismo	0	0	NULL	No Condition	No condition	NULL	NULL
+51569	Jet Set Journeys	0	0	NULL	No Condition	No condition	NULL	NULL
+51587	Cromwell Gift Shop	0	0	NULL	No Condition	No condition	NULL	NULL
+51626	Tickets ToDo	0	0	NULL	No Condition	No condition	NULL	NULL
+51637	plj demo	0	0	NULL	No Condition	No condition	NULL	NULL
+51647	Denomades	0	0	NULL	No Condition	No condition	NULL	NULL
+51661	Tickete	0	0	NULL	No Condition	No condition	NULL	NULL
+51687	Concierge test widget	0	0	NULL	No Condition	No condition	NULL	NULL
+51696	Academic Programs International	0	0	NULL	No Condition	No condition	NULL	NULL
+51754	Travello & Backpacker Deals	0	0	NULL	No Condition	No condition	NULL	NULL
+51806	Travel Director London Eye/River Cruise Optional Delp Sales	171640781409394	0	NIL 0%	Sub_catalog	agent_catalog	NULL	NULL
+51886	Adeo Travel	0	0	NULL	No Condition	No condition	NULL	NULL
+51896	LINGSHICHA / Hunan Xinkanghui Int'l Travel Agency Co., Ltd.	0	0	NULL	No Condition	No condition	NULL	NULL
+51924	Wonderdays Limited	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+51944	Park Hyatt London River Thames	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+52049	Yo Tours	0	0	NULL	No Condition	No condition	NULL	NULL
+52060	London Visitor Marketing	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+52072	Nagesh Sharma	0	0	NULL	No Condition	No condition	NULL	NULL
+52090	Luxkey	0	0	NULL	No Condition	No condition	NULL	NULL
+52110	PLJ PO1 demo	0	0	NULL	No Condition	No condition	NULL	NULL
+52111	PLJ PO1 demo 2	0	0	NULL	No Condition	No condition	NULL	NULL
+52180	TravCorp EGS QR Code	0	0	NULL	No Condition	No condition	NULL	NULL
+52202	London Travel Agency Ltd	0	0	NULL	No Condition	No condition	NULL	NULL
+52457	Travcorp Uk Ltd - Ria McLean	0	0	NULL	No Condition	No condition	NULL	NULL
+52460	Travcorp Uk Ltd - Hope Lawino	0	0	NULL	No Condition	No condition	NULL	NULL
+52554	Sileo Travel	0	0	NULL	No Condition	No condition	NULL	NULL
+52578	Worldwide DMC	0	0	NULL	No Condition	No condition	NULL	NULL
+52596	Luxkey	0	0	NULL	No Condition	No condition	NULL	NULL
+52635	DesignMyTravel	171640808526563	0	HIGHER	Sub_catalog	agent_catalog	NULL	NULL
+52743	Six Senses London	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+52902	Evan Evans Tours	0	5702	NULL	No Condition	No condition	NULL	NULL
+52904	Il Viaggio	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+52905	Ellen Kensington	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+52906	STONEHENGEVISIT.CO.UK	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+52959	Design my Travel	171640808526563	0	HIGHER	Sub_catalog	agent_catalog	NULL	NULL
+52971	STONEHENGEVISIT.CO.UK	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53045	BRITANNIA GIFTS	0	0	NULL	No Condition	No condition	NULL	NULL
+53097	MaxibonTravel	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53106	Best of Tours	0	0	NULL	No Condition	No condition	NULL	NULL
+53140	TourDesk ehf	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53202	Pacific Arena Pte. Ltd. - PriceBreaker	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53205	HIGH POINT HOLIDAYS	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53206	The Waldorf Hilton	0	0	NULL	No Condition	No condition	NULL	NULL
+53488	Victory Services Club	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53489	Serenity Miles Ltd	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53506	GroupsPlanner.com	0	0	NULL	No Condition	No condition	NULL	NULL
+53546	The Cumberland Hotel	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53586	Europeous Dmc Ltd	0	0	NULL	No Condition	No condition	NULL	NULL
+53588	INSIGHT TOURS AND TRAVELS LIMITED	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53593	Chongqing Letrip International Travel Service Co., Ltd.	0	0	NULL	No Condition	No condition	NULL	NULL
+53594	London Sightseeing Taxi Tours	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53602	Dybo Travel	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53604	REGENCY TRAVEL AND TOURS	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53616	GB DMC LTD.	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53631	CHR TRAVEL	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53864	Happy Tours Ltd	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53865	TourDesk	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
+53879	Tourist England	171640784610681	0	BASE 25%	Sub_catalog	agent_catalog	NULL	NULL
