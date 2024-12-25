@@ -59,3 +59,7 @@ There might be distributors and resellers who haven't sold products yet but stil
 Please confirm if we need to include this aspect in the EE_Review document.
 
 Once you confirm these points, we can proceed to the next steps, which are interlinked with the above observations.Looking forward to your feedback at the earliest.
+
+
+
+git config --global alias.qp '!git add . && git commit -m "new changes" -a && git push'
