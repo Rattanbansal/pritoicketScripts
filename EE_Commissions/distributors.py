@@ -50,7 +50,7 @@ def modify_csv(input_file, output_file):
     df = df.iloc[:, 2:]
 
     # Step 4: Keep the 4th column delete next 4 columns
-    df = df.iloc[:, [0] + list(range(5, df.shape[1]))]
+    df = df.iloc[:, [0] + list(range(3, df.shape[1]))]
     
     # Step 5: Write the modified DataFrame back to a new CSV
     df.to_csv(output_file, index=False, header=False)
@@ -63,7 +63,7 @@ def process_csv_and_insert_batch(csv_file_path, connection):
     batch = []
 
     #
-    batch_size = 100
+    batch_size = 1000
     
     # Iterate through each row in the DataFrame
     for _, row in df.iterrows():

@@ -63,7 +63,7 @@ def process_csv_and_insert_batch(csv_file_path, connection):
     batch = []
 
     #
-    batch_size = 100
+    batch_size = 1000
     
     # Iterate through each row in the DataFrame
     for _, row in df.iterrows():

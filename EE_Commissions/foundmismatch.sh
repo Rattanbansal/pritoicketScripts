@@ -23,7 +23,7 @@ echo "" > Overall_product_missing_reseller.csv
 
 if [[ $Insertdata == 2 ]]; then
 
-    exit 1
+    # exit 1
 
     echo "Started Instering Data from Scratch"
 
