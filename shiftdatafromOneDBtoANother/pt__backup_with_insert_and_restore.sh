@@ -11,6 +11,8 @@ DB_PASSWORD='YI7g3zXYLaRLf06HTX2s'
 DB_NAME=priopassdb
 table_name=visitor_tickets
 column_name=vt_group_no
+table_name2=prepaid_tickets
+column_name2=visitor_group_no
 PORT=3306
 BATCH_SIZE=25
 
@@ -56,9 +58,32 @@ for ((i=0; i<$total_vt_groups; i+=BATCH_SIZE)); do
 
     time mysql -h $DB2_HOST -u $DB2_USER -p"$DB2_PASSWORD" $DB2_NAME -e "update visitor_tickets set last_modified_at = CURRENT_TIMESTAMP where vt_group_no in ($batch_str) " || exit 1
 
+    time mysql -h $DB_HOST -u $DB_USER -p"$DB_PASSWORD" $DB_NAME -e "update visitor_tickets set last_modified_at = CURRENT_TIMESTAMP where vt_group_no in ($batch_str) " || exit 1
+
     echo "---------Update ended---------"
 
     rm -f $table_name.sql.gz
+
+
+    echo "-------------Prepaid_tickets----------"
+
+    time timeout "$timeout_duration" mysqldump --single-transaction --skip-lock-tables --skip-add-locks --no-tablespaces -h $DB_HOST --set-gtid-purged=OFF -u $DB_USER --port=$PORT -p"$DB_PASSWORD"  --skip-add-drop-table --no-create-info $DB_NAME $table_name2 --where="$column_name2 in ($batch_str)" | gzip > $table_name2.sql.gz
+
+    echo "restore started"
+
+    gunzip <  $table_name2.sql.gz | time mysql -h $DB2_HOST -u $DB2_USER -p"$DB2_PASSWORD" $DB2_NAME || exit 1
+
+    echo "restore ended"
+
+    echo "---------Update started---------"
+
+    time mysql -h $DB2_HOST -u $DB2_USER -p"$DB2_PASSWORD" $DB2_NAME -e "update prepaid_tickets set last_modified_at = CURRENT_TIMESTAMP where visitor_group_no in ($batch_str) " || exit 1
+
+    time mysql -h $DB_HOST -u $DB_USER -p"$DB_PASSWORD" $DB_NAME -e "update prepaid_tickets set last_modified_at = CURRENT_TIMESTAMP where visitor_group_no in ($batch_str) " || exit 1
+
+    echo "---------Update ended---------"
+
+    rm -f $table_name2.sql.gz
 
     sleep 10
     # exit 1
