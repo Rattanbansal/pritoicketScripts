@@ -114,3 +114,5 @@ select sub_catalog_id, ticket_id, commission from (select sub_catalog_id, ticket
 
 
 select * from (SELECT d.*, q.cod_id, q.sub_catalog_id, q.reseller_id FROM distributors d left join qr_codes q on d.hotel_id = q.cod_id where q.cashier_type = '1') as base where sub_catalog_id = '171640808526563' and ticket_id = '61440' limit 100; 
+
+-------
