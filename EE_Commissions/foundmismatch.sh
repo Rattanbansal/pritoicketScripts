@@ -20,6 +20,7 @@ echo "" > distributor_id_Sold_But_not_In_matrix.csv
 echo "" > reseller_id_Sold_But_not_In_matrixreseller.csv
 echo "" > Overall_product_missing_distributor.csv
 echo "" > Overall_product_missing_reseller.csv
+echo "" > sub_CatalogHaving0.csv
 
 if [[ $Insertdata == 2 ]]; then
 
@@ -50,9 +51,9 @@ mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select base1.*, base2.c
 
 read -r user_input
 
-mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select * from (select main.*, cd.catalog_name as client_provided_catalog_name, cd.distributor_id from (SELECT qc.cod_id, qc.company, qc.sub_catalog_id, qc.own_supplier_id, if(c.catalog_name='HIGH 30%', 'HIGHER', c.catalog_name) as catalog_name, case when c.catalog_category = '1' then 'Main_catalog' when c.catalog_category = '2' then 'Sub_catalog' else 'No Condition' end as catalog_category, case when c.catalog_type = '1' then 'agent_catalog' when c.catalog_type = '2' then 'direct_catalog' else 'No condition' end as catalog_type FROM qr_codes qc left join catalogs c on qc.sub_catalog_id = c.catalog_id where qc.reseller_id = '541' and qc.cashier_type = '1') as main left join catalog_distributors cd on main.cod_id = cd.distributor_id) as raja where distributor_id is NULL;" >> Catalog_linking_still_not_provided_in_matrix_Sheet.csv
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select * from (select main.*, cd.catalog_name as client_provided_catalog_name, cd.distributor_id from (SELECT qc.cod_id, qc.company, qc.sub_catalog_id, qc.own_supplier_id, ifnull(if(c.catalog_name='HIGH 30%', 'HIGHER', c.catalog_name),'RRRRR') as catalog_name, case when c.catalog_category = '1' then 'Main_catalog' when c.catalog_category = '2' then 'Sub_catalog' else 'No Condition' end as catalog_category, case when c.catalog_type = '1' then 'agent_catalog' when c.catalog_type = '2' then 'direct_catalog' else 'No condition' end as catalog_type FROM qr_codes qc left join catalogs c on qc.sub_catalog_id = c.catalog_id where qc.reseller_id = '541' and qc.cashier_type = '1') as main left join catalog_distributors cd on main.cod_id = cd.distributor_id) as raja where distributor_id is NULL;" >> Catalog_linking_still_not_provided_in_matrix_Sheet.csv
 
-mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select * from (select main.*, cd.catalog_name as client_provided_catalog_name, cd.distributor_id from (SELECT qc.cod_id, qc.company, qc.sub_catalog_id, qc.own_supplier_id, if(c.catalog_name='HIGH 30%', 'HIGHER', c.catalog_name) as catalog_name, case when c.catalog_category = '1' then 'Main_catalog' when c.catalog_category = '2' then 'Sub_catalog' else 'No Condition' end as catalog_category, case when c.catalog_type = '1' then 'agent_catalog' when c.catalog_type = '2' then 'direct_catalog' else 'No condition' end as catalog_type FROM qr_codes qc left join catalogs c on qc.sub_catalog_id = c.catalog_id where qc.reseller_id = '541' and qc.cashier_type = '1') as main left join catalog_distributors cd on main.cod_id = cd.distributor_id) as raja where distributor_id is not NULL and catalog_name not like concat('%',client_provided_catalog_name,'%');" >> Catalog_wrong_Linked.csv
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select * from (select main.*, cd.catalog_name as client_provided_catalog_name, cd.distributor_id from (SELECT qc.cod_id, qc.company, qc.sub_catalog_id, qc.own_supplier_id, ifnull(if(c.catalog_name='HIGH 30%', 'HIGHER', c.catalog_name),'RRRRR') as catalog_name, case when c.catalog_category = '1' then 'Main_catalog' when c.catalog_category = '2' then 'Sub_catalog' else 'No Condition' end as catalog_category, case when c.catalog_type = '1' then 'agent_catalog' when c.catalog_type = '2' then 'direct_catalog' else 'No condition' end as catalog_type FROM qr_codes qc left join catalogs c on qc.sub_catalog_id = c.catalog_id where qc.reseller_id = '541' and qc.cashier_type = '1') as main left join catalog_distributors cd on main.cod_id = cd.distributor_id) as raja where distributor_id is not NULL and catalog_name not like concat('%',client_provided_catalog_name,'%');" >> Catalog_wrong_Linked.csv
 
 mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "SELECT distributor_id, group_concat(catalog_name), count(*) as pp FROM catalog_distributors group by distributor_id having pp > '1';" ## check wrong data in the distributor_catalog
 
@@ -78,6 +79,9 @@ mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select * from (SELECT b
 
 
 mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select * from (SELECT base1.*, d.ticket_id from (select DISTINCT(mec_id) as mec_id from (with mec as (select mec_id, reseller_id, cod_id, museum_name from modeventcontent where reseller_id = '541' and deleted = '0' and date(from_unixtime(if(endDate like '%999999%', '1798191975', endDate))) > date_sub(CURRENT_DATE, interval 1 day)), tps as (select ticket_id, id from ticketpriceschedule  where deleted = '0' and date(from_unixtime(if(end_date like '%999999%', '1798191975', end_date))) > date_sub(CURRENT_DATE, interval 1 day)) select * from mec join tps on tps.ticket_id = mec.mec_id) as base) as base1 left join (select DISTINCT ticket_id from pricelist) as d on base1.mec_id = d.ticket_id) as tt where ticket_id is NULL" >> Overall_product_missing_reseller.csv ## Commission for these products not provided from the overall active product list of evan evans
+
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select cod_id,Reseller_id,sub_catalog_id, own_supplier_id from qr_codes where cod_id in (select distinct hotel_id from (SELECT d.*, q.cod_id, q.sub_catalog_id FROM distributors d left join qr_codes q on d.hotel_id = q.cod_id where q.cashier_type = '1') as base where sub_catalog_id = '0');" >> sub_CatalogHaving0.csv ## No Catalog_attached
 
  
 

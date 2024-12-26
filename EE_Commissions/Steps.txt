@@ -62,4 +62,10 @@ Once you confirm these points, we can proceed to the next steps, which are inter
 
 
 
+1. IN Matrix Sheet Also findout that some distributor which are linked to another reseller also added in that sheet, what is the reason behind it. distributor ids are 457,722,818,2899,27476
+
+
+
 git config --global alias.qp '!git add . && git commit -m "new changes" -a && git push'
+
+
