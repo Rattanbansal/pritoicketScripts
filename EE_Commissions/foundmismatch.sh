@@ -21,6 +21,7 @@ echo "" > reseller_id_Sold_But_not_In_matrixreseller.csv
 echo "" > Overall_product_missing_distributor.csv
 echo "" > Overall_product_missing_reseller.csv
 echo "" > sub_CatalogHaving0.csv
+echo "" > commission_overlap.csv
 
 if [[ $Insertdata == 2 ]]; then
 
@@ -82,6 +83,9 @@ mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select * from (SELECT b
 
 
 mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select cod_id,Reseller_id,sub_catalog_id, own_supplier_id from qr_codes where cod_id in (select distinct hotel_id from (SELECT d.*, q.cod_id, q.sub_catalog_id FROM distributors d left join qr_codes q on d.hotel_id = q.cod_id where q.cashier_type = '1') as base where sub_catalog_id = '0');" >> sub_CatalogHaving0.csv ## No Catalog_attached
+
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select sub_catalog_id, ticket_id, count(*) as pp from (select sub_catalog_id, ticket_id, commission from (SELECT d.*, q.cod_id, q.sub_catalog_id FROM distributors d left join qr_codes q on d.hotel_id = q.cod_id where q.cashier_type = '1') as base where sub_catalog_id != '0' group by sub_catalog_id, ticket_id, commission) as base group by sub_catalog_id, ticket_id having pp > '1';" >> commission_overlap.csv ## No Catalog_attached
 
  
 
