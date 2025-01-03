@@ -10,7 +10,7 @@ if [ ! -f "$JSON_FILE" ]; then
 fi
 
 # Batch size
-BATCH_SIZE=100
+BATCH_SIZE=500
 
 # Extract channel_level_commission_id values using jq
 ids=$(jq -r '.[] | .cluster_row_id' "$JSON_FILE")
