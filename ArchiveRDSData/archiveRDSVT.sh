@@ -11,7 +11,7 @@ fetch_db_credentials "PrioticketLiveRDSPipe"
 outputfolder="$PWD/VT"
 DB_NAME="prioprodrds"
 outputFile="$outputfolder/recordshto.csv"
-BATCH_SIZE=25
+BATCH_SIZE=50
 TIMEOUT_PERIOD=20
 
 # Input Parameters
@@ -74,7 +74,7 @@ while [ "$current_start_date" -le "$end_date_epoch" ]; do
         batch_str=$(IFS=,; echo "${batch[*]}")
 
         # Print progress information for the current ticket_id
-        echo "Processing batch of size $batch_size for Ticket ID: $ticket_id ($current_progress / $total_vt_groups processed)" >> $outputfolder/log.txt
+        echo "Processing batch of size $batch_size for Ticket ID from date: $start_date till end date $end_date: $ticket_id ($current_progress / $total_vt_groups processed)" >> $outputfolder/log.txt
 
         echo $batch_str
 
