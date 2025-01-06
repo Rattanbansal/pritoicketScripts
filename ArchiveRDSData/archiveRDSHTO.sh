@@ -12,7 +12,7 @@ fetch_db_credentials "PrioticketLiveRDSPipe"
 DB_NAME="prioprodrds"
 outputfolder="$PWD/HTO"
 outputFile="$outputfolder/recordshto.csv"
-BATCH_SIZE=25
+BATCH_SIZE=50
 TIMEOUT_PERIOD=20
 
 # Input Parameters
@@ -109,7 +109,7 @@ while [ "$current_start_date" -le "$end_date_epoch" ]; do
             fi
         fi
 
-        sleep 5
+        sleep 2
 
     done
     
