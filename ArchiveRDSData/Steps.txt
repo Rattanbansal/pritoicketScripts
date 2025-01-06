@@ -1,0 +1,7 @@
+Steps to Archive RDS Database
+
+1. Currently in the Visitor_tickets we have around 500 Gb data
+2. So we need to delete all records where we have the last_modified < '2024-07-01 00:00:01' if any order having few dates less then mentioned date and some records with more than mentioned date then we will skip that order id
+3. Same we need to do this for the other table like hotel_ticket_overview and prepaid_tickets as well 
+4. Once above table completed we can start with archiving another tables.
+5. so on basis of each particular data we need to run this delete commands.
