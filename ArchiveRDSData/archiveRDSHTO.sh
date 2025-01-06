@@ -104,6 +104,8 @@ while [ "$current_start_date" -le "$end_date_epoch" ]; do
 
                 timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "$reportdata" >> $outputFile || exit 1
 
+                timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "explain delete from hotel_ticket_overview where visitor_group_no in ($ArchiveOrders);select ROW_COUNT();" || exit 1
+
             fi
         fi
 
