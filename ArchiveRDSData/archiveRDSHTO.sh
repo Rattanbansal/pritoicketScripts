@@ -109,7 +109,7 @@ while [ "$current_start_date" -le "$end_date_epoch" ]; do
             fi
         fi
 
-        sleep 2
+        sleep 5
 
     done
     
