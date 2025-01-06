@@ -2,7 +2,6 @@
 
 set -e
 
-rm -f no_mismatch.txt
 # source ~/vault/startvalue.sh
 # Source the shared credential fetcher
 source ~/vault/vault_fetch_creds.sh
@@ -11,10 +10,12 @@ source ~/vault/vault_fetch_creds.sh
 fetch_db_credentials "PrioticketLiveRDSPipe"
 
 DB_NAME="prioprodrds"
-outputFile="recordshto.csv"
+outputfolder="$PWD/HTO"
+outputFile="$outputfolder/recordshto.csv"
 BATCH_SIZE=25
 TIMEOUT_PERIOD=20
 
+rm -f $outputfolder/no_mismatch.txt
 # Input Parameters
 start_date=$1
 end_date=$2
@@ -75,13 +76,13 @@ while [ "$current_start_date" -le "$end_date_epoch" ]; do
         batch_str=$(IFS=,; echo "${batch[*]}")
 
         # Print progress information for the current ticket_id
-        echo "Processing batch of size $batch_size for Ticket ID: $ticket_id ($current_progress / $total_vt_groups processed)" >> log.txt
+        echo "Processing batch of size $batch_size for Ticket ID: $ticket_id ($current_progress / $total_vt_groups processed)" >> $outputfolder/log.txt
 
         echo $batch_str
 
         if [ -z "$batch_str" ]; then
 
-            echo "No results found. Proceeding with further steps. for ($batch_str)" >> no_mismatch_hto.txt
+            echo "No results found. Proceeding with further steps. for ($batch_str)" >> $outputfolder/no_mismatch_hto.txt
             
         else 
 
@@ -94,11 +95,11 @@ while [ "$current_start_date" -le "$end_date_epoch" ]; do
 
             if [ -z "$ArchiveOrders" ]; then
 
-                echo "No results found. Proceeding with further steps. for ($ArchiveOrders)" >> no_mismatch_hto.txt
+                echo "No results found. Proceeding with further steps. for ($ArchiveOrders)" >> $outputfolder/no_mismatch_hto.txt
 
             else 
 
-                echo "Results found. Proceeding with further steps. for ($ArchiveOrders)" >> mismatch_hto.txt
+                echo "Results found. Proceeding with further steps. for ($ArchiveOrders)" >> $outputfolder/mismatch_hto.txt
 
                 reportdata="SELECT visitor_group_no, max(last_modified_at) as mx_last_modified, min(last_modified_at) as mn_last_modified FROM hotel_ticket_overview WHERE visitor_group_no in ($ArchiveOrders) group by visitor_group_no having mn_last_modified < '2024-01-01 00:00:01' and mx_last_modified < '2024-01-01 00:00:01'"
 
