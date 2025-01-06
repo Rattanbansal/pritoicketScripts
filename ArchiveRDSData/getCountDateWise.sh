@@ -88,7 +88,7 @@ while [ "$current_start_date" -le "$end_date_epoch" ]; do
             querydata="select IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(vt_group_no))), '') as order_id from (SELECT vt_group_no, max(last_modified_at) as mx_last_modified, min(last_modified_at) as mn_last_modified FROM visitor_tickets WHERE vt_group_no in ($batch_str) group by vt_group_no having mn_last_modified < '2024-01-01 00:00:01' and mx_last_modified < '2024-01-01 00:00:01') as base"
 
 
-            ArchiveOrders=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "$querydata")
+            ArchiveOrders=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "$querydata") || exit 1
 
             echo "$ArchiveOrders"
 
@@ -99,6 +99,10 @@ while [ "$current_start_date" -le "$end_date_epoch" ]; do
             else 
 
                 echo "Results found. Proceeding with further steps. for ($ArchiveOrders)" >> mismatch.txt
+
+                reportdata="SELECT vt_group_no, max(last_modified_at) as mx_last_modified, min(last_modified_at) as mn_last_modified FROM visitor_tickets WHERE vt_group_no in ($ArchiveOrders) group by vt_group_no having mn_last_modified < '2024-01-01 00:00:01' and mx_last_modified < '2024-01-01 00:00:01'"
+
+                timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "$reportdata" >> $outputFile || exit 1
 
             fi
         fi
