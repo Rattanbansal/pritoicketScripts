@@ -4,17 +4,17 @@ set -e  # Exit immediately if any command exits with a non-zero status
 TIMEOUT_PERIOD=25
 
 
-DB_HOST='10.10.10.19'
-DB_USER='pip'
-DB_PASS='pip2024##'
-DB_NAME='rattan'
-BATCH_SIZE=25
+# DB_HOST='10.10.10.19'
+# DB_USER='pip'
+# DB_PASS='pip2024##'
+# DB_NAME='rattan'
+# BATCH_SIZE=25
 
-# DB_HOST='localhost'
-# DB_USER='admin'
-# DB_PASS='redhat'
-# DB_NAME='dummy'
-# BATCH_SIZE=100
+DB_HOST='localhost'
+DB_USER='admin'
+DB_PASS='redhat'
+DB_NAME='priopassdb'
+BATCH_SIZE=50
 tableName=$1
 
 mysqlHost="prodrds.prioticket.com"
@@ -24,7 +24,7 @@ mysqlDatabase="prioprodrds"
 
 echo "vt_group_no,transaction_id,hotel_id,channel_id,ticketId,ticketpriceschedule_id,version,row_type,partner_net_price,salePrice,percentage_commission,commission_on_sale,partner_net_price_should_be" > MismatchRecords.csv
 
-vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "SELECT vt_group_no FROM $tableName") || exit 1
+vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "SELECT distinct vt_group_no FROM $tableName") || exit 1
 
 # Convert the vt_group_numbers into an array
 vt_group_array=($vt_group_numbers)
