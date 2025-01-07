@@ -17,6 +17,23 @@ SELECT channel_level_commission.* FROM priopassdb.evanorders o join priopassdb.c
 select * from qr_codes where cod_id in (select DISTINCT hotel_id from evanorders) and cashier_type = '1' 
 
 
+---- no seeting found check from pricing table in rattan database on 19
+
+tlc 
+ 
+SELECT p.*,tlc.ticket_level_commission_id FROM `pricing` p left join priopassdb.ticket_level_commission tlc on tlc.hotel_id = p.hotel_id and p.ticket_id = tlc.ticket_id and p.tps_id = tlc.ticketpriceschedule_id and tlc.deleted ='0' and tlc.is_adjust_pricing ='1';
+ 
+ 
+ 
+ 
+CLC
+ 
+SELECT p.*,clc.channel_level_commission_id from `pricing` p left join priopassdb.channel_level_commission clc on clc.channel_id = p.channel_id and clc.ticket_id = p.ticket_id and  clc.ticketpriceschedule_id = p.tps_id and clc.deleted ='0' and clc.is_adjust_pricing ='1';
+
+---------no seeting found check from pricing table in rattan database on 19 ended---------
+ 
+
+
 Now we have multiple orders some which we not corrected on catalog level So we need to correct only the related product which we corrected
 
 
