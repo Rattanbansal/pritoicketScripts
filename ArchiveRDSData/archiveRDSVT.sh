@@ -104,11 +104,15 @@ while [ "$current_start_date" -le "$end_date_epoch" ]; do
                 timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "$reportdata" >> $outputFile || exit 1
                 sleep 1
                 timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "delete from visitor_tickets where vt_group_no in ($ArchiveOrders);select ROW_COUNT();" || exit 1
+                sleep 3
+                timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "delete from prepaid_tickets where visitor_group_no in ($ArchiveOrders);select ROW_COUNT();" || exit 1
+                sleep 2
+                timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "delete from hotel_ticket_overview where visitor_group_no in ($ArchiveOrders);select ROW_COUNT();" || exit 1
 
             fi
         fi
 
-        sleep 10
+        sleep 8
 
     done
     

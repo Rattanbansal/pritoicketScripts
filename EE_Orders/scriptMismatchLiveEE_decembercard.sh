@@ -24,7 +24,7 @@ mysqlDatabase="prioprodrds"
 
 echo "vt_group_no,transaction_id,hotel_id,channel_id,ticketId,ticketpriceschedule_id,version,row_type,partner_net_price,salePrice,percentage_commission,commission_on_sale,partner_net_price_should_be" > MismatchRecords.csv
 
-vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "SELECT visitor_group_no FROM $tableName WHERE status = '0'") || exit 1
+vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "SELECT vt_group_no FROM $tableName") || exit 1
 
 # Convert the vt_group_numbers into an array
 vt_group_array=($vt_group_numbers)
@@ -130,7 +130,7 @@ JOIN(
     FROM
         visitor_tickets
     WHERE
-        ticketId = '$ticket_id' and vt_group_no IN($batch_str) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+        vt_group_no IN($batch_str) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
     GROUP BY
         vt_group_no,
         transaction_id
@@ -158,21 +158,20 @@ LEFT JOIN tmp.channel_level_commission pl
 ON
     scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
 ) AS shouldbe
-) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';"
+) AS final;"
 
 
-    # sleep 3
-    # timeout $TIMEOUT_PERIOD time mysql -h"$mysqlHost" -u"$mysqlUser" -p"$mysqlPassword" -D"$mysqlDatabase" -sN -e "$MISMATCHFInal" >> MismatchRecords.csv || exit 1
+    sleep 3
+    echo "$MISMATCHFInal" >> dec.sql
+    timeout $TIMEOUT_PERIOD time mysql -h"$mysqlHost" -u"$mysqlUser" -p"$mysqlPassword" -D"$mysqlDatabase" -sN -e "$MISMATCHFInal" >> MismatchRecords.csv || exit 1
 
-    timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "update $tableName set status = '2' where visitor_group_no in ($mismatchvgn)" || exit 1
+    # timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "update $tableName set status = '2' where visitor_group_no in ($mismatchvgn)" || exit 1
 
     
     echo "Sleep Started to Run next VGNS"
     echo "------$(date '+%Y-%m-%d %H:%M:%S.%3N')--------"
 
     sleep 1
-
-        fi
 
 
 done
