@@ -18,13 +18,7 @@ tail -n +2 "$INPUT_FILE" | while IFS=',' read -r visitor_group_no tpsid row1 row
     # Validate if fields are not empty
     if [[ -n "$visitor_group_no" && -n "$tpsid" && -n "$row1" && -n "$row2" ]]; then
         # Prepare the SQL query
-        echo "update visitor_tickets set action_performed = concat(action_performed, ', CommissionTP'), partner_net_price = case" >> "$OUTPUT_FILE"
-        echo "    when row_type = '1' then '${row1}'" >> "$OUTPUT_FILE"
-        echo "    when row_type = '2' then '${row2}'" >> "$OUTPUT_FILE"
-        echo "    when row_type = '3' then ${row1}-${row2}" >> "$OUTPUT_FILE"
-        echo "    else 0 end" >> "$OUTPUT_FILE"
-        echo "where vt_goup_no = '${visitor_group_no}' and ticketpriceschedule_id = '${tpsid}';" >> "$OUTPUT_FILE"
-        echo "" >> "$OUTPUT_FILE"
+        echo "update visitor_tickets set action_performed = concat(action_performed, ', CommissionTP'), partner_net_price = case when row_type = '1' then '${row1}' when row_type = '2' then '${row2}' when row_type = '3' then ${row1}-${row2} else 0 end where vt_goup_no = '${visitor_group_no}' and ticketpriceschedule_id = '${tpsid}';" >> "$OUTPUT_FILE"
     fi
 done
 
