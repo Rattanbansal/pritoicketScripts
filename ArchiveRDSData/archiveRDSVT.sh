@@ -112,14 +112,14 @@ while [ "$current_start_date" -le "$end_date_epoch" ]; do
             fi
         fi
 
-        sleep 8
+        sleep 3
 
     done
     
     # Increment start date for the next iteration
     current_start_date=$((current_end_date + 86400))
 
-    sleep 5
+    sleep 3
 
 done
 
