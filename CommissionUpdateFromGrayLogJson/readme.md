@@ -1,0 +1,8 @@
+---------- query to check conversion on basis of row_type = '1'
+
+select vt.transaction_id,vt.vt_group_no, vt.row_type, vt.transaction_type_name, vt.partner_gross_price, vt.partner_net_price, vt.supplier_gross_price, vt.supplier_net_price, vt.action_performed, vt.version, base.conversion from visitor_tickets vt join  (select transaction_id,vt_group_no, row_type, transaction_type_name, partner_gross_price, partner_net_price, supplier_gross_price, supplier_net_price, action_performed, version, supplier_net_price/partner_net_price as conversion from visitor_tickets where vt_group_no = '173455973947224' and row_type = '1') as base on (vt.transaction_id+1) = (base.transaction_id+1) and vt.vt_group_no = base.vt_group_no and ABS(vt.version = base.version) = '0' where vt.row_type = '2'
+
+
+---- update row_type = 2 commission
+
+update visitor_tickets vt join  (select transaction_id,vt_group_no, row_type, transaction_type_name, partner_gross_price, partner_net_price, supplier_gross_price, supplier_net_price, action_performed, version, supplier_net_price/partner_net_price as conversion from visitor_tickets where vt_group_no = '173204793919088' and row_type = '1') as base on (vt.transaction_id+1) = (base.transaction_id+1) and vt.vt_group_no = base.vt_group_no and ABS(vt.version = base.version) = '0' set vt.partner_gross_price = vt.supplier_net_price/base.conversion,vt.partner_net_price = vt.supplier_net_price/base.conversion  where vt.row_type = '2'
