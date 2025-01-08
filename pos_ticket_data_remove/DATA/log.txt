@@ -1,0 +1,4 @@
+Processing batch of size 50 :  (50 / 13053 processed)
+Processing batch of size 50 :  (100 / 13053 processed)
+Processing batch of size 50 :  (150 / 13053 processed)
+Processing batch of size 50 :  (200 / 13053 processed)

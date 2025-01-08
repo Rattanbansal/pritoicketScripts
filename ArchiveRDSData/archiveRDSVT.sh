@@ -11,7 +11,7 @@ fetch_db_credentials "PrioticketLiveRDSPipe"
 outputfolder="$PWD/VT"
 DB_NAME="prioprodrds"
 outputFile="$outputfolder/recordshto.csv"
-BATCH_SIZE=75
+BATCH_SIZE=50
 TIMEOUT_PERIOD=20
 
 # Input Parameters

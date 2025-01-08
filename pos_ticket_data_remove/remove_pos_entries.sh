@@ -7,7 +7,7 @@ source ~/vault/vault_fetch_creds.sh
 fetch_db_credentials "PrioticketLivePriomaryWritePipe"
 
 DB_NAME="priopassdb"
-outputfolder="$PWD/DATA"
+outputfolder="$PWD/maxversion"
 TIMEOUT_PERIOD=10
 BATCH_SIZE=500  # Number of IDs per batch
 
@@ -59,7 +59,7 @@ for ((i = 0; i < total_unprocessed; i += BATCH_SIZE)); do
     batch_str=$(IFS=,; echo "${batch[*]}")
     
     # Construct and execute DELETE query
-    delete_query="DELETE FROM pos_tickets WHERE pos_ticket_id IN ($batch_str) and deleted = '1';select ROW_COUNT();"
+    delete_query="DELETE FROM pos_tickets WHERE pos_ticket_id IN ($batch_str) and deleted in ('1','2','3','4','5','6','7','8','9');select ROW_COUNT();"
     echo "$delete_query" >> "$LOG_FILE"
     
     timeout $TIMEOUT_PERIOD mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "$delete_query" || exit 1
@@ -72,7 +72,9 @@ for ((i = 0; i < total_unprocessed; i += BATCH_SIZE)); do
     echo "Processed batch $current_progress / $total_unprocessed"
     
     # Sleep for safety if needed
-    sleep 5
+    echo "-----------Sleep Started------------"
+    sleep 8
+    echo "-----------Sleep Ended------------"
 done
 
 echo "All batches processed successfully."

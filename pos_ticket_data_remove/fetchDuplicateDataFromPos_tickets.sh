@@ -12,7 +12,7 @@ source ~/vault/vault_fetch_creds.sh
 
 # Fetch credentials for 20Server
 fetch_db_credentials "PrioticketLivePriomaryWritePipe"
-outputfolder="$PWD/DATA"
+outputfolder="$PWD/maxversion"
 DB_NAME="priopassdb"
 outputFile="$outputfolder/pos_tickets_duplicate.csv"
 TIMEOUT_PERIOD=20
@@ -71,9 +71,7 @@ for ((i=0; i<$total_unprocessed_hotels; i+=BATCH_SIZE)); do
     # Print progress information for the current ticket_id
     echo "Processing batch of size $batch_size : $ticket_id ($current_progress / $total_unprocessed_hotels processed)" >> $outputfolder/log.txt
     
-    # fetchduplicateentries="select distinct pos_ticket_id from (select pos.pos_ticket_id, pos.hotel_id, pos.mec_id, pos.is_pos_list, pos.deleted, pos.last_modified_at from pos_tickets pos join (SELECT max(pos_ticket_id) as pos_ticket_id, hotel_id,mec_id, count(*) as pcs from pos_tickets where hotel_id in ($batch_str) and deleted = '1' group by mec_id, hotel_id, deleted having pcs > '1' and deleted = '1') as base on pos.hotel_id = base.hotel_id and pos.mec_id = base.mec_id and pos.deleted = '1' and pos.pos_ticket_id != base.pos_ticket_id) as base1"
-
-    fetchduplicateentries="SELECT max(pos_ticket_id) as pos_ticket_id, hotel_id,mec_id, count(*) as pcs from pos_tickets where hotel_id in ($batch_str) group by mec_id, hotel_id having pcs > '1'"
+    fetchduplicateentries="select distinct pos_ticket_id from (select *,ROW_NUMBER() OVER (PARTITION BY hotel_id, mec_id ORDER BY deleted asc, pos_ticket_id desc) AS rn from (select pos.pos_ticket_id, pos.hotel_id, pos.mec_id, pos.is_pos_list, pos.deleted, pos.last_modified_at from pos_tickets pos join (SELECT max(pos_ticket_id) as pos_ticket_id, hotel_id,mec_id, count(*) as pcs from pos_tickets where hotel_id in ($batch_str) group by mec_id, hotel_id having pcs > '1') as base on pos.hotel_id = base.hotel_id and pos.mec_id = base.mec_id) as base1 order by hotel_id, mec_id, deleted asc) as base2 where rn != '1'"
 
     echo "$fetchduplicateentries" >> queries.sql
 
