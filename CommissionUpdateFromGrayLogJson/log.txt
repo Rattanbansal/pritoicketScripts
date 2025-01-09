@@ -1,0 +1,2 @@
+Processing batch of size 1 for Ticket ID:  (1 / 1371 processed)
+Processing batch of size 1 for Ticket ID:  (1 / 1371 processed)
