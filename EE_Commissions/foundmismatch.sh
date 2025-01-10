@@ -35,7 +35,7 @@ if [[ $Insertdata == 2 ]]; then
 
     python distributors.py distributors.csv
 
-    python catalog_distributors.py
+    python catalog_distributors.py # referenced sheet2 with doc link  https://docs.google.com/spreadsheets/d/1aUeqrBtQ3WhPmB6HCH3RfxF2GmxP7A6D/edit?usp=drive_web&ouid=115845251874321167738&rtpof=true
 
 else
 
