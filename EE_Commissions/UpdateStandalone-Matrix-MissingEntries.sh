@@ -21,11 +21,11 @@ TEMP_FILE="temp_query_result.csv"
 # LOCAL_NAME="priopassdb"
 # LOCAL_NAME_1="priopassdb"
 
-# LOCAL_HOST="production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com"
-# LOCAL_USER="pipeuser"
-# LOCAL_PASS="d4fb46eccNRAL"
-# LOCAL_NAME="priopassdb"
-# LOCAL_NAME_1="priopassdb"
+LOCAL_HOST="production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com"
+LOCAL_USER="pipeuser"
+LOCAL_PASS="d4fb46eccNRAL"
+LOCAL_NAME="priopassdb"
+LOCAL_NAME_1="priopassdb"
 
 ## GEt Distinct Reseller_id from Pricelist table
 
@@ -33,7 +33,7 @@ TEMP_FILE="temp_query_result.csv"
 
 echo "Fetching Data for reseller_id :: $reseller_id"
 
-cod_ids="6860 7796 7091 7829 32795 38814 9527 44377"
+cod_ids="47550"
 
 for cod_id in ${cod_ids}
 

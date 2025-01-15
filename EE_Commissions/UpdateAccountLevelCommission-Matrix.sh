@@ -22,11 +22,11 @@ BackupFILECLC="/home/intersoft-admin/rattan/backup/$AccountLEVELTABLE.sql"
 # GETBACKUP=$1
 # IMPORTDATATOHOST=$2
 
-# LOCAL_HOST="production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com"
-# LOCAL_USER="pipeuser"
-# LOCAL_PASS="d4fb46eccNRAL"
-# LOCAL_NAME="priopassdb"
-# LOCAL_NAME_1="priopassdb"
+LOCAL_HOST="production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com"
+LOCAL_USER="pipeuser"
+LOCAL_PASS="d4fb46eccNRAL"
+LOCAL_NAME="priopassdb"
+LOCAL_NAME_1="priopassdb"
 # GETBACKUP=$1
 # IMPORTDATATOHOST=$2
 
@@ -117,6 +117,7 @@ product_ids=$(timeout $TIMEOUT_PERIOD time mysql -h"$LOCAL_HOST" -u"$LOCAL_USER"
 
 echo "ticket_level_commission_id,product_id,distributor_id,commission,hotel_prepaid_commission_percentage,is_hotel_prepaid_commission_percentage,commission_on_sale_price,hgs_prepaid_commission_percentage,ticket_net_price,museum_net_commission,merchant_net_commission,hotel_commission_net_price,hgs_commission_net_price" > tlc_level_mismatch.csv
 
+echo "$product_ids"
 
 for product_id in ${product_ids}
 
@@ -130,7 +131,7 @@ do
     ## Command to Update Mismatch
     timeout $TIMEOUT_PERIOD time mysql -h"$LOCAL_HOST" -u"$LOCAL_USER" -p"$LOCAL_PASS" -D"$LOCAL_NAME" -sN -e "update "$LOCAL_NAME".ticket_level_commission tlcu join (select * from (SELECT tlc.ticket_level_commission_id,d.ticket_id as product_id, d.hotel_id as distributor_id, d.commission as commission, tlc.hotel_prepaid_commission_percentage, tlc.is_hotel_prepaid_commission_percentage, tlc.commission_on_sale_price, tlc.hgs_prepaid_commission_percentage, tlc.ticket_net_price, tlc.museum_net_commission, tlc.merchant_net_commission, tlc.hotel_commission_net_price, tlc.hgs_commission_net_price FROM "$LOCAL_NAME_1".distributors d left join "$LOCAL_NAME".ticket_level_commission tlc on d.hotel_id = tlc.hotel_id and d.ticket_id = tlc.ticket_id and tlc.deleted = '0' and tlc.is_adjust_pricing = '1' where d.ticket_id = '$product_id') as base where ticket_net_price is not NULL and (ABS(commission-hotel_prepaid_commission_percentage) > '0.01' or commission_on_sale_price != '1' or is_hotel_prepaid_commission_percentage != '1' or ABS(ticket_net_price-museum_net_commission-merchant_net_commission-hotel_commission_net_price-hgs_commission_net_price) > '0.02' or ABS(ticket_net_price-hgs_commission_net_price-hotel_commission_net_price) > '0.02')) as diff on tlcu.ticket_level_commission_id = diff.ticket_level_commission_id set tlcu.hotel_prepaid_commission_percentage = ROUND(diff.commission, 2), tlcu.resale_percentage = '0.00', tlcu.commission_on_sale_price = '1', tlcu.is_hotel_prepaid_commission_percentage = '1', tlcu.hotel_commission_net_price = ROUND(tlcu.ticket_net_price*diff.commission/100,2), tlcu.hotel_commission_gross_price = ROUND((tlcu.ticket_net_price*diff.commission/100)*(100+tlcu.hotel_commission_tax_value)/100,2), tlcu.museum_net_commission = '0.00', tlcu.hgs_commission_net_price = ROUND(tlcu.ticket_net_price-(tlcu.ticket_net_price*diff.commission/100),2), tlcu.museum_gross_commission = '0.00', tlcu.hgs_commission_gross_price = ROUND((tlcu.ticket_net_price-(tlcu.ticket_net_price*diff.commission/100))*(100+tlcu.hgs_commission_tax_value)/100,2), tlcu.merchant_net_commission = '0.00', tlcu.merchant_gross_commission = '0.00', tlcu.subtotal_net_amount = ROUND((tlcu.ticket_net_price),2), tlcu.subtotal_gross_amount = ROUND(((tlcu.ticket_net_price))*(100+tlcu.subtotal_tax_value)/100,2), tlcu.ip_address = '163.47.25.151',tlcu.is_resale_percentage = '1', tlcu.hgs_prepaid_commission_percentage = ROUND(100-diff.commission,2); select ROW_COUNT();"
 
-    sleep 3
+    sleep 10
     # exit
 
 done 
