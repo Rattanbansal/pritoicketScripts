@@ -29,7 +29,7 @@ if [[ $Insertdata == 2 ]]; then
 
     echo "Started Instering Data from Scratch"
 
-    mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "TRUNCATE TABLE pricelist; TRUNCATE TABLE distributors; TRUNCATE TABLE catalog_distributors;"
+    mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "TRUNCATE TABLE pricelist; TRUNCATE TABLE distributors; TRUNCATE TABLE catalog_distributors;ALTER TABLE distributors DROP cod_id,DROP sub_catalog_id;"
 
     python pricelist.py pricelist.csv
 
@@ -50,13 +50,45 @@ mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "update catalog_distribu
 
 mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select base1.*, base2.catalog_name as client_provided_name from (SELECT catalog_id, if(catalog_name = 'HIGH 30%', 'HIGHER', catalog_name) as catalog_name FROM catalogs where reseller_id = '541') as base1 right join (select DISTINCT catalog_name from catalog_distributors) as base2 on base1.catalog_name like concat(base2.catalog_name, '%');"
 
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "SELECT reseller_id,count(*), sum(commission) as commission FROM pricelist group by reseller_id limit 300;" # to get commission count and commission total to match with google sheet
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select hotel_id,ticket_id, count(*) as pp from (SELECT hotel_id,ticket_id,commission,count(*) as pp FROM distributors group by hotel_id, ticket_id,commission) as base group by hotel_id, ticket_id having pp > '1';" # in sheet we have same product id multiple time for same distributor so query check is there any difference in commission
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select hotel_id, count(*) as pp, sum(commission) as commission from distributors group by hotel_id;" # query to check google sheet sum of commission and count of rows where commission assigned same as we inserted in the database
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "SELECT distributor_id, group_concat(catalog_name), count(*) as pp FROM catalog_distributors group by distributor_id having pp > '1';" ## check wrong data in the distributor_catalog
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "DROP TABLE IF EXISTS distributors_new;" # drop table to proceed with next step sub_catalog_id
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "create table distributors_new SELECT d.*, q.cod_id, q.sub_catalog_id FROM distributors d left join qr_codes q on d.hotel_id = q.cod_id where q.cashier_type = '1';" # Add sub_catalog_id in the table and create new table
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "DROP TABLE IF EXISTS distributors_old; ALTER TABLE distributors RENAME TO distributors_old;ALTER TABLE distributors_new RENAME TO distributors;" # back to table distributors with sub_catalog_id
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "DROP TABLE IF EXISTS distributors1;" # need to insert data where catalog_wrongly linked so that we can update commissions as standalone
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "create table distributors1 select * from distributors where hotel_id in (select distinct cod_id from (select main.*, cd.catalog_name as client_provided_catalog_name, cd.distributor_id from (SELECT qc.cod_id, qc.company, qc.sub_catalog_id, qc.own_supplier_id, ifnull(if(c.catalog_name='HIGH 30%', 'HIGHER', c.catalog_name),'RRRRR') as catalog_name, case when c.catalog_category = '1' then 'Main_catalog' when c.catalog_category = '2' then 'Sub_catalog' else 'No Condition' end as catalog_category, case when c.catalog_type = '1' then 'agent_catalog' when c.catalog_type = '2' then 'direct_catalog' else 'No condition' end as catalog_type FROM qr_codes qc left join catalogs c on qc.sub_catalog_id = c.catalog_id where qc.reseller_id = '541' and qc.cashier_type = '1') as main left join catalog_distributors cd on main.cod_id = cd.distributor_id) as raja where distributor_id is not NULL and catalog_name not like concat('%',client_provided_catalog_name,'%'));" # insert all entries for distributors for which we have catalog wrongly linked
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "ALTER TABLE distributors ADD INDEX(ticket_id);ALTER TABLE distributors ADD INDEX(hotel_id);ALTER TABLE distributors ADD INDEX(sub_catalog_id);ALTER TABLE distributors1 ADD INDEX(ticket_id);ALTER TABLE distributors1 ADD INDEX(hotel_id);ALTER TABLE distributors1 ADD INDEX(sub_catalog_id);"
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "insert into distributors1 select dist.* from distributors dist join (select sub_catalog_id, ticket_id, count(*) as pp from (select sub_catalog_id, ticket_id, commission from (SELECT d.*, q.cod_id as qcod_id, q.sub_catalog_id as qsub_catalog_id FROM distributors d left join qr_codes q on d.hotel_id = q.cod_id where q.cashier_type = '1' and q.cod_id not in (select distinct cod_id from (select main.*, cd.catalog_name as client_provided_catalog_name, cd.distributor_id from (SELECT qc.cod_id, qc.company, qc.sub_catalog_id, qc.own_supplier_id, ifnull(if(c.catalog_name='HIGH 30%', 'HIGHER', c.catalog_name),'RRRRR') as catalog_name, case when c.catalog_category = '1' then 'Main_catalog' when c.catalog_category = '2' then 'Sub_catalog' else 'No Condition' end as catalog_category, case when c.catalog_type = '1' then 'agent_catalog' when c.catalog_type = '2' then 'direct_catalog' else 'No condition' end as catalog_type FROM qr_codes qc left join catalogs c on qc.sub_catalog_id = c.catalog_id where qc.reseller_id = '541' and qc.cashier_type = '1') as main left join catalog_distributors cd on main.cod_id = cd.distributor_id) as raja where distributor_id is not NULL and catalog_name not like concat('%',client_provided_catalog_name,'%'))) as base where sub_catalog_id != '0' group by sub_catalog_id, ticket_id, commission) as base group by sub_catalog_id, ticket_id having pp > '1') as overlap on dist.sub_catalog_id = overlap.sub_catalog_id and dist.ticket_id = overlap.ticket_id;" # query to get overlap products after excluding where we have the subcatalog mismatch between matrix and database
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "update distributors d join distributors1 d1 on d1.hotel_id = d.hotel_id and d1.ticket_id = d.ticket_id set d.sub_catalog_id = '0';delete FROM distributors where sub_catalog_id = '0';"
+
+
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select sub_catalog_id, ticket_id, count(*) as pp from (select sub_catalog_id, ticket_id, commission from (SELECT d.*, q.cod_id as qcod_id, q.sub_catalog_id as qsub_catalog_id FROM distributors d left join qr_codes q on d.hotel_id = q.cod_id where q.cashier_type = '1') as base where sub_catalog_id != '0' group by sub_catalog_id, ticket_id, commission) as base group by sub_catalog_id, ticket_id having pp > '1';" # commission overlap
+
+echo "read command started"
+
+
+
+
+
 read -r user_input
 
 mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select * from (select main.*, cd.catalog_name as client_provided_catalog_name, cd.distributor_id from (SELECT qc.cod_id, qc.company, qc.sub_catalog_id, qc.own_supplier_id, ifnull(if(c.catalog_name='HIGH 30%', 'HIGHER', c.catalog_name),'RRRRR') as catalog_name, case when c.catalog_category = '1' then 'Main_catalog' when c.catalog_category = '2' then 'Sub_catalog' else 'No Condition' end as catalog_category, case when c.catalog_type = '1' then 'agent_catalog' when c.catalog_type = '2' then 'direct_catalog' else 'No condition' end as catalog_type FROM qr_codes qc left join catalogs c on qc.sub_catalog_id = c.catalog_id where qc.reseller_id = '541' and qc.cashier_type = '1') as main left join catalog_distributors cd on main.cod_id = cd.distributor_id) as raja where distributor_id is NULL;" >> Catalog_linking_still_not_provided_in_matrix_Sheet.csv
 
 mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select * from (select main.*, cd.catalog_name as client_provided_catalog_name, cd.distributor_id from (SELECT qc.cod_id, qc.company, qc.sub_catalog_id, qc.own_supplier_id, ifnull(if(c.catalog_name='HIGH 30%', 'HIGHER', c.catalog_name),'RRRRR') as catalog_name, case when c.catalog_category = '1' then 'Main_catalog' when c.catalog_category = '2' then 'Sub_catalog' else 'No Condition' end as catalog_category, case when c.catalog_type = '1' then 'agent_catalog' when c.catalog_type = '2' then 'direct_catalog' else 'No condition' end as catalog_type FROM qr_codes qc left join catalogs c on qc.sub_catalog_id = c.catalog_id where qc.reseller_id = '541' and qc.cashier_type = '1') as main left join catalog_distributors cd on main.cod_id = cd.distributor_id) as raja where distributor_id is not NULL and catalog_name not like concat('%',client_provided_catalog_name,'%');" >> Catalog_wrong_Linked.csv
 
-mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "SELECT distributor_id, group_concat(catalog_name), count(*) as pp FROM catalog_distributors group by distributor_id having pp > '1';" ## check wrong data in the distributor_catalog
 
 read -r user_input
 
@@ -85,9 +117,8 @@ mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select * from (SELECT b
 mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select cod_id,Reseller_id,sub_catalog_id, own_supplier_id from qr_codes where cod_id in (select distinct hotel_id from (SELECT d.*, q.cod_id, q.sub_catalog_id FROM distributors d left join qr_codes q on d.hotel_id = q.cod_id where q.cashier_type = '1') as base where sub_catalog_id = '0');" >> sub_CatalogHaving0.csv ## No Catalog_attached
 
 
-mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select sub_catalog_id, ticket_id, count(*) as pp from (select sub_catalog_id, ticket_id, commission from (SELECT d.*, q.cod_id, q.sub_catalog_id FROM distributors d left join qr_codes q on d.hotel_id = q.cod_id where q.cashier_type = '1') as base where sub_catalog_id != '0' group by sub_catalog_id, ticket_id, commission) as base group by sub_catalog_id, ticket_id having pp > '1';" >> commission_overlap.csv ## No Catalog_attached
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "select sub_catalog_id, ticket_id, count(*) as pp from (select sub_catalog_id, ticket_id, commission from (SELECT d.*, q.cod_id as qcod_id, q.sub_catalog_id as qsub_catalog_id FROM distributors d left join qr_codes q on d.hotel_id = q.cod_id where q.cashier_type = '1') as base where sub_catalog_id != '0' group by sub_catalog_id, ticket_id, commission) as base group by sub_catalog_id, ticket_id having pp > '1';" >> commission_overlap.csv ## No Catalog_attached
 
- 
 
 # mysql -h $DB_HOST -u $DB_USER -p$DB_PASS -D $DB_NAME -e "with qr_codess as (select reseller_id, channel_id from priopassdb.qr_codes where cashier_type = '1' and channel_id is not NULL group by reseller_id, channel_id), channels as (select d.*, qc.reseller_id as qc_reseller_id, qc.channel_id from rattan.pricelist d left join qr_codess qc on d.reseller_id = qc.reseller_id), final as (select c.*, clc.ticketpriceschedule_id, clc.resale_currency_level, clc.currency, clc.commission_on_sale_price, clc.is_hotel_prepaid_commission_percentage, clc.hotel_prepaid_commission_percentage, clc.ticket_net_price, clc.hotel_commission_net_price, (clc.ticket_net_price*c.commission/100) as hotel_commission_should_be from channels c left join priopassdb.channel_level_commission clc on c.channel_id = clc.channel_id and c.ticket_id = clc.ticket_id and clc.deleted = '0' and clc.is_adjust_pricing = '1') select *, ABS(hotel_commission_net_price - hotel_commission_should_be) as gap from final where ABS(hotel_commission_net_price - hotel_commission_should_be) > '0.05' or commission_on_sale_price != '1' or is_hotel_prepaid_commission_percentage != '1' or ticketpriceschedule_id is NULL;" >> channel_level_mismatch.csv
 
