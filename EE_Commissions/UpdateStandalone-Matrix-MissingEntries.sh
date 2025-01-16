@@ -33,7 +33,9 @@ LOCAL_NAME_1="priopassdb"
 
 echo "Fetching Data for reseller_id :: $reseller_id"
 
-cod_ids="47550"
+cod_ids=$(timeout $TIMEOUT_PERIOD time mysql -h"$LOCAL_HOST" -u"$LOCAL_USER" -p"$LOCAL_PASS" -D"$LOCAL_NAME" -sN -e "select distinct hotel_id from distributors;")
+
+echo $cod_ids
 
 for cod_id in ${cod_ids}
 
@@ -57,7 +59,7 @@ do
         cat "$TEMP_FILE" >> Matrix_Missing_Entries.csv
     fi
 
-    sleep 1
+    sleep 5
 
     rm -f "$TEMP_FILE"
 
