@@ -23,7 +23,7 @@ mec as (select mec_id from  modeventcontent where reseller_id =541 and rn=1 and 
 
 vt as (select * from vt1 where rn=1 and ticketid in(select mec_id from mec) and row_type in(1,3) and partner_net_price >0 and (ticket_title not like '%Discount%' or ticket_title not like '%Extra%' or transaction_type_name not like '%Reprice%') ),
 
- main as (select vt_group_no,concat(transaction_id,',') as transaction_id,max(hotel_id) as hotel_id,max(ticketid) as ticket_id,max(ticketpriceschedule_id) as ticketpriceschedule_id,max(channel_id) as channel_id, max(reseller_id) as reseller_id,
+ main as (select vt_group_no,concat(transaction_id,'R') as transaction_id,max(hotel_id) as hotel_id,max(ticketid) as ticket_id,max(ticketpriceschedule_id) as ticketpriceschedule_id,max(channel_id) as channel_id, max(reseller_id) as reseller_id,
 sum(case when row_type =1 then partner_net_price else 0 end) as sale_price,sum(case when row_type =3 then partner_net_price else 0 end) as Distributor_price from vt group by vt_group_no,transaction_id)
 
 select *,round((Distributor_price/sale_price)*100,2) as commission from main"

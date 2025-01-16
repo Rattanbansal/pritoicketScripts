@@ -22,7 +22,7 @@
 DROP TABLE IF EXISTS `evanevansorders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `evanevansorders` (
+CREATE TABLE IF NOT EXISTS `evanevansorders` (
   `vt_group_no` bigint NOT NULL COMMENT 'same as visitor_group_no, but saved for all the four tables',
   `transaction_id` bigint NOT NULL DEFAULT '0',
   `hotel_id` int DEFAULT NULL,
