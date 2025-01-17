@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e  # Exit immediately if any command exits with a non-zero status
-TIMEOUT_PERIOD=15
+TIMEOUT_PERIOD=30
 
 ### Database Credentials For 19 DB
 DB_HOST="10.10.10.19"
@@ -21,11 +21,11 @@ TEMP_FILE="temp_query_result.csv"
 # LOCAL_NAME="priopassdb"
 # LOCAL_NAME_1="priopassdb"
 
-# LOCAL_HOST="production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com"
-# LOCAL_USER="pipeuser"
-# LOCAL_PASS="d4fb46eccNRAL"
-# LOCAL_NAME="priopassdb"
-# LOCAL_NAME_1="priopassdb"
+LOCAL_HOST="production-primary-db-node-cluster.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com"
+LOCAL_USER="pipeuser"
+LOCAL_PASS="d4fb46eccNRAL"
+LOCAL_NAME="priopassdb"
+LOCAL_NAME_1="priopassdb"
 
 ## GEt Distinct Reseller_id from Pricelist table
 
@@ -61,14 +61,14 @@ do
             cat "$TEMP_FILE" >> reseller-Matrix_catalog_mismatch.csv
         fi
 
-        sleep 1
+        sleep 5
 
         rm -f "$TEMP_FILE"
 
 
     done
 
-    sleep 1
+    sleep 5
 
 done
 
