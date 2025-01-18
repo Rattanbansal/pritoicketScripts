@@ -1,0 +1,87 @@
+==> Vault server configuration:
+
+Administrative Namespace: 
+             Api Address: http://127.0.0.1:8300
+                     Cgo: disabled
+         Cluster Address: https://127.0.0.1:8301
+   Environment Variables: CHROME_DESKTOP, COLORTERM, COMPIZ_CONFIG_PROFILE, DBUS_SESSION_BUS_ADDRESS, DESKTOP_SESSION, DISPLAY, GDK_BACKEND, GDMSESSION, GDM_LANG, GIT_ASKPASS, GOTRACEBACK, GPG_AGENT_INFO, GTK_MODULES, GTK_OVERLAY_SCROLLING, HOME, INSIDE_CAJA_PYTHON, LANG, LANGUAGE, LESSCLOSE, LESSOPEN, LOGNAME, LS_COLORS, MATE_DESKTOP_SESSION_ID, OLDPWD, ORIGINAL_XDG_CURRENT_DESKTOP, PATH, PWD, QT_ACCESSIBILITY, QT_FONT_DPI, QT_QPA_PLATFORMTHEME, QT_SCALE_FACTOR, SESSION_MANAGER, SHELL, SHLVL, SSH_AUTH_SOCK, TERM, TERM_PROGRAM, TERM_PROGRAM_VERSION, UBUNTU_MENUPROXY, USER, VAULT_ADDR, VAULT_CONFIG, VSCODE_GIT_ASKPASS_EXTRA_ARGS, VSCODE_GIT_ASKPASS_MAIN, VSCODE_GIT_ASKPASS_NODE, VSCODE_GIT_IPC_HANDLE, VTE_VERSION, WINDOWID, XAUTHORITY, XDG_CONFIG_DIRS, XDG_CURRENT_DESKTOP, XDG_DATA_DIRS, XDG_GREETER_DATA_DIR, XDG_RUNTIME_DIR, XDG_SEAT, XDG_SEAT_PATH, XDG_SESSION_CLASS, XDG_SESSION_DESKTOP, XDG_SESSION_ID, XDG_SESSION_PATH, XDG_SESSION_TYPE, XDG_VTNR, _
+              Go Version: go1.23.3
+              Listener 1: tcp (addr: "0.0.0.0:8300", cluster address: "0.0.0.0:8301", disable_request_limiter: "false", max_request_duration: "1m30s", max_request_size: "33554432", tls: "disabled")
+               Log Level: 
+                   Mlock: supported: true, enabled: false
+           Recovery Mode: false
+                 Storage: file
+                 Version: Vault v1.18.3, built 2024-12-16T14:00:53Z
+             Version Sha: 7ae4eca5403bf574f142cd8f987b8d83bafcd1de
+
+==> Vault server started! Log data will stream in below:
+
+2025-01-16T09:47:03.368+0530 [INFO]  proxy environment: http_proxy="" https_proxy="" no_proxy=""
+2025-01-16T09:47:03.368+0530 [INFO]  incrementing seal generation: generation=1
+2025-01-16T09:47:03.369+0530 [INFO]  core: Initializing version history cache for core
+2025-01-16T09:47:03.369+0530 [INFO]  events: Starting event system
+2025-01-16T09:47:08.314+0530 [INFO]  core: security barrier not initialized
+2025-01-16T09:47:08.383+0530 [INFO]  core: security barrier not initialized
+2025-01-16T09:47:09.459+0530 [INFO]  core: security barrier not initialized
+2025-01-16T09:47:10.570+0530 [INFO]  core: security barrier not initialized
+2025-01-16T09:48:02.943+0530 [INFO]  core: security barrier not initialized
+2025-01-16T09:48:03.031+0530 [INFO]  core: security barrier not initialized
+2025-01-16T09:48:04.111+0530 [INFO]  core: security barrier not initialized
+2025-01-16T09:48:05.192+0530 [INFO]  core: security barrier not initialized
+2025-01-16T09:48:17.769+0530 [INFO]  core: security barrier not initialized
+2025-01-16T09:48:17.769+0530 [INFO]  core: seal configuration missing, not initialized
+2025-01-16T09:48:17.770+0530 [INFO]  core: security barrier not initialized
+2025-01-16T09:48:17.771+0530 [INFO]  core: security barrier initialized: stored=1 shares=5 threshold=3
+2025-01-16T09:48:17.772+0530 [INFO]  core: post-unseal setup starting
+2025-01-16T09:48:17.781+0530 [INFO]  core: loaded wrapping token key
+2025-01-16T09:48:17.781+0530 [INFO]  core: successfully setup plugin runtime catalog
+2025-01-16T09:48:17.781+0530 [INFO]  core: successfully setup plugin catalog: plugin-directory=""
+2025-01-16T09:48:17.781+0530 [INFO]  core: no mounts; adding default mount table
+2025-01-16T09:48:17.783+0530 [INFO]  core: successfully mounted: type=cubbyhole version="v1.18.3+builtin.vault" path=cubbyhole/ namespace="ID: root. Path: "
+2025-01-16T09:48:17.784+0530 [INFO]  core: successfully mounted: type=system version="v1.18.3+builtin.vault" path=sys/ namespace="ID: root. Path: "
+2025-01-16T09:48:17.785+0530 [INFO]  core: successfully mounted: type=identity version="v1.18.3+builtin.vault" path=identity/ namespace="ID: root. Path: "
+2025-01-16T09:48:17.787+0530 [INFO]  core: successfully mounted: type=token version="v1.18.3+builtin.vault" path=token/ namespace="ID: root. Path: "
+2025-01-16T09:48:17.787+0530 [INFO]  rollback: Starting the rollback manager with 256 workers
+2025-01-16T09:48:17.788+0530 [INFO]  rollback: starting rollback manager
+2025-01-16T09:48:17.788+0530 [INFO]  core: restoring leases
+2025-01-16T09:48:17.789+0530 [INFO]  expiration: lease restore complete
+2025-01-16T09:48:17.789+0530 [INFO]  identity: entities restored
+2025-01-16T09:48:17.789+0530 [INFO]  identity: groups restored
+2025-01-16T09:48:17.790+0530 [INFO]  core: usage gauge collection is disabled
+2025-01-16T09:48:17.790+0530 [INFO]  core: Recorded vault version: vault version=1.18.3 upgrade time="2025-01-16 04:18:17.789891338 +0000 UTC" build date=2024-12-16T14:00:53Z
+2025-01-16T09:48:17.790+0530 [INFO]  core: post-unseal setup complete
+2025-01-16T09:48:17.791+0530 [INFO]  core: root token generated
+2025-01-16T09:48:17.791+0530 [INFO]  core: pre-seal teardown starting
+2025-01-16T09:48:17.791+0530 [INFO]  rollback: stopping rollback manager
+2025-01-16T09:48:17.791+0530 [INFO]  core: pre-seal teardown complete
+2025-01-16T09:49:33.116+0530 [INFO]  core.cluster-listener.tcp: starting listener: listener_address=0.0.0.0:8301
+2025-01-16T09:49:33.116+0530 [INFO]  core.cluster-listener: serving cluster requests: cluster_listen_address=[::]:8301
+2025-01-16T09:49:33.127+0530 [INFO]  core: post-unseal setup starting
+2025-01-16T09:49:33.127+0530 [INFO]  core: loaded wrapping token key
+2025-01-16T09:49:33.127+0530 [INFO]  core: successfully setup plugin runtime catalog
+2025-01-16T09:49:33.127+0530 [INFO]  core: successfully setup plugin catalog: plugin-directory=""
+2025-01-16T09:49:33.128+0530 [INFO]  core: successfully mounted: type=system version="v1.18.3+builtin.vault" path=sys/ namespace="ID: root. Path: "
+2025-01-16T09:49:33.128+0530 [INFO]  core: successfully mounted: type=identity version="v1.18.3+builtin.vault" path=identity/ namespace="ID: root. Path: "
+2025-01-16T09:49:33.128+0530 [INFO]  core: successfully mounted: type=cubbyhole version="v1.18.3+builtin.vault" path=cubbyhole/ namespace="ID: root. Path: "
+2025-01-16T09:49:33.129+0530 [INFO]  core: successfully mounted: type=token version="v1.18.3+builtin.vault" path=token/ namespace="ID: root. Path: "
+2025-01-16T09:49:33.129+0530 [INFO]  rollback: Starting the rollback manager with 256 workers
+2025-01-16T09:49:33.129+0530 [INFO]  rollback: starting rollback manager
+2025-01-16T09:49:33.129+0530 [INFO]  core: restoring leases
+2025-01-16T09:49:33.129+0530 [INFO]  expiration: lease restore complete
+2025-01-16T09:49:33.129+0530 [INFO]  identity: entities restored
+2025-01-16T09:49:33.129+0530 [INFO]  identity: groups restored
+2025-01-16T09:49:33.130+0530 [INFO]  core: usage gauge collection is disabled
+2025-01-16T09:49:33.130+0530 [INFO]  core: post-unseal setup complete
+2025-01-16T09:49:33.130+0530 [INFO]  core: vault is unsealed
+2025-01-16T09:50:12.724+0530 [INFO]  core: successful mount: namespace="" path=kv/ type=kv version="v0.20.0+builtin"
+2025-01-16T09:50:13.495+0530 [INFO]  core: enabled credential backend: path=userpass/ type=userpass version="v1.18.3+builtin.vault"
+==> Vault shutdown triggered
+2025-01-16T18:37:00.832+0530 [INFO]  core: marked as sealed
+2025-01-16T18:37:00.832+0530 [INFO]  core: pre-seal teardown starting
+2025-01-16T18:37:00.832+0530 [INFO]  rollback: stopping rollback manager
+2025-01-16T18:37:00.832+0530 [INFO]  core: pre-seal teardown complete
+2025-01-16T18:37:00.833+0530 [INFO]  core: stopping cluster listeners
+2025-01-16T18:37:00.833+0530 [INFO]  core.cluster-listener: forwarding rpc listeners stopped
+2025-01-16T18:37:01.047+0530 [INFO]  core.cluster-listener: rpc listeners successfully shut down
+2025-01-16T18:37:01.047+0530 [INFO]  core: cluster listeners successfully shut down
+2025-01-16T18:37:01.047+0530 [INFO]  core: vault is sealed
