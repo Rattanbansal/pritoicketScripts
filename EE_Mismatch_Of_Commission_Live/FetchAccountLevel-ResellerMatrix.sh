@@ -85,7 +85,7 @@ do
             echo "$hotel_id" >> "$outputfolder/processed_hotels.log"
         done
 
-        sleep 5
+        sleep 3
     done
 
 sleep 3
