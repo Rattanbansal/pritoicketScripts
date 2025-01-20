@@ -1,1 +1,6 @@
 ticket_level_commission_id,product_id,distributor_id,commission,hotel_prepaid_commission_percentage,is_hotel_prepaid_commission_percentage,commission_on_sale_price,hgs_prepaid_commission_percentage,ticket_net_price,museum_net_commission,merchant_net_commission,hotel_commission_net_price,hgs_commission_net_price
+7498121	15035	51000	11	11.00	1	0	89.00	269.10	0.00	0.00	29.60	239.50
+7412477	23499	51000	11	11.00	1	0	89.00	80.10	0.00	0.00	8.81	71.29
+7628889	13991	51000	11	11.00	1	0	89.00	67.50	0.00	0.00	7.42	60.08
+7412525	23513	51000	11	11.00	1	0	89.00	224.10	0.00	0.00	24.65	199.45
+7412521	23512	51000	11	11.00	1	0	89.00	116.10	0.00	0.00	12.77	103.33
