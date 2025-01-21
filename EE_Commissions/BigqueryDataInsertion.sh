@@ -36,7 +36,7 @@ mec AS (
 )
 SELECT DISTINCT ticket_id, tps_id, hotel_id, channel_id, reseller_id 
 FROM pt 
-WHERE order_confirm_date > '2024-06-01 00:00:00' 
+WHERE order_confirm_date > '2024-12-01 00:00:00' 
 AND ticket_id IN (SELECT mec_id FROM mec)"
 
 # Step 2: Run BigQuery Command

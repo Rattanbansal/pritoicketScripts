@@ -6,7 +6,7 @@ DB_NAME="priopassdb"
 outputFile="$PWD/records/reseller-Matrix_account_level_mismatch.csv"
 source ~/vault/vault_fetch_creds.sh
 outputfolder="$PWD/processedProducts"
-BATCH_SIZE=5
+BATCH_SIZE=10
 
 # Create necessary files if they don't exist
 mkdir -p "$outputfolder"
