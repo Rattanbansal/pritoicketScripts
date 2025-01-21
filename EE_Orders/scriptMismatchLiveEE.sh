@@ -4,17 +4,17 @@ set -e  # Exit immediately if any command exits with a non-zero status
 TIMEOUT_PERIOD=25
 
 
-# DB_HOST='10.10.10.19'
-# DB_USER='pip'
-# DB_PASS='pip2024##'
-# DB_NAME='rattan'
-# BATCH_SIZE=25
-
-DB_HOST='localhost'
-DB_USER='admin'
-DB_PASS='redhat'
-DB_NAME='dummy'
+DB_HOST='10.10.10.19'
+DB_USER='pip'
+DB_PASS='pip2024##'
+DB_NAME='rattan'
 BATCH_SIZE=100
+
+# DB_HOST='localhost'
+# DB_USER='admin'
+# DB_PASS='redhat'
+# DB_NAME='dummy'
+# BATCH_SIZE=100
 tableName=$1
 
 mysqlHost="prodrds.prioticket.com"
@@ -25,12 +25,12 @@ mysqlDatabase="prioprodrds"
 echo "vt_group_no,transaction_id,hotel_id,channel_id,ticketId,ticketpriceschedule_id,version,row_type,partner_net_price,salePrice,percentage_commission,commission_on_sale,partner_net_price_should_be" > MismatchRecords.csv
 
 # Get all unique ticket_ids
-ticket_ids=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "SELECT DISTINCT(ticket_id) FROM $tableName where status = '0'") || exit 1
+ticket_ids=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "SELECT DISTINCT(ticketId) FROM $tableName where channel_id = '0'") || exit 1   # channel_id used in place of status
 
 # Loop through each ticket_id
 for ticket_id in $ticket_ids; do
     # Get all vt_group_no for the current ticket_id
-    vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "SELECT visitor_group_no FROM $tableName WHERE ticket_id = '$ticket_id' and status = '0'") || exit 1
+    vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "SELECT distinct visitor_group_no FROM $tableName WHERE ticketId = '$ticket_id' and status = '0'") || exit 1
     
     # Convert the vt_group_numbers into an array
     vt_group_array=($vt_group_numbers)
@@ -181,7 +181,7 @@ ON
 
             echo "No results found. Proceeding with further steps. for ($batch_str)" >> no_mismatch.txt
             # Add your further steps here
-            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "update $tableName set status = '1' where visitor_group_no in ($batch_str)" || exit 1
+            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "update $tableName set channel_id = '1' where vt_group_no in ($batch_str)" || exit 1
 
         else 
 
@@ -303,7 +303,7 @@ ON
             # sleep 3
             # timeout $TIMEOUT_PERIOD time mysql -h"$mysqlHost" -u"$mysqlUser" -p"$mysqlPassword" -D"$mysqlDatabase" -sN -e "$MISMATCHFInal" >> MismatchRecords.csv || exit 1
 
-            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "update $tableName set status = '2' where visitor_group_no in ($mismatchvgn)" || exit 1
+            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "update $tableName set channel_id = '2' where vt_group_no in ($mismatchvgn)" || exit 1
 
             
             echo "Sleep Started to Run next VGNS"
