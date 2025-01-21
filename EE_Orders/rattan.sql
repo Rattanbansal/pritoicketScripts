@@ -28460,3 +28460,4069 @@ ON
     scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
 ) AS shouldbe
 ) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14453' and vt_group_no IN(173572915254439,173644372815866,173734540062288,173575108135531,173591241107147,173598319568690,173617346486713,173688861928485,173628241735436,173650237950374,173641595038604,173617186335380,173569038203483,173725464480375,173628049610983,173737052367305,173644393762379,173585786152804,173737527438263,173664728140311,173618386500403,173726762531661,173583508711420,173618206189230) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '13826' and vt_group_no IN(173632184811426,173586825228947,173624225498097,173576250276103,173635492213579,173533585610415,173714252738348,173550353907511,173633455971026,173688543553096,173679114748158,173671237078066,173722472214691,173725846023894,173705763299582,173647857444690,173669890660809,173742226835022,173704208816126,173607408361636,173612777081141,173609915819629,173573672376569,173693948576615,173634946200882,173725355272094,173610388485221,173246981500332,173636512004737,173694683255880,173713500999153,173742527662690,173704268827774,173653075860220,173664007100759,173609686077371,173632094667225,173583734858019,173730128500226,173550595961334,173740713326279,173641945887111,173671570499812,173626421507095,173592522130187,173417344337629,173699478768331,173228104668692,173583290728323,173583107795338,173637294764680,173618172361364,173685997789905,173574223672396,173659618434740,173583163566650,173636512651077,173634848176926,173730690550626,173633483601134,173584161852779,173660532651870,173702659766834,173615780197075,173573802965047,173634870040020,173678991863385,173591111760293,173725149159583,173456204195706,173697699318530,173625217950312,173551219310661,173610529679306,173572998193104,173679103235957,173706908360024,173642680244226,173725096644040,173565938552565,173730847755012,173731606968270,173621938982690,173722171939836,173573981626357,173697386688336,173657843919693,173740740467909,173720593812458,173741588719933,173734845972005,173714694697709,173679271843268,173722302179584,173712855285015,173624511950662,173669462698006) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14258' and vt_group_no IN(173650397847371,173696716697163,173597825351112,173651544261341,173702637062619,173694214441458,173739912813497,173615781324737,173693738605283,173633826149426,173572352337615,173581482272266,173676370376286,173679428615224) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '59337' and vt_group_no IN(173723893271634,173627409960507,173616399404898,173600098718905,173681578474674,173582235672335,172475119640899,173618787227358,173563568225108,173709720517444,173627746778451,173627579574419,173600069215823,173635353336053,173666912059532,173678584996634,173627464020096,173607453018141,173668512659317,173612973109622,173576222392656,173654033781597,173711066266567,173721389995661) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '60608' and vt_group_no IN(173608670860018,173635572453462,173744361509517,173730862942922,173680513840852,173708203758137,173677436959150,173712929507618,173640745373907,173695249846461,173636013821716,173695251920460,173712869873505,173600977375040,173689264044211,173610013418336,173634873578519,173650118563707) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14300' and vt_group_no IN(173685988827306,173685995838971) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '61426' and vt_group_no IN(173660739617901,173625909559492,173678685091411,173668076733226,173701686383444,173671423382801,173572241225370,173642523997358,173627935529598,173685508345992,173617291805533,173702581597386,173728163507820,173636377316394,173699489275245,173591471178677,173736645525381,173695459147044,173740529893410,173590735930072,173574958699563,173497162109446,173592966368728,173610481320007,173714661171353,173678113965852,173713095404171,173608531822722,173641689129545,173625447504720,173678308173638,173694741246088) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14159' and vt_group_no IN(173736992995402,173704993429465,173641888159263,173677209315589,173719605827129,173590888396251,173610201224815,173719268887471,173632788011653,173619133865206,173693048047195,173677704213995,173660159031893,173696449241960,173728047655048,173650735621992,173650521561431,173659083801486,173723579191598,173722667437170,173641457427032,173619819565849,173650798276739,173702883265533,173641554607410,173731056266472,173642130166704,173615030824312,173675282330611,173741210842751,173659374983583,173694308863073,173575747004001,173684041946536,173642325218532,173668138431214,173737644805503,173684973775702,173599287605386,173632056582901,173719719528925,173720029866474,173651178728434,173716885322462,173716671573878,173658313225945,173719792705210,173692845491432,173719173124777,173614995632421,173677018964560,173694992417529,173658521310543,173641544180745,173704924732248,173650760649964,173615112481904,173702031605464,173729159099610,173731011674328,173650822978788) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '24924' and vt_group_no IN(173589716317293,173716698142139,173735750610439,173672760100833) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '13817' and vt_group_no IN(173641750251214,173598903416305,173667795619845,173685043314949,173581704187788,173654543577848,173590144785321,173582407992707,173658823198462,173650063802390,173703950406326,173573202895362,173675875365606,173703934757568,173574543622496,173703657798275,173615784685219,173633316699774,173610892342478,173711471371426,173686912829328,173607686022626,173581572010043,173737249756899,173728366494206,173590482313235,173616070473177,173703645299057,173573393923764,173744883891687,173737259573809,173712371877443,173590090112063,173713313050593,173719746144103,173702530397835,173641552215700) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '50601' and vt_group_no IN(173594049819354,173581146637175,173575917734887,173573880241555,173743722341929,173680270588429,173593995676533,173637103346396,173711608076795,173583745919762,173644300571963,173594089743543,173584122797233,173715641623875,173663336029982,173637135329344,173590548678810,173710953538088,173676300935420,173734833178505,173660741459595,173581918291461,173594025471750,173581645434461,173583736596919,173680364094825,173472307966462,173672472271324,173573730076423,173583425104825,173731966104277,173581769595030) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14336' and vt_group_no IN(173598754803681,173590713835598,173591737925923,173600831030092,173564270082881,173599379119641,173737956509667,173607625307483,173671167964151,173541998820696,173609487585240) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '50545' and vt_group_no IN(173598714876211,173711533278506,173573307157759,173616501369087,173590596191757,173741426393877,173590614760443,173632997503774,173732063824713) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '17618' and vt_group_no IN(173626062729781,173729366261778,173684908158091) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '25362' and vt_group_no IN(173644848016446,173733462882779,173585572005528,173723884780641,173589736869413,173680702723263,173698505163338,173654840578766,173743343707615,173659201687895,173727003428672,173738529275329,173694965901547) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '67436' and vt_group_no IN(173608998503922,173694939699712,173686755295692,173695012767835,173676427892731,173626691713702,173574803927281,173663745030738,173632543245530,173686711388017) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '61395' and vt_group_no IN(173739173628785,173737740804513,173739064183596,173744421878638,173602521632142,173739185044458,173658010058385,173737982728111,173624876765115,173719465374706,173618747492170,173633235894383,173739050120255,173623468786730,173644876691433,173589732704413,173376702842903,173739932784515,173739094420358,173745173310388,173642834718909,172803899299075,172598024205600) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '15827' and vt_group_no IN(173589215114202,173643922227657) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '23722' and vt_group_no IN(173591726923859,173598223688036,173598338574087,173658521104859,173720127937169,173572960869413,173598239246926,173598221179500,173599961901611,173598224059582,173720206846940) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14228' and vt_group_no IN(173332895025501,173649871002764) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '59633' and vt_group_no IN(173739588632638,173598349080848,173637512504546) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '67434' and vt_group_no IN(173626510055683,173576255919023) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14231' and vt_group_no IN(173559420922473,173575640579470) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14366' and vt_group_no IN(173686670907878) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '15038' and vt_group_no IN(172487356149970) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14153' and vt_group_no IN(173580904808100,173589880456500,173624835852960,173583086533923,173668077125032,173580929923334,173616375473025,173711927629400,173581336889575,173583653899302,173625779862086,173581927558880,173575681467300,173711231265490,173580641146543,173606865896995,173611858515090,173719995183799,173729348405228,173585903229094,173607485407444,173737551764716,173581543250193,173686944674792,173582018556073,173590442633416,173581871375748,173577299812818,173606852087216,173701786617002,173572696226118,173677256738970,173703765303791,173601087302521,173583358617581,173700604502883,173573411030941,173630982000786,173589881891933,173680357028383,173583481303546,173582647192155,173581805711068,173582609313358,173583699534246,173659611336245,173580827614331,173738576962949,173711242666183,173607889264947,173581426161884,173684573737965,173685709947678,173737127450315,173739668833523,173580648737941,173591152999678,173711166483831,173615969737452,173625747326748,173659454185435,173671181206664,173589502939062,173694063996589,173684886053187,173582702432039,173580975164320,173686307477885,173581950266144,173592107806319,173606872104543,173668161784331,173581825843382,173694906089903,173713181642942,173614718097040,173580868109031,173599474463414,173641414436170,173584331028949,173582122471191,173580857355727,173686556141372,173606839153413,173675806339987,173598640366521,173616635867510,173729756821951,173590053099477,173693238111424,173710996477454,173581743168163,173615992747049,173615664108061,173677082991698,173632836220758,173620992981132,173741206446176,173580623084964,173580304235013) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14153' and vt_group_no IN(173639370994699,173711663877635,173625700739796,173602106307154,173722008404741,173632753620283) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14162' and vt_group_no IN(173574025861294,173658102528062,173664961102982,173732894110094,173731852817806,173678188053898,173738161070077,173642148229162,173729481311547,173719416406936,173737269799013,173727629276493,173699274584061,173738171116325,173627826876118,173732593483271,173608131720479,173702783488130,173630326764848,173581328768570,173572917546506,173720937714071,173738042657092,173585119247804,173641411933628,173582481462823,173648127646637,173589747878050,173708205617974,173591365699269,173626428916641,173699725712250,173731031809796,173575367564135,173641996036601,173675736126791,173617032893593,173659817866331,173632262759495,173708213958084,173591764053753,173723256121217,173643008666804,173576667245830,173585496358660,173639261238154,173708258498841,173585480247105,173736897589416,173582163705339,173572869122549,173581538845526,173708147978989,173600523332290,173635903004575,173727977641063,173673634320615,173582241864200,173728175366154,173616942314506,173700076733029,173580832891428,173732410345876,173701142330039,173734678951401,173633915846815,173730214011051,173684976285216,173643080105848,173729319239300,173712567662717,173722237136842,173731239506285,173627234594219,173700141160265,173685609690326,173589267698933,173591370950931,173582042498221,173574418906904,173572159384821,173586003980769,173611680325851,173591343736790,173575885933274,173687035453250,173742494769203,173575130769839,173606433614968,173584090467110,173730251639809,173585829295601,173574178455171,173585672438223,173693921958180,173600521426068,173700134702094,173693115694106,173704017199907,173708269498121) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14162' and vt_group_no IN(173644897549221,173573664275871,173661630884923,173708304191148,173580496811936,173582113357440,173693162651780,173585420130804,173635390011724,173708307541090,173602191527204,173617436486638,173607697880210,173625054268043,173646648567547,173677737643932,173705879836960,173601736882201,173571491564675,173666771116720,173708279722068,173648842024690,173700073022315,173575720383728,173600520489996,173592514297803,173727176514584,173659958110476,173624019785996,173580375067322,173708283279708,173578340546379,173704011369474,173707716352554,173583519185706,173736866556438,173708287133860,173708275918599,173603424760946,173583988758105,173572481864566,173614369040064,173730503175364,173708135312579,173576427520930,173597700034739,173601008547972,173681244899357,173594689828228,173699294881908,173708255235637,173576397019563,173731527203290,173673711061229,173700137746062,173702399574862,173708296263819,173583519078907,173633307579534,173694207948709,173630575602435,173670929718955,173573490835534,173683411782397,173643471484728,173730622431310,173617570658216,173583058867729,173641342476055,173572909960315,173688529879816,173708197114457,173605623818012,173577623826867,173600516823630,173643032977177,173667269177865,173601853302227,173586650163094,173604361060345,173602955409384,173728616150545,173610985198180,173580881076447,173632581395987,173699282272734,173602040083734,173699286362307,173585801183016,173620400043811,173743957254973,173647003722743,173573836799627,173707715357399,173586261433002,173703417001362,173678941134117,173591504972596,173654505183098,173729168649807) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14162' and vt_group_no IN(173652777160877,173582489221337,173689660904571,173723651415033,173599012449131,173736407068367,173718932200609,173587552625731,173611782393510,173584638481459,173708265940106,173711267201574,173680012903915,173684826809793,173735194204323,173739320427073,173609835795152,173575930850800,173673817891112,173699411055769,173734686957401,173637835180655,173729122286869,173727880766582,173573739239472,173584333153026,173612012230937,173696702971533,173699131796002,173727329300167,173622058331109,173673626571334,173739415317140,173644402374202,173593776772260,173688590359866,173672227862026,173673615302927,173739316164395,173742302357668,173712653906306,173569856797149,173685329450413,173736167412098,173607320646093,173730463303512,173639614173561,173686067100111,173581909273345,173611671921436,173677018327988,173739825998906,173591369712398,173634790845942,173587368015891,173708310947681,173599092298727,173726951577868,173704140020682,173712017675146,173723709056698,173707058471632,173687307096742,173673629819799,173708202236616,173646107177941,173738045514290,173605881993133,173664028624170,173692123255945,173673642798512,173607567718354,173708251158190,173575883327215,173591333492352,173712647183747,173580715692722,173708128648565,173575325995236,173608943945688,173578515227348,173608956792816,173671575506081,173618778618590,173672703722944,173682071726907,173656321025444,173702157740886,173728105534506,173602321483397,173699345091490,173678505883550,173688295406301,173704202624996,173589796437764,173678748098214,173576013118895,173573867582677,173582302690883,173709606452835) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14162' and vt_group_no IN(173648845203082,173731387433450,173605422561723,173685126471506,173703853900179,173584806800758,173581530581581,173642417540309,173576255373788,173586094418941,173573327374603,173639312851779,173693272794956,173725928868581,173731531112613,173696506974933,173701690162013,173707994566186,173696212079837,173638740936673,173628248882681,173663443966766,173617861287634,173687542187827,173680580790524,173676144627249,173616675461316,173728257911602,173684252343959,173721833441062,173740403105183,173647724073729,173639145552983,173728401260698,173732244622211,173643059001016,173610985205048,173657758905168,173594338710394,173575515115647,173590418318851,173595783599767,173627051622489,173700144687910,173575147097793,173625923121102,173678966171719,173702157673574,173584301533196,173584506612321,173732918351179,173648849412012,173665260478205,173677067102881,173611703170496,173722869305784,173581318944557,173598989347667,173673638738373,173699290899960,173583399910267,173572725504974,173611679917642,173675151863543,173581320151542,173598838731973,173699139504436,173606186489993,173589196896349,173684395940035,173669236060066,173623379631375,173701851642023,173638298063641,173739552365874,173643462839104,173668884904510,173693909939110,173667327149436,173668380253587,173674937743467,173589656123222,173697379274547,173699143187168,173594037929371,173573395472747,173626191422538,173600538147069,173668839144499,173687137532286,173625024826765,173577743017719,173576914601362,173575978958101,173571659983350,173584322586687,173703843296169,173663361717166,173577914995383,173693263362494) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14162' and vt_group_no IN(173592660090495,173585664149844,173676832666110,173670068258213,173609878540161,173635391326650,173629929570450,173731005582659,173585770012849,173671259805081,173708246640187,173700091303978,173611363251415,173742438496966,173578209756467,173602473644469,173577189964515,173736396783425,173577600410555,173687346421671,173579036715564,173571787599089,173574147093687,173673435860484,173699278937212,173686053969334,173654032883631,173717610258048,173581573183414,173581338519766,173578165476668,173681914874048,173700130510345,173705162845196,173591920895969,173732125217773,173623249557408,173672486513175,173571863466198,173585212895747,173741083852923,173592130482221,173684879783351,173676672965499,173702292626640,173618877616156,173725633878198,173616792608705,173708292382212,173668398543471,173591375944147,173593756979801,173720095035034,173640670237110,173728904869613,173574511783009,173700079996835,173700782303406,173622063221564,173575043644989,173584256833270,173704142801961,173612015405956,173582938969116,173585539636712,173643385243317,173584732549923,173718180796560,173587721766612,173700063708731,173574220771292,173606994141666,173667152577134,173669879052451,173668117585573,173721605844343,173591553038654,173703604697602,173628139471113,173633350572982,173636719639339,173588281290657,173700070065490,173738429892570,173742491255978,173603037242577,173587520538829,173606858992271,173702063454197,173574418025784,173609232023611,173673622799053,173587041701800,173729583749664,173728926674118,173741295070901,173615382804626,173574075110470,173729562321460,173741685682236) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14162' and vt_group_no IN(173730220873304,173585416277079,173600531644984,173708262175811,173730226784753,173634683581857,173647133054470,173708300465411,173578209666044,173723071362139,173745266817000,173575495000371,173730824345213,173604858640330,173736672349586,173586540787048,173730210429129,173600359940009,173626759648234,173677247641649,173592210137782,173739328530441) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14165' and vt_group_no IN(173570103177292,173645190230624,173744839983499,173619764340058,173660102009829,173591130224865,173643909155593,173618928586316,173736844786143,173611320319250,173589257121220,173643286680568,173586264058777,173628551155644,173720369678241,173591410541574,173590706598359,173593563370211,173723789983080,173628357099919,173574144182748,173589935585186,173582727648298,173698871763813,173589394388941,173598218759330,173584356972684,173639087033201,173584441515566,173616180274716,173650942328172,173620314590033,173702060225242,173580414600997,173573890171847,173654979072976,173619376570117,173731070931601,173679617604772,173641025030887,173698304661923,173736768591303,173627633708089,173687392368915,173627889164179,173591382265467,173668991721295,173584417338999,173586049389851,173655743319423,173641901741986,173704867950376,173572416132878,173584301572847,173598893042138,173595348077933,173576520246416,173718426969063,173594290272526,173582128211664,173577113155561,173729570432300,173618649926525,173741417904384,173638512234839,173572380677215,173573619945038,173738258449298,173571808112396,173712827872508,173607050482970,173729546541825,173678316438274,173728051979915,173636397781116,173745139133400,173652523210672,173671667891858,173632785008467,173712227825233,173581304317459,173695361686382,173593958029376,173635689129859,173632652632646,173585013149700,173715046355220,173736330907198,173688252198162,173597763171637,173584571746951,173576004954756,173636570473747,173740800939150,173605607165395,173646621968471,173644679260270,173588658042448,173628240030709,173627042378441) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '14165' and vt_group_no IN(173704430852454,173608307248412,173589967113154,173607851899840,173589484203793,173618820161061,173649922647573,173603225549358,173713605249635,173694975262404,173641837465015,173616798980961,173582076418980,173570640625003,173586642509473,173693587650645,173610654189776,173696125050605,173600989788970,173582252288555,173697544829321,173729609733282,173593044089718,173684728163294,173584513507382,173658328162319,173711391379891,173669048304976,173607365484638,173585617878283,173572944192595,173692935962215,173576493414970,173577111585480,173644257165531,173672775327470,173736711929661,173719118428684,173620687706245,173598683720943,173636270579330,173616923771558,173727853968713,173620820468274,173585274440600,173577016417459,173583225867084,173621660225693,173627035309440,173597786869074,173577114817040,173695401103051,173594107789466,173581678847000,173586992924327,173739742955903,173616361546260,173592529392866,173610318119245,173688512677011,173578278369328,173590606290654,173575633262618,173697083617538,173620305108368,173589395526362,173593395566385,173575782920520,173591611266301,173676591358839,173731028078861,173720565930916,173701793248740,173601183758720,173618211895832,173723194915782,173700577409871,173703847266118,173641559116390,173698089146271,173686825728603,173593087426349,173636978565030,173626504897175,173575832613166,173705597150904,173652930197900,173626832520271,173682945473434,173628844779561,173739914227241,173586091520458,173625131341224,173677068456710,173651112584082,173615169902930,173572448619739) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '52867' and vt_group_no IN(173675865964102,173736536484963,173615963163053,173580960916732,173711256970223,173684664428826,173687326034001,173581407728394,173676354784492,173677279953291,173711721593550,173616399765655,173606830745726,173737192850276,173619046679055,173719928625704,173656776141192,173598598683667,173693733277980,173710613846591,173650697113826,173676850116627,173675464125317,173658359801943,173671680758878,173731171633660,173580848476045,173732755869193,173688302273499,173572899256977,173591403175581,173633629853276,173677200566642,173584538117403,173693780277697,173710291224128,173659887614524,173573486344739,173719709661631,173654979922392,173736623093088,173719403303194,173736455284703,173628411398774,173710788908801,173719754083253,173730735845439,173677803341692,173589994553301,173642690141543,173658639525772,173634411824162,173693565684219,173724246394624,173615255450398,173616311158604,173606813658460,173641720694215,173736631942021,173676389441182,173615955945039,173676492608319,173719194295508,173617362635077,173620780044248,173675180757981,173694944439322,173581416667276,173581399255948,173655018133384,173663569615397,173634996432608,173681550119294,173711653653283,173678692401319,173581085326390,173676473840804,173624589821665,173711156705019,173710576524482,173732984481685,173711308472088,173634011187621,173679189985556,173652937192063,173741270059593,173624482797515,173644313792898,173710659836657,173658919559861,173740375172610,173658801604326,173738552106575,173615460785577,173710979890237,173650144518496,173615979053101,173693333329289,173732061419940,173738028711447) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '52867' and vt_group_no IN(173735524700167,173724954357408,173720429744297,173702555903845,173617535528905,173606860234235,173702550239164,173713682032483,173620276569587,173621636916709,173701808171532,173676456559639,173650362017135,173676603583016,173715129845935,173615985979224,173702801267798,173627433306393,173744881671335,173616000302809,173718684733280,173659865630943,173621646740871,173677679250514,173641541903393,173671986989048,173732388564448,173706776656680,173713640713859,173580911198762,173676288327059,173623748597573,173715303531949,173677796325723,173642017096403,173694937773165,173671656519289,173686637645709,173736122260897,173606823865236,173584374128630,173624644198737,173680500383885,173609620343498,173703542287714,173736234660328,173737418246310,173731052784329,173658693525982,173694918748789,173715274950707,173677814731267,173583342045106,173585026474252,173732205667311,173719026530172,173701652141061,173693511245327,173737066584219,173581239382836,173677820421233,173694232064676,173715201906521,173680295034082,173576026645838,173711914207420,173737876078697,173609609839348,173624298863912,173633338791218,173714191204856,173719731185674,173704143285084,173685824280413,173624122210269,173722858067087,173633371675383,173694951395365,173580897735429,173580296147472,173719247043692,173745542328613,173642041784297,173580616938207,173709883741298,173677787462326,173686624084095,173641773764475,173693502904691,173581354868415,173710513759664,173693095365226,173606846861694,173715044960789,173676298336561,173623952467993,173719498477915,173655081037983,173615578289028,173624120526704) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
+SELECT IFNULL(TRIM(TRAILING ',' FROM GROUP_CONCAT(DISTINCT(final.vt_group_no))), '') as order_id
+FROM
+    (
+    SELECT
+        vt_group_no,
+        transaction_id,
+        hotel_id, channel_id, ticketId, ticketpriceschedule_id, version, row_type, partner_net_price,salePrice, (case when row_type = '2' and tlc_ticketpriceschedule_id is not NULL then tlc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_res_per when row_type = '2' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_res_per 
+        when row_type = '3' and tlc_ticketpriceschedule_id is not NULL then tlc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_dist_per when row_type = '3' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_dist_per
+        when row_type = '4' and tlc_ticketpriceschedule_id is not NULL then tlc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_hgs_per when row_type = '4' and tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_hgs_per when row_type = '1' then '100.00' else 'No_Setting_found' end) as percentage_commission,
+        case when tlc_ticketpriceschedule_id is not NULL then tlc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is not NULL then sc_comm_on_sale when tlc_ticketpriceschedule_id is NULL and sc_ticketpriceschedule_id is NULL and clc_ticketpriceschedule_id is not NULL then pl_comm_on_sale else 'NO SETTING_FOUND' end as commission_on_sale
+FROM
+    (
+    SELECT
+        scdata.*,
+        '----Price List Level---' AS type3,
+        pl.ticketpriceschedule_id AS clc_ticketpriceschedule_id,
+        pl.hotel_prepaid_commission_percentage as pl_dist_per,
+        pl.hgs_prepaid_commission_percentage as pl_hgs_per,
+        pl.merchant_fee_percentage as pl_mer_per,
+        pl.resale_percentage as pl_res_per,
+        pl.commission_on_sale_price as pl_comm_on_sale
+FROM
+    (
+    SELECT
+        tlcdata.*,
+        '----Sub catalog Level---' AS type2,
+        sc.catalog_id,
+        sc.ticketpriceschedule_id AS sc_ticketpriceschedule_id,
+        sc.resale_currency_level AS sc_resale_currency_level,
+        sc.hotel_prepaid_commission_percentage as sc_dist_per,
+        sc.hgs_prepaid_commission_percentage as sc_hgs_per,
+        sc.merchant_fee_percentage as sc_mer_per,
+        sc.resale_percentage as sc_res_per,
+        sc.commission_on_sale_price as sc_comm_on_sale        
+FROM
+    (
+    SELECT
+        vt.vt_group_no,
+        CONCAT(vt.transaction_id, 'R') AS transaction_id,
+        vt.order_confirm_date,
+        vt.created_date,
+        vt.hotel_id,
+        vt.channel_id,
+        vt.ticketId,
+        vt.ticketpriceschedule_id,
+        vt.version,
+        vt.row_type,
+        vt.partner_gross_price,
+        vt.partner_net_price,
+        maxversion.salePrice,
+        vt.order_currency_partner_gross_price,
+        vt.order_currency_partner_net_price,
+        vt.supplier_gross_price,
+        vt.supplier_net_price,
+        vt.col2,
+        qc.cod_id AS company_id,
+        qc.channel_id AS company_pricelist_id,
+        qc.sub_catalog_id AS company_sub_catalog,
+        '---TLC LEVEL---' AS TYPE,
+        tlc.ticketpriceschedule_id AS tlc_ticketpriceschedule_id,
+        tlc.resale_currency_level,
+        tlc.hotel_prepaid_commission_percentage as tlc_dist_per,
+        tlc.hgs_prepaid_commission_percentage as tlc_hgs_per,
+        tlc.merchant_fee_percentage as tlc_mer_per,
+        tlc.resale_percentage as tlc_res_per,
+        tlc.commission_on_sale_price as tlc_comm_on_sale
+FROM
+    visitor_tickets vt
+JOIN(
+    SELECT
+        vt_group_no,
+        transaction_id,
+        row_type,
+        max(case when row_type = '1' then partner_net_price else 0 end) as salePrice,
+        MAX(VERSION) AS VERSION
+    FROM
+        visitor_tickets
+    WHERE
+        ticketId = '52867' and vt_group_no IN(173668027957211,173676774287749,173710576047854,173715577037081,173658790972518,173732358086095,173590017724130) AND col2 != '2' and transaction_type_name not like '%Reprice Surcharge%' and transaction_type_name not like '%Reprice Discount%'
+    GROUP BY
+        vt_group_no,
+        transaction_id
+) AS maxversion
+ON
+    vt.vt_group_no = maxversion.vt_group_no AND vt.transaction_id = maxversion.transaction_id AND ABS(vt.version - maxversion.version) = '0'
+LEFT JOIN tmp.qr_codes qc
+ON
+    qc.cod_id = vt.hotel_id AND qc.cashier_type = '1'
+LEFT JOIN tmp.ticket_level_commission tlc
+ON
+    tlc.hotel_id = vt.hotel_id AND tlc.ticketpriceschedule_id = vt.ticketpriceschedule_id AND tlc.ticket_id = vt.ticketId AND tlc.deleted = '0' AND tlc.is_adjust_pricing = '1'
+WHERE
+    vt.col2 != '2'
+) AS tlcdata
+LEFT JOIN tmp.channel_level_commission sc
+ON
+    tlcdata.ticketpriceschedule_id = sc.ticketpriceschedule_id AND tlcdata.ticketId = sc.ticket_id AND IF(
+        tlcdata.company_sub_catalog = '0',
+        122222,
+        tlcdata.company_sub_catalog
+    ) = sc.catalog_id AND sc.is_adjust_pricing = '1' AND sc.deleted = '0'
+) AS scdata
+LEFT JOIN tmp.channel_level_commission pl
+ON
+    scdata.ticketpriceschedule_id = pl.ticketpriceschedule_id AND scdata.ticketId = pl.ticket_id AND scdata.channel_id = pl.channel_id AND pl.catalog_id = '0' AND pl.is_adjust_pricing = '1' AND pl.deleted = '0'
+) AS shouldbe
+) AS final where percentage_commission != 'No_Setting_found' and ABS(partner_net_price-(salePrice*percentage_commission/100)) > '0.02';
