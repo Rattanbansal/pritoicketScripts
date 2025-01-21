@@ -25,6 +25,8 @@ previous_date=$(date -d "$noofdays days ago" +"%Y-%m-%d 00:00:01")
 echo "$noofdays"
 echo "$previous_date"
 
+read rattan
+
 echo "condition Satisfy with Both Argument"
 
 if [[ $DATABSETYPE == "PROD" ]]; then
