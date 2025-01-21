@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Report directly fetch from bigquery where we have difference in price on row_ttype 1,2,3,4,17
+
 set -e
 
 # Source the shared credential fetcher
@@ -11,7 +13,7 @@ fetch_db_credentials "19ServerNoVPN_db-creds"
 DB_NAME="priopassdb"
 from_date=$1
 to_date=$2
-OUTPUT_FILE="bigqueryReport.csv"
+OUTPUT_FILE="reports/bigqueryReport.csv"
 MYSQL_TABLE="evanevansorders"
 
 startDate="$from_date 00:00:01"
