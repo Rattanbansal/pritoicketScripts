@@ -3,10 +3,17 @@
 set -e  # Exit immediately if any command exits with a non-zero status
 
 
-MYSQL_HOST="10.10.10.19"
-MYSQL_USER="pip"
-MYSQL_PASSWORD="pip2024##"
-MYSQL_DB="rattan"
+# MYSQL_HOST="10.10.10.19"
+# MYSQL_USER="pip"
+# MYSQL_PASSWORD="pip2024##"
+# MYSQL_DB="rattan"
+
+source ~/vault/vault_fetch_creds.sh
+
+# Fetch credentials for 20Server
+fetch_db_credentials "19ServerNoVPN_db-creds"
+DB_NAME='rattan'
+
 BQ_QUERY_FILE="bq_query.sql"
 OUTPUT_FILE="bq_output.csv"
 MYSQL_TABLE="evanorders"
@@ -65,12 +72,12 @@ echo "BigQuery query successful. Data saved to $OUTPUT_FILE."
 # Step 3: Insert Data into MySQL
 echo "Inserting data into MySQL table..."
 
-mysql -h"$MYSQL_HOST" -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DB" -e "Truncate Table evanorders;"
+mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "Truncate Table evanorders;"
 
-mysql -h"$MYSQL_HOST" -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DB" -e "SET GLOBAL local_infile = 1;"
+mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "SET GLOBAL local_infile = 1;"
 
 # Read CSV and insert into MySQL
-mysql --local-infile=1 -h"$MYSQL_HOST" -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DB" <<EOF
+mysql --local-infile=1 -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" <<EOF
 LOAD DATA LOCAL INFILE '$OUTPUT_FILE'
 INTO TABLE $MYSQL_TABLE
 FIELDS TERMINATED BY ',' 
@@ -90,7 +97,7 @@ echo "Data successfully inserted into MySQL table: $MYSQL_TABLE"
 
 echo "Process completed successfully."
 
-mysql -h"$MYSQL_HOST" -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DB" -e "update evanorders set channel_id = '0';"
+mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "update evanorders set channel_id = '0';"
 
 
 # CREATE TABLE bigqueryData (

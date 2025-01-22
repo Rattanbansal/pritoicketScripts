@@ -14,7 +14,7 @@ fetch_db_credentials "19ServerNoVPN_db-creds"
 
 
 DB_NAME='rattan'
-BATCH_SIZE=25
+BATCH_SIZE=20
 tablename=$1
 
 mysqlHost="prodrds.prioticket.com"
@@ -33,7 +33,7 @@ ticket_ids=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port
 # Loop through each ticket_id
 for ticket_id in $ticket_ids; do
     # Get all vt_group_no for the current ticket_id
-    vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "SELECT vt_group_no FROM $tablename WHERE ticketId = '$ticket_id' and channel_id = '2'") || exit 1
+    vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "SELECT distinct vt_group_no FROM $tablename WHERE ticketId = '$ticket_id' and channel_id = '2'") || exit 1
     
     # Convert the vt_group_numbers into an array
     vt_group_array=($vt_group_numbers)
@@ -77,7 +77,7 @@ for ticket_id in $ticket_ids; do
 
             echo "No results found. Proceeding with further steps. for ($batch_str)" >> no_mismatch.txt
             # Add your further steps here
-            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "update $tablename set status = '1' where visitor_group_no in ($batch_str)" || exit 1
+            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "update $tablename set channel_id = '1' where vt_group_no in ($batch_str)" || exit 1
 
         else 
 
