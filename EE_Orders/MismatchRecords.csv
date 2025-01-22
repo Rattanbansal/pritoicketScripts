@@ -6667,3 +6667,5 @@ vt_group_no,transaction_id,hotel_id,channel_id,ticketId,ticketpriceschedule_id,v
 173753733865633	173753733865633001R	7478	830	16040	389628	1	4	24.00	30.00	80.00	0.00	1	0	0.00
 173753733865633	173753733865633002R	7478	830	16040	389628	1	2	0.00	30.00	0.00	24.00	1	0	24.00
 173753733865633	173753733865633002R	7478	830	16040	389628	1	4	24.00	30.00	80.00	0.00	1	0	0.00
+vt_group_no,transaction_id,hotel_id,channel_id,ticketId,ticketpriceschedule_id,version,row_type,partner_net_price,salePrice,percentage_commission,commission_price,commission_on_sale,resale_percentage,partner_net_price_should_be
+vt_group_no,transaction_id,hotel_id,channel_id,ticketId,ticketpriceschedule_id,version,row_type,partner_net_price,salePrice,percentage_commission,commission_price,commission_on_sale,resale_percentage,partner_net_price_should_be
