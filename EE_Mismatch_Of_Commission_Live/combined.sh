@@ -3,6 +3,9 @@
 # Start time
 start_time=$(date +%s)
 
+rm -rf processedProducts
+rm -rf records
+
 # Commands or Script Logic
 echo "Script is running..."
 

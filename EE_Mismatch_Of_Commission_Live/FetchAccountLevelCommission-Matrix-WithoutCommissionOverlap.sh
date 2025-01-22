@@ -12,7 +12,7 @@ BATCH_SIZE=4
 
 # Create necessary files if they don't exist
 mkdir -p "$outputfolder"
-touch "$outputfolder/processed_products.log"
+touch "$outputfolder/processed_products1.log"
 
 mkdir -p $PWD/records
 # Fetch credentials for 20Server
@@ -32,7 +32,7 @@ echo $product_ids_array
 total_product_ids=${#product_ids_array[@]}
 
 # Read already processed hotel_ids
-processed_products=$(cat "$outputfolder/processed_products.log")
+processed_products=$(cat "$outputfolder/processed_products1.log")
 processed_products_array=($processed_products)
 
 # Filter out already processed hotel_ids
@@ -73,7 +73,7 @@ for ((i=0; i<$total_unprocessed_products; i+=BATCH_SIZE)); do
 
     # Mark each hotel_id in the batch as processed
     for hotel_id in "${batch[@]}"; do
-        echo "$hotel_id" >> "$outputfolder/processed_products.log"
+        echo "$hotel_id" >> "$outputfolder/processed_products1.log"
     done
 
     sleep 5

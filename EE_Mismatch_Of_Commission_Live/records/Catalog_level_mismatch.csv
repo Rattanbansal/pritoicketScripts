@@ -1,4 +1,0 @@
-ticket_id,hotel_id,commission,reseller_id,cod_id,sub_catalog_id,channel_level_commission_id,ticketpriceschedule_id,resale_currency_level,currency,commission_on_sale_price,is_hotel_prepaid_commission_percentage,hotel_prepaid_commission_percentage,hgs_prepaid_commission_percentage,ticket_net_price,museum_net_commission,merchant_net_commission,hotel_commission_net_price,hgs_commission_net_price,hotel_commission_should_be,gap
-13829	6098	25	541	6098	171640784610681	14742379	421820	1	GBP	1	1	25.00	75.00	45.00	-10.00	0.00	11.25	33.75	11.250000	0.000000
-13829	6098	25	541	6098	171640784610681	14742380	421819	1	GBP	1	1	25.00	75.00	105.00	-325.00	0.00	26.25	78.75	26.250000	0.000000
-13829	6098	25	541	6098	171640784610681	14742381	421818	1	GBP	1	1	25.00	75.00	115.00	-397.00	0.00	28.75	86.25	28.750000	0.000000
