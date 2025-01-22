@@ -12,7 +12,7 @@ outputfolder="$PWD/VT"
 DB_NAME="prioprodrds"
 outputFile="$outputfolder/recordshto.csv"
 BATCH_SIZE=50
-TIMEOUT_PERIOD=30
+TIMEOUT_PERIOD=50
 
 # Input Parameters
 start_date=$1
