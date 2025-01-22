@@ -23,3 +23,5 @@ SELECT from_unixtime(max(createdOn)), from_unixtime(min(createdOn)) FROM `hotel_
  
 SELECT from_unixtime(max(createdOn)), from_unixtime(min(createdOn)), max(last_modified_at) as max_last_modified_at, min(last_modified_at) as min_last_modified_at FROM `hotel_ticket_overview` where last_modified_at >= date_sub(CURRENT_TIMESTAMP, interval 31 day);
  
+
+select * from (SELECT mec.mec_id, replace(mec.timezone,'+', '') as timezone, tps.ticket_id, replace(tps.timezone, '+','') as tpstimezone FROM modeventcontent mec join ticketpriceschedule tps on mec.mec_id = tps.ticket_id where mec.deleted = '0' and tps.deleted = '0') as base where ABS(timezone-tpstimezone) > '0.03' 
