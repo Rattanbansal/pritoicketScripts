@@ -10,6 +10,13 @@ MYSQL_DB="rattan"
 BQ_QUERY_FILE="bq_query.sql"
 OUTPUT_FILE="bq_output.csv"
 MYSQL_TABLE="evanorders"
+startdate=$1
+
+startfrom="$startdate 00:00:01"
+
+echo $startfrom
+
+read rattan
 
 rm -f $OUTPUT_FILE
 
@@ -36,7 +43,7 @@ mec AS (
 )
 SELECT DISTINCT visitor_group_no,ticket_id, tps_id, channel_id,hotel_id
 FROM pt 
-WHERE order_confirm_date >= '2025-01-01 00:00:00' 
+WHERE order_confirm_date >= '$startfrom' 
 AND ticket_id IN (SELECT mec_id FROM mec)"
 
 # Step 2: Run BigQuery Command
@@ -83,6 +90,7 @@ echo "Data successfully inserted into MySQL table: $MYSQL_TABLE"
 
 echo "Process completed successfully."
 
+mysql -h"$MYSQL_HOST" -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DB" -e "update evanorders set channel_id = '0';"
 
 
 # CREATE TABLE bigqueryData (

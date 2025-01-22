@@ -22,7 +22,7 @@ mysqlUser=pipeuser
 mysqlPassword=d4fb46eccNRAL
 mysqlDatabase="prioprodrds"
 
-echo "vt_group_no,transaction_id,hotel_id,channel_id,ticketId,ticketpriceschedule_id,version,row_type,partner_net_price,salePrice,percentage_commission,commission_on_sale,resale_percentage,partner_net_price_should_be" > MismatchRecords.csv
+echo "vt_group_no,transaction_id,hotel_id,channel_id,ticketId,ticketpriceschedule_id,version,row_type,partner_net_price,salePrice,percentage_commission,commission_price,commission_on_sale,resale_percentage,partner_net_price_should_be" >> MismatchRecords.csv
 
 # Get all unique ticket_ids
 ticket_ids=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" -p"$DB_PASS" -D"$DB_NAME" -sN -e "SELECT DISTINCT(ticketId) FROM $tableName where channel_id = '0'") || exit 1   # channel_id used in place of status
