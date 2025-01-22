@@ -25,3 +25,6 @@ SELECT from_unixtime(max(createdOn)), from_unixtime(min(createdOn)), max(last_mo
  
 
 select * from (SELECT mec.mec_id, replace(mec.timezone,'+', '') as timezone, tps.ticket_id, replace(tps.timezone, '+','') as tpstimezone FROM modeventcontent mec join ticketpriceschedule tps on mec.mec_id = tps.ticket_id where mec.deleted = '0' and tps.deleted = '0') as base where ABS(timezone-tpstimezone) > '0.03' 
+
+
+203
