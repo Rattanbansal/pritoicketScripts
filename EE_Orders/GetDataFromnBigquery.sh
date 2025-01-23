@@ -115,7 +115,7 @@ echo "Data successfully inserted into MySQL table: $MYSQL_TABLE"
 
 echo "Process completed successfully."
 
-mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "update evanorders set channel_id = '0';"
+mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "update evanorders set status = '0';"
 
 
 # CREATE TABLE bigqueryData (
