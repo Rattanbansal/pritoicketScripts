@@ -1,0 +1,101 @@
+#!/bin/bash
+
+set -e  # Exit immediately if any command exits with a non-zero status
+
+
+# MYSQL_HOST="10.10.10.19"
+# MYSQL_USER="pip"
+# MYSQL_PASSWORD="pip2024##"
+# MYSQL_DB="rattan"
+
+source ~/vault/vault_fetch_creds.sh
+
+# Fetch credentials for 20Server
+fetch_db_credentials "19ServerNoVPN_db-creds"
+DB_NAME='rattan'
+from_date=$1
+to_date=$2
+TIMEOUT_PERIOD=25
+
+BQ_QUERY_FILE="bq_query.sql"
+OUTPUT_FILE="bq_output.csv"
+MYSQL_TABLE="EEBigqueryMismatch"
+startDate="$from_date 00:00:01"
+endDate="$to_date 23:59:59"
+
+echo $startDate
+echo $endDate
+
+read rattan
+
+rm -f $OUTPUT_FILE
+
+BQ_QUERY_FILE="WITH modeventcontent AS( SELECT *, ROW_NUMBER() OVER(PARTITION BY mec_id ORDER BY last_modified_at DESC) AS rn FROM prioticket-reporting.prio_olap.modeventcontent), mec AS ( SELECT mec_id FROM modeventcontent WHERE reseller_id =541 AND rn=1 AND deleted ='0'), channellevelcommission AS ( SELECT *, ROW_NUMBER() OVER(PARTITION BY channel_id, catalog_id, ticket_id, ticketpriceschedule_id ORDER BY resale_currency_level DESC, last_modified_at DESC) AS rn FROM prio_olap.channel_level_commission WHERE deleted = 0), finalclc AS ( SELECT * FROM channellevelcommission WHERE rn = 1 AND is_adjust_pricing = 1), qrcodes AS ( SELECT *, ROW_NUMBER() OVER(PARTITION BY cod_id ORDER BY last_modified_at DESC) AS rn FROM prio_olap.qr_codes WHERE cashier_type = '1'), finalqc AS ( SELECT * FROM qrcodes WHERE rn = 1), ticketlevelcommission AS ( SELECT *, ROW_NUMBER() OVER(PARTITION BY hotel_id, ticket_id, ticketpriceschedule_id ORDER BY resale_currency_level DESC, last_modified_at DESC) AS rn FROM prio_olap.ticket_level_commission WHERE deleted = 0), finaltlc AS ( SELECT * FROM ticketlevelcommission WHERE rn = 1 AND is_adjust_pricing = 1), visitorTickets AS ( SELECT *, ROW_NUMBER() OVER(PARTITION BY id ORDER BY last_modified_at DESC, IFNULL(version,'1') DESC) AS rn FROM prio_olap.financial_transactions), orderId AS ( SELECT DISTINCT vt_group_no FROM visitorTickets WHERE last_modified_at BETWEEN '$startDate' AND '$endDate' and order_confirm_date BETWEEN '$startDate' AND '$endDate' AND ticketId IN ( SELECT DISTINCT mec_id FROM mec)), finalRecords AS ( SELECT * FROM visitorTickets WHERE vt_group_no IN ( SELECT vt_group_no FROM orderId) AND rn = 1 AND col2 != 2), prepaidTickets AS ( SELECT *, ROW_NUMBER() OVER(PARTITION BY prepaid_ticket_id ORDER BY last_modified_at DESC, IFNULL(version,'1') DESC ) AS rn FROM prio_olap.scan_report), orderIdPT AS ( SELECT DISTINCT visitor_group_no FROM prepaidTickets WHERE last_modified_at BETWEEN '$startDate' AND '$endDate' and order_confirm_date BETWEEN '$startDate' AND '$endDate'), finalRecordsPT AS ( SELECT * FROM prepaidTickets WHERE visitor_group_no IN ( SELECT visitor_group_no FROM orderIdPT) AND rn = 1), vtFinalData AS ( SELECT vt_group_no, CONCAT(transaction_id, 'R') AS transaction_id, MAX(hotel_id) AS hotel_id, MAX(hotel_name) AS hotel_name, MAX(reseller_id) AS reseller_id, max(channel_id) as channel_id_vt, MAX(reseller_name) AS reseller_name, MAX(ticketId) AS ticket_id, MAX(ticketpriceschedule_id) AS ticketpriceschedule_id, version, SUM(CASE WHEN row_type = 1 THEN partner_net_price ELSE 0 END ) AS saleprice, SUM(CASE WHEN row_type = 2 THEN partner_net_price ELSE 0 END ) AS purchaseprice, SUM(CASE WHEN row_type = 3 THEN partner_net_price ELSE 0 END ) AS distributorcommission, SUM(CASE WHEN row_type = 4 THEN partner_net_price ELSE 0 END ) AS hgscommission, SUM(CASE WHEN row_type = 17 THEN partner_net_price ELSE 0 END ) AS merchantcommission, MAX(order_confirm_date) AS order_confirm_date FROM finalRecords WHERE row_type IN (1, 2, 3, 4, 17) GROUP BY vt_group_no, transaction_id, version), getpricestting AS ( SELECT vt.*, qc.cod_id, qc.channel_id, qc.sub_catalog_id, tlc.ticket_net_price AS tlcsaleprice, tlc.museum_net_commission AS tlcmuseumfee, tlc.merchant_net_commission AS tlcmerhantfee, tlc.hotel_commission_net_price AS tlchotelfee, tlc.hgs_commission_net_price AS tlchgsfee, tlc.last_modified_at AS tlcmodified, tlc.commission_on_sale_price AS tlc_commission_on_sale, tlc.is_resale_percentage AS tlc_is_resale_percentage, tlc.hotel_prepaid_commission_percentage AS tlc_hotel_per, tlc.resale_percentage AS tlc_resale_per, catalog.ticket_net_price AS catalogsaleprice, catalog.museum_net_commission AS catalogmuseumfee, catalog.merchant_net_commission AS catalogmerchantfee, catalog.hotel_commission_net_price AS cataloghotelfee, catalog.hgs_commission_net_price AS cataloghgsfee, catalog.last_modified_at AS catalog_modified, catalog.commission_on_sale_price AS catalog_commission_on_sale, catalog.is_resale_percentage AS catalog_is_resale_percentage, catalog.hotel_prepaid_commission_percentage AS catalog_hotel_per, catalog.resale_percentage AS catalog_resale_per, clc.ticket_net_price AS clcsaleprice, clc.museum_net_commission AS clcmuseumfee, clc.merchant_net_commission AS clcmerchantfee, clc.hotel_commission_net_price AS clchotelfee, clc.hgs_commission_net_price AS clchgsfee, clc.last_modified_at AS clcmodified, clc.commission_on_sale_price AS clc_commission_on_sale, clc.is_resale_percentage AS clc_is_resale_percentage, clc.hotel_prepaid_commission_percentage AS clc_hotel_per, clc.resale_percentage AS clc_resale_per FROM vtFinalData vt LEFT JOIN finalqc qc ON vt.hotel_id = qc.cod_id LEFT JOIN finaltlc tlc ON vt.hotel_id = tlc.hotel_id AND vt.ticket_id = tlc.ticket_id AND vt.ticketpriceschedule_id = tlc.ticketpriceschedule_id LEFT JOIN finalclc catalog ON catalog.catalog_id = IF (qc.sub_catalog_id > 111, qc.sub_catalog_id, 111) AND catalog.ticket_id = vt.ticket_id AND catalog.ticketpriceschedule_id = vt.ticketpriceschedule_id LEFT JOIN finalclc clc ON clc.channel_id = qc.channel_id AND clc.ticket_id = vt.ticket_id AND clc.ticketpriceschedule_id = vt.ticketpriceschedule_id), mismatchescalculate AS ( SELECT vt_group_no, transaction_id, hotel_id, hotel_name, reseller_id, channel_id_vt, reseller_name, ticket_id, ticketpriceschedule_id, version, order_confirm_date, saleprice, purchaseprice, merchantcommission, distributorcommission, hgscommission, CASE WHEN tlcsaleprice IS NOT NULL THEN tlcsaleprice WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NOT NULL THEN catalogsaleprice WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NULL AND clcsaleprice IS NOT NULL THEN clcsaleprice ELSE 111 END AS salepricesetting, CASE WHEN tlcsaleprice IS NOT NULL THEN tlcmuseumfee WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NOT NULL THEN catalogmuseumfee WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NULL AND clcsaleprice IS NOT NULL THEN clcmuseumfee ELSE 111 END AS museumfeesetting, CASE WHEN tlcsaleprice IS NOT NULL THEN tlcmerhantfee WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NOT NULL THEN catalogmerchantfee WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NULL AND clcsaleprice IS NOT NULL THEN clcmerchantfee ELSE 111 END AS merchantfeesetting, CASE WHEN tlcsaleprice IS NOT NULL THEN tlchotelfee WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NOT NULL THEN cataloghotelfee WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NULL AND clcsaleprice IS NOT NULL THEN clchotelfee ELSE 111 END AS hotelfeesetting, CASE WHEN tlcsaleprice IS NOT NULL THEN tlchgsfee WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NOT NULL THEN cataloghgsfee WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NULL AND clcsaleprice IS NOT NULL THEN clchgsfee ELSE 111 END AS hgsfeesetting, CASE WHEN tlcsaleprice IS NOT NULL THEN tlcmodified WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NOT NULL THEN catalog_modified WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NULL AND clcsaleprice IS NOT NULL THEN clcmodified ELSE '2022-02-22 22:22:22' END AS modifiedshouldbe, CASE WHEN tlcsaleprice IS NOT NULL THEN tlc_commission_on_sale WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NOT NULL THEN catalog_commission_on_sale WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NULL AND clcsaleprice IS NOT NULL THEN clc_commission_on_sale ELSE 111 END AS commission_on_sale, CASE WHEN tlcsaleprice IS NOT NULL THEN tlc_is_resale_percentage WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NOT NULL THEN catalog_is_resale_percentage WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NULL AND clcsaleprice IS NOT NULL THEN clc_is_resale_percentage ELSE 111 END AS is_resale_percentage, CASE WHEN tlcsaleprice IS NOT NULL THEN tlc_hotel_per WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NOT NULL THEN catalog_hotel_per WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NULL AND clcsaleprice IS NOT NULL THEN clc_hotel_per ELSE 111 END AS hotel_percentage, CASE WHEN tlcsaleprice IS NOT NULL THEN tlc_resale_per WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NOT NULL THEN catalog_resale_per WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NULL AND clcsaleprice IS NOT NULL THEN clc_resale_per ELSE 111 END AS resale_percentage, CASE WHEN tlcsaleprice IS NOT NULL THEN 'tlcsetting' WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NOT NULL THEN 'catalogsetting' WHEN tlcsaleprice IS NULL AND catalogsaleprice IS NULL AND clcsaleprice IS NOT NULL THEN 'clcsetting' ELSE 'Nosetting' END AS pricinglevel FROM getpricestting), mismatches AS ( SELECT vt_group_no, transaction_id, hotel_id, hotel_name, reseller_id, channel_id_vt, reseller_name, ticket_id, ticketpriceschedule_id, version, order_confirm_date, saleprice, salepricesetting as salepriceshouldbe, purchaseprice, case when is_resale_percentage = 1 then saleprice*resale_percentage/100 else museumfeesetting end as museumfeeshouldbe, merchantcommission, merchantfeesetting as merchantfeeshouldbe, distributorcommission, case when commission_on_sale = 1 then saleprice*hotel_percentage/100 else hotelfeesetting end as hotelfeeshouldbe, hgscommission, hgsfeesetting as hgsfeeshouldbe, pricinglevel, modifiedshouldbe, commission_on_sale, is_resale_percentage, hotel_percentage, resale_percentage FROM mismatchescalculate) SELECT vt_group_no, transaction_id,distributorcommission, hotelfeeshouldbe,hotel_id, ticket_id,ticketpriceschedule_id,channel_id_vt as channel_id, reseller_id, 0 as status FROM mismatches WHERE pricinglevel = 'Nosetting' OR ABS(CAST(distributorcommission AS float64)-(hotelfeeshouldbe)) > 0.03"
+
+# Step 2: Run BigQuery Command
+echo "Running BigQuery Query..."
+
+gcloud config set project prioticket-reporting
+
+
+bq query --use_legacy_sql=False --max_rows=1000000 --format=csv \
+"$BQ_QUERY_FILE" > $OUTPUT_FILE || exit 1
+
+if [ $? -ne 0 ]; then
+    echo "BigQuery query failed. Exiting."
+    exit 1
+fi
+
+echo "BigQuery query successful. Data saved to $OUTPUT_FILE."
+
+# Step 3: Insert Data into MySQL
+echo "Inserting data into MySQL table..."
+
+
+
+timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "DROP TABLE IF EXISTS $MYSQL_TABLE" || exit 1
+
+# Create the table if it does not exist
+create_table_query="CREATE TABLE IF NOT EXISTS $MYSQL_TABLE (
+    vt_group_no VARCHAR(255),
+    transaction_id VARCHAR(255),
+    salePrice DECIMAL(10,2),
+    otherPrice DECIMAL(10,2),
+    hotel_id INT,
+    ticketId VARCHAR(255),
+    ticketpriceschedule_id VARCHAR(255),
+    channel_id INT,
+    reseller_id INT,
+    status INT
+);"
+
+# Execute the query to create the table
+timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "$create_table_query" || exit 1
+
+mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "SET GLOBAL local_infile = 1;"
+
+echo "status of query to alter table"
+
+# Load the CSV data into the table
+mysql --local-infile=1 -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" <<EOF
+LOAD DATA LOCAL INFILE '$OUTPUT_FILE'
+INTO TABLE $MYSQL_TABLE
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS
+(vt_group_no, transaction_id, salePrice, otherPrice, hotel_id, ticketId, ticketpriceschedule_id, channel_id, reseller_id, status);
+EOF
+
+
+echo "status of query to insert data"
+echo "Data successfully loaded into table: $MYSQL_TABLE"
+
+
+updaterecordsforwhichnoseting="update rattan.$MYSQL_TABLE ro join (select * from (select *,(case when qr_reseller_id = '541' and dt_hotel_id is null then 'No Setting' when qr_reseller_id != '541' and p_reseller_id is null then 'No Setting' else '' end) as settingtype  from (SELECT ev.*,dt.ticket_id as dt_ticket_id, dt.hotel_id as dt_hotel_id, dt.commission as dt_commission,dt.cod_id as dt_cod_id,dt.sub_catalog_id as dt_sub_catalog_id,qr.reseller_id as qr_reseller_id,p.ticket_id as p_ticket_id,p.reseller_id as p_reseller_id,p.commission as p_commission FROM rattan.$MYSQL_TABLE ev left join (select * from priopassdb.distributors UNION all select * from priopassdb.distributors1) as dt on ev.hotel_id = dt.hotel_id and ev.ticketId = dt.ticket_id left join priopassdb.qr_codes qr on qr.cod_id = ev.hotel_id left join priopassdb.pricelist p on p.reseller_id = qr.reseller_id and p.ticket_id = ev.ticketId) as main)  as orders where settingtype ='No Setting') as base on base.vt_group_no = ro.vt_group_no and ro.ticketid = base.ticketid and ro.ticketpriceschedule_id = base.ticketpriceschedule_id set ro.status ='10';select row_count();"
+
+echo "$updaterecordsforwhichnoseting"
+
+timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "$updaterecordsforwhichnoseting" || exit 1
+
+echo "Update order successfully for which no setting provided by client"

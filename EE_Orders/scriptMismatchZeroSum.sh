@@ -90,7 +90,7 @@ done
 output_table="ZeroSumIssue"
 OUTPUT_FILE="ZeroSumissue.csv"
 
-timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "DROP TABLE $output_table" || exit 1
+timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "DROP TABLE IF EXISTS $output_table" || exit 1
 
 # Create the table if it does not exist
 create_table_query="CREATE TABLE IF NOT EXISTS $output_table (
