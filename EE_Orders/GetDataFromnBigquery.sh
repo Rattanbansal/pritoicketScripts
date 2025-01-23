@@ -48,7 +48,7 @@ mec AS (
     FROM mec1 
     WHERE rn=1 AND deleted='0' AND reseller_id=541
 )
-SELECT DISTINCT visitor_group_no,ticket_id, tps_id, channel_id,hotel_id
+SELECT DISTINCT visitor_group_no,ticket_id, tps_id, channel_id,hotel_id, 0 as status
 FROM pt 
 WHERE order_confirm_date >= '$startfrom' 
 AND ticket_id IN (SELECT mec_id FROM mec)"
@@ -84,7 +84,7 @@ FIELDS TERMINATED BY ','
 ENCLOSED BY '"' 
 LINES TERMINATED BY '\n'
 IGNORE 1 LINES
-(vt_group_no,ticketId, ticketpriceschedule_id, channel_id, hotel_id);
+(vt_group_no,ticketId, ticketpriceschedule_id, channel_id, hotel_id, status);
 EOF
 
 if [ $? -ne 0 ]; then

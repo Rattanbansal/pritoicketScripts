@@ -28,12 +28,12 @@ SECUSER='pipeuser'
 SECPASSWORD='d4fb46eccNRAL'
 
 # Get all unique ticket_ids
-ticket_ids=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "SELECT DISTINCT(ticketId) FROM $tablename where channel_id = '2'") || exit 1  # channel_id in where clause we used as status to identify which records has been updated
+ticket_ids=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "SELECT DISTINCT(ticketId) FROM $tablename where status = '2'") || exit 1  # channel_id in where clause we used as status to identify which records has been updated
 
 # Loop through each ticket_id
 for ticket_id in $ticket_ids; do
     # Get all vt_group_no for the current ticket_id
-    vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "SELECT distinct vt_group_no FROM $tablename WHERE ticketId = '$ticket_id' and channel_id = '2'") || exit 1
+    vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "SELECT distinct vt_group_no FROM $tablename WHERE ticketId = '$ticket_id' and status = '2'") || exit 1
     
     # Convert the vt_group_numbers into an array
     vt_group_array=($vt_group_numbers)
@@ -77,7 +77,7 @@ for ticket_id in $ticket_ids; do
 
             echo "No results found. Proceeding with further steps. for ($batch_str)" >> no_mismatch.txt
             # Add your further steps here
-            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "update $tablename set channel_id = '1' where vt_group_no in ($batch_str)" || exit 1
+            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "update $tablename set status = '1' where vt_group_no in ($batch_str)" || exit 1
 
         else 
 
@@ -121,7 +121,7 @@ for ticket_id in $ticket_ids; do
 
             # sleep 3
 
-            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "update $tablename set channel_id = '3' where vt_group_no in ($batch_str);SELECT ROW_COUNT()" || exit 1
+            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "update $tablename set status = '3' where vt_group_no in ($batch_str);SELECT ROW_COUNT()" || exit 1
 
             echo "Sleep Started to Run next VGNS"
             echo "------$(date '+%Y-%m-%d %H:%M:%S.%3N')--------"
