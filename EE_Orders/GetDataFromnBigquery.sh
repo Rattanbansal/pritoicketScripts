@@ -72,7 +72,25 @@ echo "BigQuery query successful. Data saved to $OUTPUT_FILE."
 # Step 3: Insert Data into MySQL
 echo "Inserting data into MySQL table..."
 
-mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "Truncate Table evanorders;"
+mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "DROP TABLE IF EXISTS $MYSQL_TABLE;"
+
+createtable="CREATE TABLE $MYSQL_TABLE (
+  vt_group_no bigint NOT NULL,
+  ticketId int NOT NULL,
+  ticketpriceschedule_id int NOT NULL,
+  channel_id int NOT NULL,
+  hotel_id int NOT NULL,
+  status int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;ALTER TABLE $MYSQL_TABLE
+  ADD KEY vt (vt_group_no),
+  ADD KEY ticketid (ticketId),
+  ADD KEY tps (ticketpriceschedule_id),
+  ADD KEY ci (channel_id),
+  ADD KEY status (status),
+  ADD KEY hi (hotel_id);
+COMMIT;"
+
+mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "$createtable"
 
 mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "SET GLOBAL local_infile = 1;"
 

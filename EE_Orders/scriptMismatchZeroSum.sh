@@ -40,7 +40,7 @@ ticket_ids=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port
 for ticket_id in $ticket_ids; do
     # Get all vt_group_no for the current ticket_id
     vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "SELECT distinct vt_group_no FROM $tableName WHERE ticketId = '$ticket_id' and status = '0'") || exit 1
-    
+
     # Convert the vt_group_numbers into an array
     vt_group_array=($vt_group_numbers)
     total_vt_groups=${#vt_group_array[@]}
@@ -90,6 +90,8 @@ done
 output_table="ZeroSumIssue"
 OUTPUT_FILE="ZeroSumissue.csv"
 
+timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "DROP TABLE $output_table" || exit 1
+
 # Create the table if it does not exist
 create_table_query="CREATE TABLE IF NOT EXISTS $output_table (
     vt_group_no VARCHAR(255),
@@ -100,7 +102,8 @@ create_table_query="CREATE TABLE IF NOT EXISTS $output_table (
     ticketId VARCHAR(255),
     ticketpriceschedule_id VARCHAR(255),
     channel_id INT,
-    reseller_id INT
+    reseller_id INT,
+    status INT
 );"
 
 # Execute the query to create the table
@@ -121,3 +124,10 @@ EOF
 
 echo "status of query to insert data"
 echo "Data successfully loaded into table: $output_table"
+
+
+updaterecordsforwhichnoseting="update rattan.ZeroSumIssue ro join (select * from (select *,(case when qr_reseller_id = '541' and dt_hotel_id is null then 'No Setting' when qr_reseller_id != '541' and p_reseller_id is null then 'No Setting' else '' end) as settingtype  from (SELECT ev.*,dt.ticket_id as dt_ticket_id, dt.hotel_id as dt_hotel_id, dt.commission as dt_commission,dt.cod_id as dt_cod_id,dt.sub_catalog_id as dt_sub_catalog_id,qr.reseller_id as qr_reseller_id,p.ticket_id as p_ticket_id,p.reseller_id as p_reseller_id,p.commission as p_commission FROM rattan.ZeroSumIssue ev left join (select * from priopassdb.distributors UNION all select * from priopassdb.distributors1) as dt on ev.hotel_id = dt.hotel_id and ev.ticketId = dt.ticket_id left join priopassdb.qr_codes qr on qr.cod_id = ev.hotel_id left join priopassdb.pricelist p on p.reseller_id = qr.reseller_id and p.ticket_id = ev.ticketId) as main)  as orders where settingtype ='No Setting') as base on base.vt_group_no = ro.vt_group_no and ro.ticketid = base.ticketid and ro.ticketpriceschedule_id = base.ticketpriceschedule_id set ro.status ='10';select row_count();"
+
+timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "$updaterecordsforwhichnoseting" || exit 1
+
+echo "Update order successfully for which no setting provided by client"
