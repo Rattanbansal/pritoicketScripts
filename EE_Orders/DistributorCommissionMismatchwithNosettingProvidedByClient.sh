@@ -2,6 +2,7 @@
 
 set -e  # Exit immediately if any command exits with a non-zero status
 rm -f RecordsFinalDiff.csv
+rm -f RecordsFinalDiff1.csv
 
 # MYSQL_HOST="10.10.10.19"
 # MYSQL_USER="pip"

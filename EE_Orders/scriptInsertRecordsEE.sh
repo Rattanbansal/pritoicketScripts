@@ -14,7 +14,7 @@ fetch_db_credentials "19ServerNoVPN_db-creds"
 
 
 DB_NAME='rattan'
-BATCH_SIZE=20
+BATCH_SIZE=5
 tablename=$1
 
 mysqlHost="prodrds.prioticket.com"
