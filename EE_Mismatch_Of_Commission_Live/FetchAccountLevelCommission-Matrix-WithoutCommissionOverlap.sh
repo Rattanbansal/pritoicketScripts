@@ -3,7 +3,7 @@
 # this script we make difference because some account commission are overlapping on catalog level so where we have overlap that we put in the distributors_standalone table and rest where we have not any overlap that we keep in the distributors table
 
 set -e  # Exit immediately if any command exits with a non-zero status
-TIMEOUT_PERIOD=15
+TIMEOUT_PERIOD=30
 DB_NAME="priopassdb"
 outputFile="$PWD/records/tlc_level_mismatch_withoutOverlapAccount.csv"
 source ~/vault/vault_fetch_creds.sh

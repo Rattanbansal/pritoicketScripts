@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e  # Exit immediately if any command exits with a non-zero status
-TIMEOUT_PERIOD=15
+TIMEOUT_PERIOD=30
 DB_NAME="priopassdb"
 outputFile="$PWD/records/reseller-Matrix_DefaultLevel_mismatch.csv"
 source ~/vault/vault_fetch_creds.sh
