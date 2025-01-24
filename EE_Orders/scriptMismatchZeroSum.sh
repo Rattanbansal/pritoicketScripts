@@ -26,9 +26,9 @@ mysqlUser=pipeuser
 mysqlPassword=d4fb46eccNRAL
 mysqlDatabase="prioprodrds"
 
-rm -f ZeroSumissue.csv
+# rm -f ZeroSumissue.csv
 
-echo "vt_group_no,transaction_id,salePrice,otherPrice,hotel_id,ticketId,ticketpriceschedule_id,channel_id,reseller_id, status" > ZeroSumissue.csv
+# echo "vt_group_no,transaction_id,salePrice,otherPrice,hotel_id,ticketId,ticketpriceschedule_id,channel_id,reseller_id, status" > ZeroSumissue.csv
 
 
 # timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "update $tableName set channel_id = '0';select ROW_COUNT();" || exit 1  # channel_id used as status because not needed this column
@@ -79,7 +79,7 @@ for ticket_id in $ticket_ids; do
         echo "Sleep Started to Run next VGNS"
         echo "------$(date '+%Y-%m-%d %H:%M:%S.%3N')--------"
 
-        sleep 10
+        sleep 5
 
 
     done
