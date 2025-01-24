@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sleepvalue=$1
+
 # Start time
 start_time=$(date +%s)
 
@@ -13,17 +15,25 @@ echo "Combi Script Running...."
 source combiMismatch.sh
 echo "Combi Script Ended"
 
+sleep $sleepvalue
+
 echo "Fecth Account Level-Reseller Matrix Running..."
 source FetchAccountLevel-ResellerMatrix.sh
 echo "Fecth Account Level-Reseller Matrix Ended"
+
+sleep $sleepvalue
 
 echo "FetchAccountLevelCommission-Matrix-standalone-Account running..."
 source FetchAccountLevelCommission-Matrix-standalone-Account.sh
 echo "FetchAccountLevelCommission-Matrix-standalone-Account ended"
 
+sleep $sleepvalue
+
 echo "FetchAccountLevelCommission-Matrix-WithoutCommissionOverlap Running..."
 source FetchAccountLevelCommission-Matrix-WithoutCommissionOverlap.sh
 echo "FetchAccountLevelCommission-Matrix-WithoutCommissionOverlap Ended"
+
+sleep $sleepvalue
 
 echo "FetchCatalogLevel-ResellerMatrix Running...."
 source FetchCatalogLevel-ResellerMatrix.sh
@@ -33,18 +43,25 @@ echo "FetchCatalogLevelCommission-Matrix.sh Running..."
 source FetchCatalogLevelCommission-Matrix.sh
 echo "FetchCatalogLevelCommission-Matrix.sh Ended..."
 
+sleep $sleepvalue
+
 echo "FetchDefaultLevel-ResellerMatrix-MissingEntries Running...."
 source FetchDefaultLevel-ResellerMatrix-MissingEntries.sh
 echo "FetchDefaultLevel-ResellerMatrix-MissingEntries Ended"
+
+sleep $sleepvalue
 
 echo "FetchDefaultLevel-ResellerMatrix Running..."
 source FetchDefaultLevel-ResellerMatrix.sh
 echo "FetchDefaultLevel-ResellerMatrix Ended"
 
+sleep $sleepvalue
+
 echo "FetchStandalone-Matrix-MissingEntries Running..."
 source FetchStandalone-Matrix-MissingEntries.sh
 echo "FetchStandalone-Matrix-MissingEntries Ended"
 
+sleep $sleepvalue
 
 # End time
 end_time=$(date +%s)
