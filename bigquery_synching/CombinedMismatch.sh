@@ -49,7 +49,7 @@ popd > /dev/null
 sleep 5
 
 pushd ./FullTABLEReseller > /dev/null
-/bin/bash finalFullTablereseller.sh 2 PROD
+/bin/bash finalFullTableReseller.sh 2 PROD
 popd > /dev/null
 
 sleep 5
