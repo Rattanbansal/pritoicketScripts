@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Final Full Table OAC Script is Running..........."
+
 set -e  # Exit immediately if any command exits with a non-zero status
 TIMEOUT_PERIOD=40
 
@@ -106,3 +108,5 @@ bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
 "with oact as (select *,row_number() over(partition by id order by last_modified_at desc ) as rn from prio_test.own_account_commissions), oacl as (select *,row_number() over(partition by id order by last_modified_at desc ) as rn from prio_olap.own_account_commissions), oactrn as (select * from oact where rn = 1 and last_modified_at > TIMESTAMP(CONCAT(CAST(DATE(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL $noofdays DAY)) AS STRING), ' 00:00:00')) AND last_modified_at <= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 45 MINUTE)), oaclrn as (select * from oacl where rn = 1 and last_modified_at > TIMESTAMP(CONCAT(CAST(DATE(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL $noofdays DAY)) AS STRING), ' 00:00:00')) AND last_modified_at <= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 45 MINUTE)), final as (select oactrn.*, oaclrn.id as ids from oactrn left join oaclrn on oactrn.id = oaclrn.id and (oactrn.last_modified_at = oaclrn.last_modified_at or oactrn.last_modified_at < oaclrn.last_modified_at)) select id, last_modified_at from final where ids is NULL" > mismatch.json
 
 source update_commission_OAC.sh
+
+echo "<<<<<<<<<<<<<Final Full Table OAC Script is Ended>>>>>>>>>>>>>"

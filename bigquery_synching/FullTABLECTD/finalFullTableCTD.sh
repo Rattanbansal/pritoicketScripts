@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Final Full Table CTD Script is Running..........."
+
 set -e  # Exit immediately if any command exits with a non-zero status
 TIMEOUT_PERIOD=40
 
@@ -99,3 +101,5 @@ bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
 "with cluster_tickets_detailt as (select *,row_number() over(partition by cluster_row_id order by last_modified_at desc ) as rn from prio_test.cluster_tickets_detail_synch), cluster_tickets_detaill as (select *,row_number() over(partition by cluster_row_id order by last_modified_at desc ) as rn from prio_olap.cluster_tickets_detail), cluster_tickets_detailtrn as (select * from cluster_tickets_detailt where rn = 1), cluster_tickets_detaillrn as (select * from cluster_tickets_detaill where rn = 1), final as (select cluster_tickets_detailtrn.*, cluster_tickets_detaillrn.cluster_row_id as ids from cluster_tickets_detailtrn left join cluster_tickets_detaillrn on cluster_tickets_detailtrn.cluster_row_id = cluster_tickets_detaillrn.cluster_row_id and (cluster_tickets_detailtrn.last_modified_at = cluster_tickets_detaillrn.last_modified_at or cluster_tickets_detailtrn.last_modified_at < cluster_tickets_detaillrn.last_modified_at)) select cluster_row_id, last_modified_at from final where ids is NULL" > mismatch.json
 
 source update_commission_CTD.sh
+
+echo "<<<<<<<<<<<<<<<<<<<Final Full Table CTD Script is Ended>>>>>>>>>>>>>>>>>>"

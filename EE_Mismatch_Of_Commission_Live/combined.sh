@@ -51,15 +51,15 @@ echo "FetchDefaultLevel-ResellerMatrix-MissingEntries Ended"
 
 sleep $sleepvalue
 
-echo "FetchDefaultLevel-ResellerMatrix Running..."
-source FetchDefaultLevel-ResellerMatrix.sh
-echo "FetchDefaultLevel-ResellerMatrix Ended"
-
-sleep $sleepvalue
-
 echo "FetchStandalone-Matrix-MissingEntries Running..."
 source FetchStandalone-Matrix-MissingEntries.sh
 echo "FetchStandalone-Matrix-MissingEntries Ended"
+
+sleep 50
+
+echo "FetchDefaultLevel-ResellerMatrix Running..."
+source FetchDefaultLevel-ResellerMatrix.sh
+echo "FetchDefaultLevel-ResellerMatrix Ended"
 
 sleep $sleepvalue
 

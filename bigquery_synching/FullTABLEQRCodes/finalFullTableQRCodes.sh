@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Final Full Table QR COdees Script is Running..........."
+
 set -e  # Exit immediately if any command exits with a non-zero status
 TIMEOUT_PERIOD=70
 
@@ -99,3 +101,5 @@ bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
 "with qr_codest as (select *,row_number() over(partition by cod_id order by last_modified_at desc ) as rn from prio_test.qr_codes_synch), qr_codesl as (select *,row_number() over(partition by cod_id order by last_modified_at desc ) as rn from prio_olap.qr_codes), qr_codestrn as (select * from qr_codest where rn = 1), qr_codeslrn as (select * from qr_codesl where rn = 1), final as (select qr_codestrn.*, qr_codeslrn.cod_id as ids from qr_codestrn left join qr_codeslrn on qr_codestrn.cod_id = qr_codeslrn.cod_id and (qr_codestrn.last_modified_at = qr_codeslrn.last_modified_at or qr_codestrn.last_modified_at < qr_codeslrn.last_modified_at)) select cod_id, last_modified_at from final where ids is NULL" > mismatch.json
 
 source update_commission_QRCODES.sh
+
+echo "<<<<<<<<<<<<<<Final Full Table QR Codes Script is Ended>>>>>>>>>>>>>>>>"

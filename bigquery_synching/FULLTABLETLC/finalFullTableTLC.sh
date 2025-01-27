@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Final Full Table TLC Script is Running..........."
+
 set -e  # Exit immediately if any command exits with a non-zero status
 TIMEOUT_PERIOD=40
 

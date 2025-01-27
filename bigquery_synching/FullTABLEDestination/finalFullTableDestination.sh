@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Final Full Table Destination Script is Running..........."
+
 set -e  # Exit immediately if any command exits with a non-zero status
 TIMEOUT_PERIOD=40
 
@@ -99,3 +101,5 @@ bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
 "with tdt as (select *,row_number() over(partition by destination_id order by last_modified_at desc ) as rn from prio_test.ticket_destinations_synch), tdl as (select *,row_number() over(partition by destination_id order by last_modified_at desc ) as rn from prio_olap.ticket_destinations), tdtrn as (select * from tdt where rn = 1), tdlrn as (select * from tdl where rn = 1), final as (select tdtrn.*, tdlrn.destination_id as ids from tdtrn left join tdlrn on tdtrn.destination_id = tdlrn.destination_id and (tdtrn.last_modified_at = tdlrn.last_modified_at or tdtrn.last_modified_at < tdlrn.last_modified_at)) select *except(rn, ids) from final where ids is NULL" > mismatch.json
 
 source update_commission_Destination.sh
+
+echo "<<<<<<<<<<<<<<<<Final Full Table Destination Script is Ended>>>>>>>>>>>>"

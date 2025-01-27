@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Final Full Table Reseller Script is Running..........."
+
 set -e  # Exit immediately if any command exits with a non-zero status
 TIMEOUT_PERIOD=70
 
@@ -100,3 +102,5 @@ bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
 
 
 source update_commission_Resellers.sh
+
+echo ">>>>>>>>>>>>>>>>>Final Full Table Reseller Script is Ended>>>>>>>>"
