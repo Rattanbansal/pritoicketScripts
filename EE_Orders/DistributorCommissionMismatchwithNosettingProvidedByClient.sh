@@ -21,7 +21,7 @@ fetch_db_credentials "19ServerNoVPN_db-creds"
 DB_NAME='rattan'
 from_date=$1
 to_date=$2
-TIMEOUT_PERIOD=25
+TIMEOUT_PERIOD=45
 
 BQ_QUERY_FILE="bq_query.sql"
 OUTPUT_FILE="bq_output.csv"
