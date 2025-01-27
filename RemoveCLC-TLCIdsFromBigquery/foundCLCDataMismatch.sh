@@ -19,8 +19,11 @@ DBHOST="10.10.10.19"
 DBUSER="pip"
 DBPWD="pip2024##"
 DBDATABASE="priopassdb"
+Uploaddata=$1
 
-echo "<<<<<<<<<<<<-------------Loop for Hotel ID: Started----------------->>>>>>>"
+if [[ "$Uploaddata" == "upload" ]]; then
+
+    echo "<<<<<<<<<<<<-------------Loop for Hotel ID: Started----------------->>>>>>>"
 
     while [ $i -le $maxLoopLimit ]
 
@@ -75,13 +78,15 @@ echo "<<<<<<<<<<<<-------------Loop for Hotel ID: Started----------------->>>>>>
 
     sleep 15;
 
-    # gcloud config set project prioticket-reporting-test
-    bq query --use_legacy_sql=False --format=prettyjson \
-    "select count(*) FROM prioticket-reporting.prio_test.channel_level_mismatch"
+fi
 
-    bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
-    "with base as (SELECT tlc.*, clc.channel_level_commission_id as id FROM prioticket-reporting.prio_test.channel_level_mismatch tlc left join prioticket-reporting.prio_olap.channel_level_commission clc on tlc.channel_level_commission_id = clc.channel_level_commission_id and tlc.ticket_id = clc.ticket_id and tlc.ticketpriceschedule_id = clc.ticketpriceschedule_id and tlc.last_modified_at = clc.last_modified_at) select * from base where id is NULL" > final_mismatch.csv
+# gcloud config set project prioticket-reporting-test
+bq query --use_legacy_sql=False --format=prettyjson \
+"select count(*) FROM prioticket-reporting.prio_test.channel_level_mismatch"
 
-    mysql -h 10.10.10.19 -u pip -p'pip2024##' priopassdb -e "select count(*) from channel_level_commission"
+bq query --use_legacy_sql=False --max_rows=1000000 --format=prettyjson \
+"with base as (SELECT tlc.*, clc.channel_level_commission_id as id FROM prioticket-reporting.prio_test.channel_level_mismatch tlc left join prioticket-reporting.prio_olap.channel_level_commission clc on tlc.channel_level_commission_id = clc.channel_level_commission_id and tlc.ticket_id = clc.ticket_id and tlc.ticketpriceschedule_id = clc.ticketpriceschedule_id and tlc.last_modified_at = clc.last_modified_at) select * from base where id is NULL" > final_mismatch.csv
 
-    rm -rf *.json
+mysql -h 10.10.10.19 -u pip -p'pip2024##' priopassdb -e "select count(*) from channel_level_commission where deleted = '0'"
+
+rm -rf *.json
