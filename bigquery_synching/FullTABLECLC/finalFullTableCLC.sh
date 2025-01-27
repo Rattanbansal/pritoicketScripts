@@ -7,6 +7,7 @@ TIMEOUT_PERIOD=40
 
 echo "-------------Script Starting So removing all Json Files-----------"
 rm -f *.json
+echo "10"
 
 gcloud config set project prioticket-reporting
 
