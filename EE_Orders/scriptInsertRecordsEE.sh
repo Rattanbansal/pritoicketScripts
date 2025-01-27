@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e  # Exit immediately if any command exits with a non-zero status
-TIMEOUT_PERIOD=40
+TIMEOUT_PERIOD=60
 
 
 # DB_HOST='localhost'
@@ -14,7 +14,7 @@ fetch_db_credentials "19ServerNoVPN_db-creds"
 
 
 DB_NAME='rattan'
-BATCH_SIZE=5
+BATCH_SIZE=1
 tablename=$1
 
 mysqlHost="prodrds.prioticket.com"
