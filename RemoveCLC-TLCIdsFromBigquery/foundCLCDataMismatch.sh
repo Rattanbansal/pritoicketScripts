@@ -100,8 +100,8 @@ if [[ "$bigquerycount" == "$mysqlcount" ]]; then
     bq query --use_legacy_sql=False --max_rows=10000000 --format=prettyjson \
     "select count(distinct($primarykey)) as ids from prio_olap.$mysqltablename where $primarykey not in (select distinct $primarykey from prio_test.$bqtablename) and last_modified_at < TIMESTAMP(CONCAT(CAST(DATE(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL $nosofdays DAY)) AS STRING), ' 00:00:00'))" > final_mismatch.csv
 
-    # bq query --use_legacy_sql=False --max_rows=10000000 --format=prettyjson \
-    # "update prio_olap.$mysqltablename set hgs_postpaid_commission_percentage = 44.44 where $primarykey in (select distinct($primarykey) from prio_olap.$mysqltablename where $primarykey not in (select distinct $primarykey from prio_test.$bqtablename) and last_modified_at < TIMESTAMP(CONCAT(CAST(DATE(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL $nosofdays DAY)) AS STRING), ' 00:00:00')))"
+    bq query --use_legacy_sql=False --max_rows=10000000 --format=prettyjson \
+    "update prio_olap.$mysqltablename set hgs_postpaid_commission_percentage = 44.44 where $primarykey in (select distinct($primarykey) from prio_olap.$mysqltablename where $primarykey not in (select distinct $primarykey from prio_test.$bqtablename) and last_modified_at < TIMESTAMP(CONCAT(CAST(DATE(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL $nosofdays DAY)) AS STRING), ' 00:00:00')))"
 
     bq query --use_legacy_sql=False --max_rows=10000000 --format=prettyjson \
     "select distinct($primarykey) from prio_olap.$mysqltablename where $primarykey not in (select distinct $primarykey from prio_test.$bqtablename) and hgs_postpaid_commission_percentage != 44.44 and last_modified_at < TIMESTAMP(CONCAT(CAST(DATE(TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL $nosofdays DAY)) AS STRING), ' 00:00:00'))" > final_mismatch.json
@@ -112,4 +112,4 @@ else
     exit 1
 fi
 
-rm -rf *.json
+rm -f *.json
