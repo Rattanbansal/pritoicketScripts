@@ -1,0 +1,2 @@
+visitor_tickets_vk table last_modified_at between '' and ''
+Script stopped at timing::: ''
