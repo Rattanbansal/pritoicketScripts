@@ -142,8 +142,8 @@ for ticket_id in $ticket_ids; do
             echo "Sleep Started to Run next VGNS"
             echo "------$(date '+%Y-%m-%d %H:%M:%S.%3N')--------"
 
-            echo "https://report.prioticket.com/Insert_api_data_nested/api_results_v2/$mismatchvgn"
-            curl https://report.prioticket.com/Insert_api_data_nested/api_results_v2/$mismatchvgn
+            echo "https://report.prioticket.com/Insert_api_data_nested/api_results_v2/$mismatchvgn" >> /home/intersoft-admin/Desktop/rattan.txt
+            # curl https://report.prioticket.com/Insert_api_data_nested/api_results_v2/$mismatchvgn
 
             sleep 3
         fi
