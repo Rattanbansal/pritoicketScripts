@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e  # Exit immediately if any command exits with a non-zero status
-TIMEOUT_PERIOD=60
+TIMEOUT_PERIOD=100
 
 
 # DB_HOST='localhost'
