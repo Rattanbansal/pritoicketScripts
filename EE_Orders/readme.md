@@ -58,3 +58,17 @@ update matrixReseller m join (select * from (with qr_codess as (select channel_i
 -- query to fetch commission on basis of latest version
 
 select * from (select vt.vt_group_no,vt.row_type, vt.version, vt.ticketId, vt.ticketpriceschedule_id, vt.partner_net_price from visitor_tickets vt join (select vt_group_no,row_type, max(version) as version, ticketId, ticketpriceschedule_id from visitor_tickets where row_type = '3' and vt_group_no in (173265893518877) and transaction_type_name not like '%Extra%' and ticket_title not like '%Discount%' and transaction_type_name not like '%Reprice%' group by vt_group_no, ticketId, ticketpriceschedule_id) as base on vt.vt_group_no = base.vt_group_no and vt.ticketId = base.ticketId and vt.ticketpriceschedule_id = base.ticketpriceschedule_id and ABS(vt.version-base.version) = '0' and vt.row_type = base.row_type where vt.vt_group_no in (173265893518877)) as base group by vt_group_no,row_type,version, ticketId,ticketpriceschedule_id,partner_net_price
+
+
+--- remove duplicate
+update channel_level_commission clc join (SELECT max(channel_level_commission_id) as channel_level_commission_id,channel_id, catalog_id, ticket_id, ticketpriceschedule_id, resale_currency_level, count(*) FROM `channel_level_commission` where deleted = '0' group by channel_id, catalog_id, ticket_id, ticketpriceschedule_id, resale_currency_level having count(*) > '1') as base on clc.channel_id = base.channel_id and clc.catalog_id = base.catalog_id and clc.ticket_id = base.ticket_id and clc.ticketpriceschedule_id = base.ticketpriceschedule_id and clc.resale_currency_level = base.resale_currency_level and clc.channel_level_commission_id != base.channel_level_commission_id set clc.deleted = '1'
+
+update ticket_level_commission clc join (SELECT max(ticket_level_commission_id) as ticket_level_commission_id,hotel_id, ticket_id, ticketpriceschedule_id, resale_currency_level, count(*) FROM `ticket_level_commission` where deleted = '0' group by hotel_id, ticket_id, ticketpriceschedule_id, resale_currency_level having count(*) > '1') as base on clc.hotel_id = base.hotel_id and clc.ticket_id = base.ticket_id and clc.ticketpriceschedule_id = base.ticketpriceschedule_id and clc.resale_currency_level = base.resale_currency_level and clc.ticket_level_commission_id != base.ticket_level_commission_id set clc.deleted = '1'
+
+select channel_level_commission_id, count(*) as pcs from channel_level_commission where deleted = '0' group by channel_level_commission_id having pcs > '1';
+select ticket_level_commission_id, count(*) as pcs from ticket_level_commission where deleted = '0' group by ticket_level_commission_id having pcs > '1';
+
+
+<!-- Select query to check commission -->
+
+SELECT * FROM `channel_level_commission` where catalog_id in (select sub_catalog_id from qr_codes where cod_id = '51696' and sub_catalog_id > '0') and ticketpriceschedule_id = '421827' and deleted = '0' and is_adjust_pricing = '1' 
