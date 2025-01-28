@@ -6,7 +6,7 @@
     PASSWORD='d4fb46eccNRAL'
 
     timeout_duration=60
-    vt_no="166946202390952"
+    vt_no="166945556321398"
 
 for vt_group in ${vt_no}
 
