@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DB_NAME='priodb_live'
+DB_NAME='staging_primary'
 
 set -e
 
@@ -8,7 +8,7 @@ set -e
 source ~/vault/vault_fetch_creds.sh
 
 # Fetch credentials for 20Server
-fetch_db_credentials "20ServerNoVPN_db-creds"
+fetch_db_credentials "PrioticketShadow"
 
 # Test credentials by connecting to the database
 echo "Connecting to the Primary Database..."

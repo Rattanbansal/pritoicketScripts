@@ -1,0 +1,1 @@
+Successfully executed: ALTER TABLE prepaid_tickets MODIFY COLUMN additional_information varchar(255);

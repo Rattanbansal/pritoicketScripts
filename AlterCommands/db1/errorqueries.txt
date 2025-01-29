@@ -1,0 +1,1 @@
+Error executing query: ALTER TABLE qr_codes MODIFY COLUMN credit_notification_settings varchar(244);
