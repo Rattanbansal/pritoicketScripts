@@ -4,6 +4,10 @@ set -e  # Exit immediately if any command exits with a non-zero status
 rm -f RecordsFinalDiff.csv
 rm -f RecordsFinalDiff1.csv
 
+# echo "vt_group_no,channel_level_commission_id,channel_id,catalog_id,ticket_id,ticketpriceschedule_id,last_modified_at,type" > primarycommissionsetting.csv
+
+rm -f primarycommissionsetting.csv
+
 # MYSQL_HOST="10.10.10.19"
 # MYSQL_USER="pip"
 # MYSQL_PASSWORD="pip2024##"
@@ -152,4 +156,160 @@ timeout $TIMEOUT_PERIODLIVE time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT
 
 timeout $TIMEOUT_PERIODLIVE time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "select cod_id, company, channel_id, sub_catalog_id, cashier_type from priopassdb.qr_codes where cod_id in (SELECT DISTINCT(hotel_id) FROM rattan.EEBigqueryMismatch where status = '10' and reseller_id = '541') and sub_catalog_id < '2';" || exit 1 # list of distributors which are not linked to catalog
 
-timeout $TIMEOUT_PERIODLIVE time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "select * from rattan.EEBigqueryMismatch where hotel_id in (select distinct cod_id from priopassdb.qr_codes where cod_id in (SELECT DISTINCT(hotel_id) FROM rattan.EEBigqueryMismatch where status = '10' and reseller_id = '541') and sub_catalog_id > '0') and ticketId > '0' and status = '10';" || exit 1 #list of products which linked to sub catalog having status = 10 but need to check why commission goes wrong and not updated by us
+timeout $TIMEOUT_PERIODLIVE time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "select * from rattan.EEBigqueryMismatch where hotel_id in (select distinct cod_id from priopassdb.qr_codes where cod_id in (SELECT DISTINCT(hotel_id) FROM rattan.EEBigqueryMismatch where status = '10' and reseller_id = '541') and sub_catalog_id > '0') and ticketId > '0' and status = '10' and ticketpriceschedule_id > '0';" || exit 1 #list of products which linked to sub catalog having status = 10 but need to check why commission goes wrong and not updated by us
+
+orderstatuschange=$(timeout $TIMEOUT_PERIODLIVE time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "select DISTINCT vt_group_no from rattan.EEBigqueryMismatch where hotel_id in (select distinct cod_id from priopassdb.qr_codes where cod_id in (SELECT DISTINCT(hotel_id) FROM rattan.EEBigqueryMismatch where status = '10' and reseller_id = '541') and sub_catalog_id > '0') and ticketId > '0' and status = '10' and ticketpriceschedule_id > '0';") || exit 1
+
+for orderiid in ${orderstatuschange}
+do
+
+timeout $TIMEOUT_PERIODLIVE time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "update rattan.EEBigqueryMismatch set status = '0' where vt_group_no = '$orderiid';select ROW_COUNT();"
+
+done
+
+RESULTNEW=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "SELECT vt_group_no, hotel_id, ticketId, ticketpriceschedule_id FROM EEBigqueryMismatch where status = '0' and ticketpriceschedule_id != '0' group by vt_group_no, hotel_id, ticketId, ticketpriceschedule_id") || exit 1
+
+# Check if the query was successful
+if [ $? -ne 0 ]; then
+  echo "Query failed or timed out."
+  exit 1
+fi
+
+source ~/vault/vault_fetch_creds.sh
+
+# Fetch credentials for 20Server
+fetch_db_credentials "PrioticketLivePriomaryroPipe"
+DB_NAME='priopassdb'
+echo "Verify information and press enter to continue....................>>>>>>>>>>"
+echo $DB_HOST
+echo $DB_PORT
+
+# Loop through the result
+while read -r LINE; do
+  VT_GROUP_NO=$(echo "$LINE" | awk '{print $1}')
+  HOTEL_ID=$(echo "$LINE" | awk '{print $2}')
+  TICKET_ID=$(echo "$LINE" | awk '{print $3}')
+  TICKETPRICESCHEDULE_ID=$(echo "$LINE" | awk '{print $4}')
+  
+  # Perform actions with VT_GROUP_NO and TICKET_ID
+  echo "Processing vt_group_no: $VT_GROUP_NO,hotel_id: $HOTEL_ID, ticket_id: $TICKET_ID, ticketpriceschedule_id: $TICKETPRICESCHEDULE_ID"
+
+  if [[ $VT_GROUP_NO == "" ]]; then
+    break
+  fi
+
+  getCatalogData="SELECT '$VT_GROUP_NO' as vt_group_no,channel_level_commission_id, channel_id, catalog_id, ticket_id, ticketpriceschedule_id, last_modified_at, '2' as type FROM channel_level_commission where catalog_id in (select sub_catalog_id from qr_codes where cod_id = '$HOTEL_ID' and sub_catalog_id > '2') and ticketpriceschedule_id = '$TICKETPRICESCHEDULE_ID' and deleted = '0' and is_adjust_pricing = '1';"
+
+  getCLCData="SELECT '$VT_GROUP_NO' as vt_group_no,channel_level_commission_id, channel_id, catalog_id, ticket_id, ticketpriceschedule_id, last_modified_at, '3' as type FROM channel_level_commission where channel_id in (select channel_id from qr_codes where cod_id = '$HOTEL_ID') and ticketpriceschedule_id = '$TICKETPRICESCHEDULE_ID' and deleted = '0' and is_adjust_pricing = '1';"
+
+  getTLCData="select '$VT_GROUP_NO' as vt_group_no,ticket_level_commission_id, hotel_id,'0' as catalog_id, ticket_id, ticketpriceschedule_id, last_modified_at, '1' as type from ticket_level_commission where ticketpriceschedule_id = '411331' and hotel_id = '44587' and deleted = '0' and is_adjust_pricing = '1'"
+
+  echo "$getCatalogData"
+  echo "$getCLCData"
+  echo "$getTLCData"
+
+  
+  timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "$getCatalogData" >> primarycommissionsetting.csv
+  sleep 1
+  timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "$getCLCData" >> primarycommissionsetting.csv
+  sleep 1
+  timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "$getTLCData" >> primarycommissionsetting.csv
+  
+  sleep 2
+
+done <<< "$RESULTNEW"
+sleep 5
+echo "--------------Started with local------------"
+source ~/vault/vault_fetch_creds.sh
+# Fetch credentials for 20Server
+fetch_db_credentials "19ServerNoVPN_db-creds"
+DB_NAME='rattan'
+MYSQLTABLENEW='primarypricesettings'
+
+echo "Verify information and press enter to continue....................>>>>>>>>>>"
+echo $DB_HOST
+
+if [[ '$DB_HOST' == '163.47.214.30' ]]; then
+  echo "Host Successfully changed"
+  echo "$DB_HOST"
+else
+  echo "Host Not changed so exiting"
+  exit 1
+fi
+
+mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "DROP TABLE IF EXISTS $MYSQLTABLENEW;"
+
+createtable="CREATE TABLE $MYSQLTABLENEW (
+  vt_group_no varchar(255) NOT NULL,
+  clctlcid varchar(255) NOT NULL,
+  channel_id varchar(255) NOT NULL,
+  catalog_id varchar(255) NOT NULL,
+  ticket_id varchar(255) NOT NULL,
+  ticketpriceschedule_id varchar(255) NOT NULL,
+  las_modified_at timestamp NOT NULL,
+  type varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;ALTER TABLE $MYSQLTABLENEW
+  ADD KEY vt (vt_group_no),
+  ADD KEY ticketid (ticket_id),
+  ADD KEY tps (ticketpriceschedule_id),
+  ADD KEY ci (channel_id),
+  ADD KEY status (catalog_id),
+  ADD KEY hi (clctlcid);
+COMMIT;"
+
+mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "$createtable"
+
+mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "SET GLOBAL local_infile = 1;"
+
+# Read CSV and insert into MySQL
+mysql --local-infile=1 -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" <<EOF
+LOAD DATA LOCAL INFILE 'primarycommissionsetting.csv'
+INTO TABLE $MYSQLTABLENEW
+FIELDS TERMINATED BY '\t' 
+ENCLOSED BY '"' 
+LINES TERMINATED BY '\n'
+IGNORE 1 LINES
+(vt_group_no,clctlcid,channel_id,catalog_id,ticket_id, ticketpriceschedule_id, las_modified_at, type);
+EOF
+
+if [ $? -ne 0 ]; then
+    echo "MySQL data insertion failed. Exiting."
+    exit 1
+fi
+
+echo "Data successfully inserted into MySQL table: $MYSQL_TABLE"
+
+clcids=$(mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sse "SELECT group_concat(distinct(clctlcid)) FROM primarypricesettings where type in (2,3);") || exit 1
+
+tlcids=$(mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sse "SELECT group_concat(distinct(clctlcid)) FROM primarypricesettings where type in (1);") || exit 1
+
+if [ -z "$clcids" ]; then
+  echo "VARIABLE is empty"
+else
+  clcliveids=$(timeout $TIMEOUT_PERIODLIVE time mysql -h"$mysqlHost" -u"$mysqlUser" -p"$mysqlPassword" -D"tmp" -sN -e "select distinct channel_level_commission_id from channel_level_commission where channel_level_commission_id in ($clcids)") || exit 1
+  echo "$clcids"
+  echo "$clcliveids"
+
+  tlcliveids=$(timeout $TIMEOUT_PERIODLIVE time mysql -h"$mysqlHost" -u"$mysqlUser" -p"$mysqlPassword" -D"tmp" -sN -e "select distinct channel_level_commission_id from channel_level_commission where channel_level_commission_id in ($tlcids)") || exit 1
+  echo "$tlcids"
+  echo "$tlcliveids"
+
+  # Find missing values
+  missingclc=$(comm -23 <(echo "$clcids" | tr ',' '\n' | sort) <(echo "$clcliveids" | sort))
+
+  missingtlc=$(comm -23 <(echo "$tlcids" | tr ',' '\n' | sort) <(echo "$tlcliveids" | sort))
+
+  # Output result CLC
+  if [ -z "$missingclc" ]; then
+    echo "No values are missing."
+  else
+    echo "Missing values CLC: $missingclc"
+  fi
+
+  # Output result TLC
+  if [ -z "$missingtlc" ]; then
+    echo "No values are missing."
+  else
+    echo "Missing values TLC: $missingtlc"
+  fi
+fi
