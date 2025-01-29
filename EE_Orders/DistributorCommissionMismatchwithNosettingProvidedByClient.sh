@@ -186,7 +186,7 @@ DB_NAME='priopassdb'
 echo "Verify information and press enter to continue....................>>>>>>>>>>"
 echo $DB_HOST
 echo $DB_PORT
-read rattan
+# read rattan
 
 # Loop through the result
 while IFS= read -r LINE; do
