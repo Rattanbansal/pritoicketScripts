@@ -158,7 +158,7 @@ timeout $TIMEOUT_PERIODLIVE time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT
 
 timeout $TIMEOUT_PERIODLIVE time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "select * from rattan.EEBigqueryMismatch where hotel_id in (select distinct cod_id from priopassdb.qr_codes where cod_id in (SELECT DISTINCT(hotel_id) FROM rattan.EEBigqueryMismatch where status = '10' and reseller_id = '541') and sub_catalog_id > '0') and ticketId > '0' and status = '10' and ticketpriceschedule_id > '0';" || exit 1 #list of products which linked to sub catalog having status = 10 but need to check why commission goes wrong and not updated by us
 
-orderstatuschange=$(timeout $TIMEOUT_PERIODLIVE time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "select DISTINCT vt_group_no from rattan.EEBigqueryMismatch where hotel_id in (select distinct cod_id from priopassdb.qr_codes where cod_id in (SELECT DISTINCT(hotel_id) FROM rattan.EEBigqueryMismatch where status = '10' and reseller_id = '541') and sub_catalog_id > '0') and ticketId > '0' and status = '10' and ticketpriceschedule_id > '0';") || exit 1
+orderstatuschange=$(timeout $TIMEOUT_PERIODLIVE time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "select DISTINCT vt_group_no from rattan.EEBigqueryMismatch where hotel_id in (select distinct cod_id from priopassdb.qr_codes where cod_id in (SELECT DISTINCT(hotel_id) FROM rattan.EEBigqueryMismatch where status = '10' and reseller_id = '541') and sub_catalog_id > '0') and ticketId > '0' and status = '10' and ticketpriceschedule_id > '0';") || exit 1
 
 for orderiid in ${orderstatuschange}
 do
@@ -218,8 +218,8 @@ while read -r LINE; do
   sleep 2
 
 done <<< "$RESULTNEW"
-sleep 5
 echo "--------------Started with local------------"
+sleep 5
 source ~/vault/vault_fetch_creds.sh
 # Fetch credentials for 20Server
 fetch_db_credentials "19ServerNoVPN_db-creds"
@@ -228,12 +228,12 @@ MYSQLTABLENEW='primarypricesettings'
 
 echo "Verify information and press enter to continue....................>>>>>>>>>>"
 echo $DB_HOST
-
-if [[ '$DB_HOST' == '163.47.214.30' ]]; then
+if [[ "$DB_HOST" == "163.47.214.30" ]]; then
   echo "Host Successfully changed"
   echo "$DB_HOST"
 else
   echo "Host Not changed so exiting"
+  echo "$DB_HOST"
   exit 1
 fi
 
