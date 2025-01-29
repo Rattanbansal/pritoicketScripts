@@ -5,3 +5,11 @@ Successfully executed: ALTER TABLE prepaid_tickets MODIFY COLUMN chart_number va
 Successfully executed: ALTER TABLE prepaid_tickets MODIFY COLUMN batch_id varchar(255);
 Successfully executed: ALTER TABLE prepaid_tickets MODIFY COLUMN chart_number varchar(255);
 Successfully executed: ALTER TABLE prepaid_tickets MODIFY COLUMN currency_rate float;
+Successfully executed for DB:priodb2: ALTER TABLE prepaid_tickets MODIFY COLUMN additional_information varchar(255);
+Successfully executed for DB:priodb2: ALTER TABLE prepaid_tickets MODIFY COLUMN batch_id varchar(255);
+Successfully executed for DB:priodb2: ALTER TABLE prepaid_tickets MODIFY COLUMN chart_number varchar(255);
+Successfully executed for DB:test_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN additional_information varchar(255);
+Successfully executed for DB:test_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN batch_id varchar(255);
+Successfully executed for DB:test_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN chart_number varchar(255);
+Successfully executed for DB:test_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN currency_rate float;
+Successfully executed for DB:staging_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN additional_information varchar(255);

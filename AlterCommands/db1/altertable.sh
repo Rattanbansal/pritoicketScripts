@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DB_NAME='staging_primary'
+DB_NAME='sandbox_primary'
 
 set -e
 
@@ -89,9 +89,9 @@ for query in "${queries[@]}"; do
   echo "Executing: $query"
   if ! time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "$query"; then
     echo "Error executing query: $query" >&2
-    echo "Error executing query: $query" >> errorqueries.txt
+    echo "Error executing query $DB_NAME: $query" >> errorqueries.txt
   else
-    echo "Successfully executed: $query" >> successfullqueries.txt
+    echo "Successfully executed $DB_NAME: $query" >> successfullqueries.txt
   fi
   sleep 2
 done
