@@ -35,9 +35,9 @@ for query in "${queries[@]}"; do
   echo "Executing: $query"
   if ! time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "$query"; then
     echo "Error executing query: $query" >&2
-    echo "Error executing query: $query" >> errorqueries2.txt
+    echo "Error executing query for DB:$DB_NAME: $query" >> errorqueries2.txt
   else
-    echo "Successfully executed: $query" >> successfullqueries2.txt
+    echo "Successfully executed for DB:$DB_NAME: $query" >> successfullqueries2.txt
   fi
   sleep 2
 done
