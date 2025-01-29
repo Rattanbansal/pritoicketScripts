@@ -42,8 +42,6 @@ for query in "${queries[@]}"; do
   sleep 2
 done
 
-
-
 # 19Server_db-creds
 # 20Server_db-creds
 # 20ServerNoVPN_db-creds
