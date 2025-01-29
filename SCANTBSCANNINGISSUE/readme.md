@@ -19,5 +19,5 @@ vt AS (
     SELECT * 
     FROM vt1 
     WHERE rn=1 AND deleted='0'
-), scantborders as (select distinct visitor_group_no from pt where action_performed like '%SCAN_TB%' and order_confirm_date > '2024-01-01 00:00:01') select visitor_group_no,order_confirm_date,prepaid_ticket_id,ticket_type,used,action_performed,activated,redeem_date_time,redemption_notified_at ,version from pt where visitor_group_no in (select visitor_group_no from scantborders) and is_addon_ticket != '2'
+), scantborders as (select distinct visitor_group_no from pt where action_performed like '%SCAN_TB%' and order_confirm_date > '2024-01-01 00:00:01') select pt.visitor_group_no,pt.order_confirm_date,pt.prepaid_ticket_id,pt.ticket_type,pt.used,pt.action_performed,pt.activated,pt.redeem_date_time,pt.redemption_notified_at ,pt.version from pt where pt.visitor_group_no in (select visitor_group_no from scantborders) and pt.is_addon_ticket != '2'
 
