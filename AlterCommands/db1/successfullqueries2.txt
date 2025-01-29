@@ -13,3 +13,16 @@ Successfully executed for DB:test_secondary: ALTER TABLE prepaid_tickets MODIFY 
 Successfully executed for DB:test_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN chart_number varchar(255);
 Successfully executed for DB:test_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN currency_rate float;
 Successfully executed for DB:staging_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN additional_information varchar(255);
+Successfully executed for DB:test_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN discount_code_amount float;
+Successfully executed for DB:staging_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN batch_id varchar(255);
+Successfully executed for DB:staging_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN chart_number varchar(255);
+Successfully executed for DB:test_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN hotel_ticket_overview_id decimal(10,2);
+Successfully executed for DB:staging_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN currency_rate float;
+Successfully executed for DB:test_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN is_data_moved int;
+Successfully executed for DB:test_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN last_imported_date varchar(255);
+Successfully executed for DB:staging_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN discount_code_amount float;
+Successfully executed for DB:staging_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN hotel_ticket_overview_id decimal(10,2);
+Successfully executed for DB:staging_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN is_data_moved int;
+Successfully executed for DB:staging_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN last_imported_date varchar(255);
+Successfully executed for DB:test_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN order_cancellation_date varchar(255);
+Successfully executed for DB:test_secondary: ALTER TABLE prepaid_tickets MODIFY COLUMN refunded_by int;
