@@ -28,9 +28,9 @@ queries=(
   "ALTER TABLE channel_level_commission MODIFY COLUMN ticket_tax_value decimal(10,2);"
   "ALTER TABLE credit_limit_details MODIFY COLUMN used_limit decimal(10,2);"
   "ALTER TABLE expedia_prepaid_tickets MODIFY COLUMN hotel_ticket_overview_id decimal(10,2);"
-  "ALTER TABLE merchant_details MODIFY COLUMN postal_code varchar;"
-  "ALTER TABLE merchant_details MODIFY COLUMN registration_no varchar;"
-  "ALTER TABLE merchant_details MODIFY COLUMN vat_no varchar;"
+  "ALTER TABLE merchant_details MODIFY COLUMN postal_code varchar(244);"
+  "ALTER TABLE merchant_details MODIFY COLUMN registration_no varchar(244);"
+  "ALTER TABLE merchant_details MODIFY COLUMN vat_no varchar(244);"
   "ALTER TABLE modeventcontent MODIFY COLUMN banner_image text;"
   "ALTER TABLE modeventcontent MODIFY COLUMN barcode_specification tinyint;"
   "ALTER TABLE modeventcontent MODIFY COLUMN combi_ticket_ids text;"
@@ -45,7 +45,7 @@ queries=(
   "ALTER TABLE modeventcontent MODIFY COLUMN linked_combi_json text;"
   "ALTER TABLE modeventcontent MODIFY COLUMN modified_at datetime;"
   "ALTER TABLE modeventcontent MODIFY COLUMN notification text;"
-  "ALTER TABLE modeventcontent MODIFY COLUMN notify_email varchar;"
+  "ALTER TABLE modeventcontent MODIFY COLUMN notify_email varchar(244);"
   "ALTER TABLE modeventcontent MODIFY COLUMN second_party_id tinyint;"
   "ALTER TABLE modeventcontent MODIFY COLUMN third_party_id tinyint;"
   "ALTER TABLE modeventcontent MODIFY COLUMN third_party_parameters text;"
@@ -61,23 +61,23 @@ queries=(
   "ALTER TABLE pos_tickets MODIFY COLUMN second_party_id tinyint;"
   "ALTER TABLE pos_tickets MODIFY COLUMN third_party_id tinyint;"
   "ALTER TABLE pos_tickets MODIFY COLUMN third_party_parameters text;"
-  "ALTER TABLE pos_tickets MODIFY COLUMN ticket_short_desc varchar;"
+  "ALTER TABLE pos_tickets MODIFY COLUMN ticket_short_desc varchar(244);"
   "ALTER TABLE prepaid_tickets MODIFY COLUMN hotel_ticket_overview_id decimal(10,2);"
   "ALTER TABLE qr_codes MODIFY COLUMN allow_reprint smallint;"
   "ALTER TABLE qr_codes MODIFY COLUMN credit_limit decimal(10,2);"
-  "ALTER TABLE qr_codes MODIFY COLUMN credit_notification_settings varchar;"
-  "ALTER TABLE qr_codes MODIFY COLUMN genericComDesc varchar;"
+  "ALTER TABLE qr_codes MODIFY COLUMN credit_notification_settings varchar(244);"
+  "ALTER TABLE qr_codes MODIFY COLUMN genericComDesc varchar(244);"
   "ALTER TABLE qr_codes MODIFY COLUMN last_modified_at timestamp;"
   "ALTER TABLE qr_codes MODIFY COLUMN manifest_version tinyint;"
-  "ALTER TABLE qr_codes MODIFY COLUMN third_party_api_key varchar;"
-  "ALTER TABLE qr_codes MODIFY COLUMN third_party_secret_key varchar;"
+  "ALTER TABLE qr_codes MODIFY COLUMN third_party_api_key varchar(244);"
+  "ALTER TABLE qr_codes MODIFY COLUMN third_party_secret_key varchar(244);"
   "ALTER TABLE qr_codes MODIFY COLUMN trigger_amount decimal(10,2);"
   "ALTER TABLE resellers MODIFY COLUMN sub_catalog_id bigint;"
   "ALTER TABLE ticket_level_commission MODIFY COLUMN hotel_commission_tax_value decimal(10,2);"
   "ALTER TABLE ticket_level_commission MODIFY COLUMN hgs_commission_tax_value decimal(10,2);"
   "ALTER TABLE ticket_level_commission MODIFY COLUMN market_merchant_id smallint;"
   "ALTER TABLE ticketpriceschedule MODIFY COLUMN pricetext double;"
-  "ALTER TABLE ticketpriceschedule MODIFY COLUMN updated_by varchar;"
+  "ALTER TABLE ticketpriceschedule MODIFY COLUMN updated_by varchar(244);"
   "ALTER TABLE users MODIFY COLUMN assign_tours text;"
   "ALTER TABLE users MODIFY COLUMN password text;"
   "ALTER TABLE prepaid_tickets MODIFY COLUMN refunded_by int(64)"
@@ -89,10 +89,11 @@ for query in "${queries[@]}"; do
   echo "Executing: $query"
   if ! time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "$query"; then
     echo "Error executing query: $query" >&2
+    echo "Error executing query: $query" >> errorqueries.txt
   else
-    echo "Successfully executed: $query"
+    echo "Successfully executed: $query" >> successfullqueries.txt
   fi
-  sleep 15
+  sleep 2
 done
 
 
