@@ -71,4 +71,6 @@ select ticket_level_commission_id, count(*) as pcs from ticket_level_commission 
 
 <!-- Select query to check commission -->
 
-SELECT * FROM `channel_level_commission` where catalog_id in (select sub_catalog_id from qr_codes where cod_id = '51696' and sub_catalog_id > '0') and ticketpriceschedule_id = '421827' and deleted = '0' and is_adjust_pricing = '1' 
+SELECT * FROM `channel_level_commission` where catalog_id in (select sub_catalog_id from qr_codes where cod_id = '44587' and sub_catalog_id > '0') and ticketpriceschedule_id = '411331' and deleted = '0' and is_adjust_pricing = '1' 
+SELECT * FROM `channel_level_commission` where channel_id in (select channel_id from qr_codes where cod_id = '44587') and ticketpriceschedule_id = '411331' and deleted = '0' and is_adjust_pricing = '1' 
+select * from ticket_level_commission where ticketpriceschedule_id = '411331' and hotel_id = '44587' 
