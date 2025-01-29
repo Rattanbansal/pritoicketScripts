@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DB_NAME='staging_secondary'
+DB_NAME='sandbox_secondary'
 
 set -e
 
