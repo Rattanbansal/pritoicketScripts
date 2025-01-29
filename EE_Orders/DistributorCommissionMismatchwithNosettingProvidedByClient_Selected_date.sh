@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Start time
+start_time=$(date +%s)
+
 set -e  # Exit immediately if any command exits with a non-zero status
 rm -f RecordsFinalDiff.csv
 rm -f RecordsFinalDiff1.csv
@@ -184,8 +187,14 @@ echo "Verify information and press enter to continue....................>>>>>>>>
 echo $DB_HOST
 echo $DB_PORT
 
+# Ensure RESULTNEW is not empty
+if [[ -z "$RESULTNEW" ]]; then
+  echo "No results found. Exiting."
+  exit 1
+fi
+
 # Loop through the result
-while read -r LINE; do
+while IFS= read -r LINE; do
   VT_GROUP_NO=$(echo "$LINE" | awk '{print $1}')
   HOTEL_ID=$(echo "$LINE" | awk '{print $2}')
   TICKET_ID=$(echo "$LINE" | awk '{print $3}')
@@ -218,8 +227,11 @@ while read -r LINE; do
   sleep 2
 
 done <<< "$RESULTNEW"
+
 echo "--------------Started with local------------"
+
 sleep 5
+
 source ~/vault/vault_fetch_creds.sh
 # Fetch credentials for 20Server
 fetch_db_credentials "19ServerNoVPN_db-creds"
@@ -313,3 +325,16 @@ else
     echo "Missing values TLC: $missingtlc"
   fi
 fi
+# End time
+end_time=$(date +%s)
+
+# Calculate elapsed time in seconds
+execution_time=$((end_time - start_time))
+
+# Calculate hours, minutes, and seconds
+hours=$((execution_time / 3600))
+minutes=$(( (execution_time % 3600) / 60 ))
+seconds=$((execution_time % 60))
+
+# Display execution time in HH:MM:SS
+printf "Total Execution Time: %02d hours, %02d minutes, %02d seconds\n" $hours $minutes $seconds

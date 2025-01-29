@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Start time
+start_time=$(date +%s)
 set -e  # Exit immediately if any command exits with a non-zero status
 rm -f RecordsFinalDiff.csv
 rm -f RecordsFinalDiff1.csv
@@ -170,9 +172,9 @@ done
 
 RESULTNEW=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "SELECT vt_group_no, hotel_id, ticketId, ticketpriceschedule_id FROM EEBigqueryMismatch where status = '0' and ticketpriceschedule_id != '0' group by vt_group_no, hotel_id, ticketId, ticketpriceschedule_id") || exit 1
 
-# Check if the query was successful
-if [ $? -ne 0 ]; then
-  echo "Query failed or timed out."
+# Ensure RESULTNEW is not empty
+if [[ -z "$RESULTNEW" ]]; then
+  echo "No results found. Exiting."
   exit 1
 fi
 
@@ -187,7 +189,7 @@ echo $DB_PORT
 read rattan
 
 # Loop through the result
-while read -r LINE; do
+while IFS= read -r LINE; do
   VT_GROUP_NO=$(echo "$LINE" | awk '{print $1}')
   HOTEL_ID=$(echo "$LINE" | awk '{print $2}')
   TICKET_ID=$(echo "$LINE" | awk '{print $3}')
@@ -314,5 +316,16 @@ else
     echo "Missing values TLC: $missingtlc"
   fi
 fi
+# End time
+end_time=$(date +%s)
 
+# Calculate elapsed time in seconds
+execution_time=$((end_time - start_time))
 
+# Calculate hours, minutes, and seconds
+hours=$((execution_time / 3600))
+minutes=$(( (execution_time % 3600) / 60 ))
+seconds=$((execution_time % 60))
+
+# Display execution time in HH:MM:SS
+printf "Total Execution Time: %02d hours, %02d minutes, %02d seconds\n" $hours $minutes $seconds
