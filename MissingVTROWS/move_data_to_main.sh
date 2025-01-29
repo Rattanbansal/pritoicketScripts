@@ -1,12 +1,12 @@
 #!/bin/bash
 
-    DATABASE='priopassdb'
-    HOST='production-secondary-db-node.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com'
-    USER='pipeuser'
-    PASSWORD='d4fb46eccNRAL'
+DATABASE='priopassdb'
+HOST='production-secondary-db-node.cluster-ck6w2al7sgpk.eu-west-1.rds.amazonaws.com'
+USER='pipeuser'
+PASSWORD='d4fb46eccNRAL'
 
-    timeout_duration=60
-    vt_no="166946202390952"
+timeout_duration=60
+vt_no="166946202390952"
 
 for vt_group in ${vt_no}
 
@@ -53,9 +53,8 @@ echo $vt_group
 echo "$secvt"
 
 sleep 5
+
 done
-
-
 
 # select * from (select vvt.transaction_id, vvt.row_type, vvt.vt_group_no, vvt.version, vvt.is_refunded, bbb.transaction_id as bbid from visitor_tickets vvt left join (select vt.transaction_id, vt.row_type, vt.vt_group_no, vt.version, vt.is_refunded from visitor_tickets vt join (SELECT vt_group_no,transaction_id, max(version) as version FROM `visitor_tickets` where vt_group_no = '166946202390952' group by vt_group_no, transaction_id) as bb on bb.vt_group_no = vt.vt_group_no and bb.transaction_id = vt.transaction_id and ABS(bb.version - vt.version) = '0') as bbb on bbb.vt_group_no = vvt.vt_group_no and bbb.transaction_id = vvt.transaction_id and vvt.row_type = bbb.row_type where vvt.vt_group_no = '166946202390952') as bbf where bbid is NULL
 
