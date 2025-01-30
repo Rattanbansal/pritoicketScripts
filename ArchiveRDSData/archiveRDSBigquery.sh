@@ -10,7 +10,7 @@ OFFSET=0
 startDate=$1
 endDate=$2
 Archivedate=$3
-BATCH_SIZE=50
+BATCH_SIZE=100
 TIMEOUT_PERIOD=40
 LocalTable='rdsarchive'
 outputfolder="$PWD/VT"
@@ -99,11 +99,13 @@ while :; do
 
             echo "delete from visitor_tickets where vt_group_no in ($batch_str);select ROW_COUNT();delete from prepaid_tickets where visitor_group_no in ($batch_str);select ROW_COUNT();delete from hotel_ticket_overview where visitor_group_no in ($batch_str);select ROW_COUNT();"
 
-            # timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "delete from visitor_tickets where vt_group_no in ($batch_str);select ROW_COUNT();" || exit 1
-            # sleep 5
-            # timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "delete from prepaid_tickets where visitor_group_no in ($batch_str);select ROW_COUNT();" || exit 1
-            # sleep 5
-            # timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "delete from hotel_ticket_overview where visitor_group_no in ($batch_str);select ROW_COUNT();" || exit 1
+            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "delete from visitor_tickets where vt_group_no in ($batch_str);select ROW_COUNT();" || exit 1
+            sleep 5
+            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "delete from prepaid_tickets where visitor_group_no in ($batch_str);select ROW_COUNT();" || exit 1
+            sleep 5
+            timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "delete from hotel_ticket_overview where visitor_group_no in ($batch_str);select ROW_COUNT();" || exit 1
+            
+            timeout $TIMEOUT_PERIOD time mysql -h 163.47.214.30 -u datalook --port=3307 -p'datalook2024$$' -D"rattan" -sN -e "update $LocalTable set status = '1' where vt_group_no in ($batch_str);select ROW_COUNT();" || exit 1
         fi
 
         sleep 5
