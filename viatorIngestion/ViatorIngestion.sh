@@ -119,7 +119,7 @@ do
     # break
 done
 
-exit 1
+# exit 1
 
 distributor_ids=$(timeout $TIMEOUT_PERIOD time mysql -h"$LOCAL_HOST" -u"$LOCAL_USER" -p"$LOCAL_PASS" -D"$LOCAL_NAME" -sN  -e "SELECT DISTINCT cod_id FROM qr_codes where reseller_id = '686' and cashier_type = '1' and own_supplier_id > '0';") || exit 1
 
