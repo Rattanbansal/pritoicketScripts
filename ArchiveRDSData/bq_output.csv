@@ -1,0 +1,3 @@
+Error in query string: Error processing job 'prioticket-
+reporting:bqjob_r781e88d003b7da2_00000194b550ff96_1': Invalid timestamp:
+'TIMESTAMP=2023-01-01 00:00:01'
