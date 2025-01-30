@@ -1,0 +1,4 @@
+ticket_id	reseller_id	resalecommission	channel_id	mec_end_date	tps_id	currency_code	clcproduct_id	ticketpriceschedule_id	resale_currency_level
+88508	686	30.00	680	2025-12-30	443819	EUR	NULL	NULL	NULL
+ticket_id	reseller_id	resalecommission	channel_id	mec_end_date	tps_id	currency_code	clcproduct_id	ticketpriceschedule_id	resale_currency_level
+88508	686	30.00	680	2025-12-30	443819	EUR	NULL	NULL	NULL
