@@ -52,6 +52,8 @@ echo "BigQuery query successful. Data saved to $OUTPUT_FILE."
 # Step 3: Insert Data into MySQL
 echo "Inserting data into MySQL table..."
 
+time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "insert into rdsarchived select * from $MYSQL_TABLE;" || exit 1
+
 time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "DROP TABLE IF EXISTS $MYSQL_TABLE" || exit 1
 
 # Create the table if it does not exist
