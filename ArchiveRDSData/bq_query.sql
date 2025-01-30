@@ -8,4 +8,4 @@ vt AS (
     SELECT * 
     FROM vt1 
     WHERE rn=1 AND deleted='0'
-) select vt_group_no, max(last_modified_at) as max_last_modified_at, min(last_modified_at) as min_last_modified_at from vt group by vt_group_no having max_last_modified_at < @archive_date and min_last_modified_at < @archive_date;
+) select vt_group_no, max(last_modified_at) as max_last_modified_at, min(last_modified_at) as min_last_modified_at, 0 as status from vt group by vt_group_no having max_last_modified_at < {{archive_date}} and min_last_modified_at < {{archive_date}} and max_last_modified_at between {{startDate}} and {{endDate}};
