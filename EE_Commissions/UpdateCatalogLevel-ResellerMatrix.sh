@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e  # Exit immediately if any command exits with a non-zero status
-TIMEOUT_PERIOD=30
+TIMEOUT_PERIOD=50
 
 ### Database Credentials For 19 DB
 DB_HOST="10.10.10.19"

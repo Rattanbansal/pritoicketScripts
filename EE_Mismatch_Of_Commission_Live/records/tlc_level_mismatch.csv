@@ -1,5 +1,0 @@
-ticket_level_commission_id,product_id,distributor_id,commission,hotel_prepaid_commission_percentage,is_hotel_prepaid_commission_percentage,commission_on_sale_price,hgs_prepaid_commission_percentage,ticket_net_price,museum_net_commission,merchant_net_commission,hotel_commission_net_price,hgs_commission_net_price
-7578503	14012	47550	20	20.00	1	1	80.00	279.65	173.27	0.00	279.65	55.93	223.72
-7578530	14012	47550	20	20.00	1	1	80.00	276.00	58.87	0.00	276.00	55.20	220.80
-7578531	14012	47550	20	20.00	1	1	80.00	256.00	188.95	0.00	256.00	51.20	204.80
-7578532	14012	47550	20	20.00	1	1	80.00	271.15	162.14	0.00	271.15	54.23	216.92
