@@ -316,6 +316,8 @@ else
     echo "Missing values TLC: $missingtlc"
   fi
 fi
+
+mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "UPDATE EEBigqueryMismatch eeu JOIN( SELECT ee.*, pp.vt_group_no AS setting FROM EEBigqueryMismatch ee LEFT JOIN primarypricesettings pp ON ee.vt_group_no = pp.vt_group_no AND ee.ticketId = pp.ticket_id AND ee.ticketpriceschedule_id = pp.ticketpriceschedule_id WHERE ee.status = '0') AS base ON eeu.vt_group_no = base.vt_group_no AND eeu.ticketId = base.ticketId AND eeu.ticketpriceschedule_id = base.ticketpriceschedule_id SET eeu.status = '11' WHERE base.setting IS NULL;"
 # End time
 end_time=$(date +%s)
 
