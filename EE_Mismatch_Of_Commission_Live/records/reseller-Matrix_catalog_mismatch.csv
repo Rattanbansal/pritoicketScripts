@@ -1,0 +1,4 @@
+channel_level_commission_id,product_id,admin_id,commission,hotel_prepaid_commission_percentage,is_hotel_prepaid_commission_percentage,commission_on_sale_price,hgs_prepaid_commission_percentage,ticket_net_price,museum_net_commission,merchant_net_commission,hotel_commission_net_price,hgs_commission_net_price
+10965800	13916	686	28	28.00	1	1	90.00	73.50	49.68	0.00	20.58	3.24
+10969165	13931	686	28	28.00	1	1	90.00	132.30	90.00	0.00	37.04	5.26
+10958855	15659	686	28	28.00	1	1	90.00	161.70	111.60	0.00	45.28	4.82
