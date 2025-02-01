@@ -25,6 +25,8 @@ uploadData=$3
 echo $startDate
 echo $endDate
 
+# ./getDataFromBigQuery.sh <startdate> <enddate> <upload: upload to bigquery>
+
 if [[ "$uploadData" == "upload" ]]; then 
 
   rm -f $OUTPUT_FILE
