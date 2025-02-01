@@ -16,7 +16,7 @@ handle_error() {
 # Trap errors and call handle_error
 trap 'handle_error' ERR
 
-rm -f mismatch.csv
+# rm -f mismatch.csv
 
 source ~/vault/vault_fetch_creds.sh
 
@@ -137,7 +137,7 @@ fi
 
 timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "select count(*) from $MYSQL_TABLE;select count(distinct(pt_order_id)) from $MYSQL_TABLE;"
 
-vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "select distinct(pt_order_id) from $MYSQL_TABLE where status = '0' limit 30000;") || exit 1
+vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "select distinct(pt_order_id) from $MYSQL_TABLE where status = '0' limit 200;") || exit 1
 
 
 source ~/vault/vault_fetch_credsLive.sh
@@ -185,8 +185,6 @@ for ((i=0; i<$total_vt_groups; i+=BATCH_SIZE)); do
 
     sleep 5
 
-
-
     echo "-----Started Running Mismatch----------"
     timeout $TIMEOUT_PERIODLIVE time mysql -h"$DB_HOSTLIVE" -u"$DB_USERLIVE" --port=$DB_PORTLIVE -p"$DB_PASSWORDLIVE" -D"$DB_NAMELIVE" -sN -e "select ptt.visitor_group_no as pt_orderId, vt.vt_group_no as vt_orderId, ptt.prepaid_ticket_id as pt_transactionId, vt.transaction_id as vt_transactionId, ptt.version as pt_version, vt.version as vt_version, ptt.used as pt_used, vt.used as vt_used, ptt.redeem_date_time as pt_redeemDate, vt.visit_date_time as vt_redeemDate, ptt.action_performed as pt_actionPerformed, vt.action_performed as vt_actionPerformed from (select pt.visitor_group_no, pt.prepaid_ticket_id, pt.version, pt.used, pt.redeem_date_time, pt.action_performed from prepaid_tickets pt join (SELECT visitor_group_no, prepaid_ticket_id, max(version) as version FROM prepaid_tickets where visitor_group_no in ($batch_str) and is_addon_ticket != '2' group by prepaid_ticket_id, visitor_group_no) as base on pt.visitor_group_no = base.visitor_group_no and ABS(pt.version-base.version) = '0' and pt.prepaid_ticket_id = base.prepaid_ticket_id and pt.used = '1') as ptt left join (select vtt.vt_group_no, vtt.version, vtt.transaction_id, vtt.used, vtt.visit_date_time, vtt.action_performed from visitor_tickets vtt join (SELECT vt_group_no,transaction_id, row_type,max(version) as version FROM visitor_tickets where vt_group_no in ($batch_str) and col2 != '2' and row_type = '1' group by transaction_id, vt_group_no,row_type) as base1 on vtt.vt_group_no = base1.vt_group_no and ABS(vtt.version-base1.version) = '0' and vtt.transaction_id = base1.transaction_id and vtt.row_type = base1.row_type where vtt.col2 != '2') vt on ptt.visitor_group_no = vt.vt_group_no and ptt.prepaid_ticket_id = vt.transaction_id where ROUND(ABS(ptt.used-vt.used)) != '0' or ABS(TIMESTAMPDIFF(MINUTE, ptt.redeem_date_time, vt.visit_date_time)) > 180 or ABS(ptt.version-vt.version) != '0';" >> mismatch.csv || exit 1
     echo "<<<<<<<<<<<Mismatch Query Ended>>>>>>>>>"
@@ -197,7 +195,6 @@ for ((i=0; i<$total_vt_groups; i+=BATCH_SIZE)); do
 
 done
 time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "select count(*) as activestatus from $MYSQL_TABLE where status = '0';select count(*) as inactivestatus from $MYSQL_TABLE where status = '1'"
-
 rm -f "$OUTPUT_FILE"
 # End time
 end_time=$(date +%s)
