@@ -5,7 +5,7 @@
 if [ $? -eq 0 ]; then
     # Success sound
     echo "Successfully executed script"
-    mpg123 sucess.wav
+    mpg123 sucess.mp3
 else
     # Error sound
     echo "Error In Script"
