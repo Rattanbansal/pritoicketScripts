@@ -3,6 +3,19 @@
 # Start time
 start_time=$(date +%s)
 set -e  # Exit immediately if any command exits with a non-zero status
+set -o pipefail  # Catch errors in piped commands
+set -u  # Treat unset variables as an error
+
+# Function to handle errors
+handle_error() {
+    echo "❌ Error occurred! Exiting..."
+    paplay /usr/share/sounds/freedesktop/stereo/dialog-error.oga  # Error sound
+    exit 1
+}
+
+# Trap errors and call handle_error
+trap 'handle_error' ERR
+
 rm -f mismatch.csv
 
 source ~/vault/vault_fetch_creds.sh
@@ -10,7 +23,7 @@ source ~/vault/vault_fetch_creds.sh
 # Fetch credentials for 20Server
 fetch_db_credentials "19ServerNoVPN_db-creds"
 DB_NAME='rattan'
-BATCH_SIZE=10
+BATCH_SIZE=100
 from_date=$1
 to_date=$2
 TIMEOUT_PERIOD=450
@@ -124,14 +137,14 @@ fi
 
 timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "select count(*) from $MYSQL_TABLE;select count(distinct(pt_order_id)) from $MYSQL_TABLE;"
 
-vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "select distinct(pt_order_id) from $MYSQL_TABLE where status = '0' limit 100;") || exit 1
+vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "select distinct(pt_order_id) from $MYSQL_TABLE where status = '0' limit 10000;") || exit 1
 
 
 source ~/vault/vault_fetch_credsLive.sh
 
 # Fetch credentials for LIVERDSServer
-fetch_db_credentials "PrioticketLiveRDSPipe"
-DB_NAMELIVE='prioprodrds'
+fetch_db_credentials "PrioticketLiveSecondaryPipe"
+DB_NAMELIVE='priopassdb'
 
 # Convert the vt_group_numbers into an array
 vt_group_array=($vt_group_numbers)
@@ -183,8 +196,7 @@ for ((i=0; i<$total_vt_groups; i+=BATCH_SIZE)); do
     timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "update $MYSQL_TABLE set status = '1' where pt_order_id in ($batch_str);select ROW_COUNT();"
 
 done
-
-timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "select count(*) as activestatus from $MYSQL_TABLE where status = '0';select count(*) as inactivestatus from $MYSQL_TABLE where status = '1'"
+time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "select count(*) as activestatus from $MYSQL_TABLE where status = '0';select count(*) as inactivestatus from $MYSQL_TABLE where status = '1'"
 
 rm -f "$OUTPUT_FILE"
 # End time
@@ -200,3 +212,6 @@ seconds=$((execution_time % 60))
 
 # Display execution time in HH:MM:SS
 printf "Total Execution Time: %02d hours, %02d minutes, %02d seconds\n" $hours $minutes $seconds
+
+# Play completion sound
+paplay /usr/share/sounds/freedesktop/stereo/complete.oga
