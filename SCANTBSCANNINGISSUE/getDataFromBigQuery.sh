@@ -186,7 +186,7 @@ done
 
 timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "select count(*) as activestatus from $MYSQL_TABLE where status = '0';select count(*) as inactivestatus from $MYSQL_TABLE where status = '1'"
 
-
+rm -f "$OUTPUT_FILE"
 # End time
 end_time=$(date +%s)
 
