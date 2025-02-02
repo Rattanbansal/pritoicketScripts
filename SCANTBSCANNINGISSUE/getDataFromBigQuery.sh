@@ -80,7 +80,6 @@ if [[ "$uploadData" == "upload" ]]; then
   fi
 
   echo "BigQuery query successful. Data saved to $OUTPUT_FILE."
-
   # Step 3: Insert Data into MySQL
   echo "Inserting data into MySQL table..."
 
@@ -137,7 +136,7 @@ fi
 
 timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "select count(*) from $MYSQL_TABLE;select count(distinct(pt_order_id)) from $MYSQL_TABLE;"
 
-vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "select distinct(pt_order_id) from $MYSQL_TABLE where status = '0' limit 200;") || exit 1
+vt_group_numbers=$(timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "select distinct(pt_order_id) from $MYSQL_TABLE where status = '0' limit 30000;") || exit 1
 
 
 source ~/vault/vault_fetch_credsLive.sh
