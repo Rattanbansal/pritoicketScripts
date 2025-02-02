@@ -64,7 +64,6 @@ for ((i=0; i<$total_vt_groups; i+=BATCH_SIZE)); do
 
     
     timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "update $MYSQL_TABLE set status = '1' where pt_order_id in ($batch_str);select ROW_COUNT();"
-
 done
 
 time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -e "select count(*) as activestatus from $MYSQL_TABLE where status = '0';select count(*) as inactivestatus from $MYSQL_TABLE where status = '1'"
