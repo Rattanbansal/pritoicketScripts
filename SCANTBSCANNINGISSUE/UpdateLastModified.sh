@@ -56,8 +56,8 @@ for ((i=0; i<$total_vt_groups; i+=BATCH_SIZE)); do
 
     echo "$batch_str"
 
-    echo "-----Started Running Insert query VT----------"
-    timeout $TIMEOUT_PERIODLIVE time mysql -h"$DB_HOSTLIVE" -u"$DB_USERLIVE" --port=$DB_PORTLIVE -p"$DB_PASSWORDLIVE" -D"$DB_NAMELIVE" -sN -e "update prepaid_tickets set last_modified_at = CURRENT_TIMESTAMP where visitor_group_no in ($batch_str) and action_performed like '%SCANOPTMIZE'select ROW_COUNT();" || exit 1
+    echo "-----Started Update Last Modified query PT----------"
+    timeout $TIMEOUT_PERIODLIVE time mysql -h"$DB_HOSTLIVE" -u"$DB_USERLIVE" --port=$DB_PORTLIVE -p"$DB_PASSWORDLIVE" -D"$DB_NAMELIVE" -sN -e "update prepaid_tickets set last_modified_at = CURRENT_TIMESTAMP where visitor_group_no in ($batch_str) and action_performed like '%SCANOPTMIZE';select ROW_COUNT();" || exit 1
     echo "<<<<<<<<<<<Insert Query To Visitor Tickets Ended>>>>>>>>>"
 
     sleep 5
