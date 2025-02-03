@@ -63,6 +63,6 @@ WITH
 
 
 
-  select prepaid_ticket_id, version, action_performed, used, redeem_date_time, 'PT' as type, last_modified_at,'0' row_type from prepaid_tickets where prepaid_ticket_id = '172640562560120003' and is_addon_ticket != '2'
+select prepaid_ticket_id, version, action_performed, used, redeem_date_time, 'PT' as type, last_modified_at,'0' row_type from prepaid_tickets where prepaid_ticket_id = '172640562560120003' and is_addon_ticket != '2'
 union ALL
 select transaction_id, version, action_performed, used, visit_date_time, 'VT' as type, last_modified_at, row_type from visitor_tickets where transaction_id = '172640562560120003' and col2!= '2'
