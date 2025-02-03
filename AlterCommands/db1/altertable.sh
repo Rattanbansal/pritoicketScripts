@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DB_NAME='sandbox_primary'
+DB_NAME='priodb2'
 
 set -e
 
@@ -8,7 +8,7 @@ set -e
 source ~/vault/vault_fetch_creds.sh
 
 # Fetch credentials for 20Server
-fetch_db_credentials "PrioticketShadow"
+fetch_db_credentials "20ServerNoVPN_db-creds"
 
 # Test credentials by connecting to the database
 echo "Connecting to the Primary Database..."
