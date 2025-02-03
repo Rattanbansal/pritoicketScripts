@@ -12,6 +12,7 @@ endDate=$2
 Archivedate=$3
 BATCH_SIZE=100
 TIMEOUT_PERIOD=40
+TIMEOUT_PERIODN=300
 LocalTable='rdsarchive'
 outputfolder="$PWD/VT"
 
@@ -105,7 +106,7 @@ while :; do
             sleep 5
             timeout $TIMEOUT_PERIOD time mysql -h"$DB_HOST" -u"$DB_USER" --port=$DB_PORT -p"$DB_PASSWORD" -D"$DB_NAME" -sN -e "delete from hotel_ticket_overview where visitor_group_no in ($batch_str);select ROW_COUNT();" || exit 1
             
-            time mysql -h 163.47.214.30 -u datalook --port=3307 -p'datalook2024$$' -D"rattan" -sN -e "update $LocalTable set status = '1' where vt_group_no in ($batch_str);select ROW_COUNT();" || exit 1
+            timeout $TIMEOUT_PERIODN time mysql -h 163.47.214.30 -u datalook --port=3307 -p'datalook2024$$' -D"rattan" -sN -e "update $LocalTable set status = '1' where vt_group_no in ($batch_str);select ROW_COUNT();" || exit 1
         fi
 
         sleep 5
