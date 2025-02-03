@@ -1,0 +1,72 @@
+<pre>43987<br>48334<br><br>select * from (SELECT shared_capacity_id,museum_id,selected_date,from_time,to_time, timeslot, capacity,(case when last_modified_at < "2021-08-03 04:00:00" and is_refunded = "2" then 0 else 1 end) as previous_records, (case when activated = "1" and order_confirm_date < "2024-01-01 00:00:01"  and last_modified_at < "2024-01-01 00:00:01" and is_data_moved != "1" THEN 1 when (order_confirm_date > "2024-01-01 00:00:01" or is_data_moved = "1" or last_modified_at > "2024-01-01 00:00:01") and is_refunded != "2" THEN 2 else 0 end) as cancel_reverse_previous from prepaid_tickets pt1 WHERE museum_id = "48334" and ( REPLACE(shared_capacity_id, " ", "") = "43987" or REPLACE(shared_capacity_id, " ", "") like "43987,%" or REPLACE(shared_capacity_id, " ", "") like "%,43987" or REPLACE(shared_capacity_id, " ", "") like "%,43987,%" )  AND is_iticket_product="0" and is_refunded != "1" and selected_date >= "2025-02-02" and is_cancelled = 0 AND version = (SELECT MAX(version) FROM prepaid_tickets pt2 WHERE museum_id = "48334" and ( REPLACE(shared_capacity_id, " ", "") = "43987" or REPLACE(shared_capacity_id, " ", "") like "43987,%" or REPLACE(shared_capacity_id, " ", "") like "%,43987" or REPLACE(shared_capacity_id, " ", "") like "%,43987,%" )  AND pt1.prepaid_ticket_id = pt2.prepaid_ticket_id) AND capacity > 0) as base where previous_records = '1' and cancel_reverse_previous in (1, 2)<br>SELECT `shared_capacity_id`, `date`, `from_time`, `to_time`, `sold` as `count`, `is_active`, `museum_id`, `blocked`
+FROM `ticket_capacity_v1`
+WHERE `shared_capacity_id` = '43987'
+AND `date` >= '2025-02-02'<br>SELECT `mec_id`, `third_party_id`
+FROM `modeventcontent`
+WHERE (`shared_capacity_id` = '43987' OR `own_capacity_id` = '43987') AND `is_own_capacity` != '2' AND `is_own_capacity` = IF(shared_capacity_id='43987', '1', '3')
+ORDER BY `is_own_capacity` DESC<br>SELECT `shared_capacity_id`, `capacity`, `season_start_date`, `season_end_date`, `start_from`, `end_to`, `timeslot`, `timezone`
+FROM `standardticketopeninghours`
+WHERE `shared_capacity_id` = '43987'
+AND `is_active` = '1'
+<pre>52860<br>51005<br><br>select * from (SELECT shared_capacity_id,museum_id,selected_date,from_time,to_time, timeslot, capacity,(case when last_modified_at < "2021-08-03 04:00:00" and is_refunded = "2" then 0 else 1 end) as previous_records, (case when activated = "1" and order_confirm_date < "2024-01-01 00:00:01"  and last_modified_at < "2024-01-01 00:00:01" and is_data_moved != "1" THEN 1 when (order_confirm_date > "2024-01-01 00:00:01" or is_data_moved = "1" or last_modified_at > "2024-01-01 00:00:01") and is_refunded != "2" THEN 2 else 0 end) as cancel_reverse_previous from prepaid_tickets pt1 WHERE museum_id = "51005" and ( REPLACE(shared_capacity_id, " ", "") = "52860" or REPLACE(shared_capacity_id, " ", "") like "52860,%" or REPLACE(shared_capacity_id, " ", "") like "%,52860" or REPLACE(shared_capacity_id, " ", "") like "%,52860,%" )  AND is_iticket_product="0" and is_refunded != "1" and selected_date >= "2025-02-02" and is_cancelled = 0 AND version = (SELECT MAX(version) FROM prepaid_tickets pt2 WHERE museum_id = "51005" and ( REPLACE(shared_capacity_id, " ", "") = "52860" or REPLACE(shared_capacity_id, " ", "") like "52860,%" or REPLACE(shared_capacity_id, " ", "") like "%,52860" or REPLACE(shared_capacity_id, " ", "") like "%,52860,%" )  AND pt1.prepaid_ticket_id = pt2.prepaid_ticket_id) AND capacity > 0) as base where previous_records = '1' and cancel_reverse_previous in (1, 2)<br>SELECT `shared_capacity_id`, `date`, `from_time`, `to_time`, `sold` as `count`, `is_active`, `museum_id`, `blocked`
+FROM `ticket_capacity_v1`
+WHERE `shared_capacity_id` = '52860'
+AND `date` >= '2025-02-02'<br>SELECT `mec_id`, `third_party_id`
+FROM `modeventcontent`
+WHERE (`shared_capacity_id` = '52860' OR `own_capacity_id` = '52860') AND `is_own_capacity` != '2' AND `is_own_capacity` = IF(shared_capacity_id='52860', '1', '3')
+ORDER BY `is_own_capacity` DESC<br>SELECT `shared_capacity_id`, `capacity`, `season_start_date`, `season_end_date`, `start_from`, `end_to`, `timeslot`, `timezone`
+FROM `standardticketopeninghours`
+WHERE `shared_capacity_id` = '52860'
+AND `is_active` = '1'52860 -- Record >> 52860>>2025-02-02>>16:20>>16:30 >> from prepaid_table >> 3 >> from ticket_capacity_v1 >> <b>Not found</b> ><br/>52860 -- Record >> 52860>>2025-02-03>>11:20>>11:30 >> from prepaid_table >> 2 >> from ticket_capacity_v1 >> <b>Not found</b> ><br/>52860 -- Record >> 52860>>2025-02-03>>12:20>>12:30 >> from prepaid_table >> 3 >> from ticket_capacity_v1 >> <b>Not found</b> ><br/>52860 -- Record >> 52860>>2025-02-03>>17:20>>17:30 >> from prepaid_table >> 2 >> from ticket_capacity_v1 >> <b>Not found</b> ><br/>
+<pre>35819<br>27820<br><br>select * from (SELECT shared_capacity_id,museum_id,selected_date,from_time,to_time, timeslot, capacity,(case when last_modified_at < "2021-08-03 04:00:00" and is_refunded = "2" then 0 else 1 end) as previous_records, (case when activated = "1" and order_confirm_date < "2024-01-01 00:00:01"  and last_modified_at < "2024-01-01 00:00:01" and is_data_moved != "1" THEN 1 when (order_confirm_date > "2024-01-01 00:00:01" or is_data_moved = "1" or last_modified_at > "2024-01-01 00:00:01") and is_refunded != "2" THEN 2 else 0 end) as cancel_reverse_previous from prepaid_tickets pt1 WHERE museum_id = "27820" and ( REPLACE(shared_capacity_id, " ", "") = "35819" or REPLACE(shared_capacity_id, " ", "") like "35819,%" or REPLACE(shared_capacity_id, " ", "") like "%,35819" or REPLACE(shared_capacity_id, " ", "") like "%,35819,%" )  AND is_iticket_product="0" and is_refunded != "1" and selected_date >= "2025-02-02" and is_cancelled = 0 AND version = (SELECT MAX(version) FROM prepaid_tickets pt2 WHERE museum_id = "27820" and ( REPLACE(shared_capacity_id, " ", "") = "35819" or REPLACE(shared_capacity_id, " ", "") like "35819,%" or REPLACE(shared_capacity_id, " ", "") like "%,35819" or REPLACE(shared_capacity_id, " ", "") like "%,35819,%" )  AND pt1.prepaid_ticket_id = pt2.prepaid_ticket_id) AND capacity > 0) as base where previous_records = '1' and cancel_reverse_previous in (1, 2)<br>SELECT `shared_capacity_id`, `date`, `from_time`, `to_time`, `sold` as `count`, `is_active`, `museum_id`, `blocked`
+FROM `ticket_capacity_v1`
+WHERE `shared_capacity_id` = '35819'
+AND `date` >= '2025-02-02'<br>SELECT `mec_id`, `third_party_id`
+FROM `modeventcontent`
+WHERE (`shared_capacity_id` = '35819' OR `own_capacity_id` = '35819') AND `is_own_capacity` != '2' AND `is_own_capacity` = IF(shared_capacity_id='35819', '1', '3')
+ORDER BY `is_own_capacity` DESC<br>SELECT `shared_capacity_id`, `capacity`, `season_start_date`, `season_end_date`, `start_from`, `end_to`, `timeslot`, `timezone`
+FROM `standardticketopeninghours`
+WHERE `shared_capacity_id` = '35819'
+AND `is_active` = '1'35819 -- Record >> 35819>>2025-03-05>>09:45>>10:00 >> from prepaid_table >> 26 >> from ticket_capacity_v1 >> 65 ><br/>35819 -- Record >> 35819>>2025-03-05>>11:45>>12:00 >> from prepaid_table >> 86 >> from ticket_capacity_v1 >> 97 ><br/>
+<pre>615<br>313<br><br>select * from (SELECT shared_capacity_id,museum_id,selected_date,from_time,to_time, timeslot, capacity,(case when last_modified_at < "2021-08-03 04:00:00" and is_refunded = "2" then 0 else 1 end) as previous_records, (case when activated = "1" and order_confirm_date < "2024-01-01 00:00:01"  and last_modified_at < "2024-01-01 00:00:01" and is_data_moved != "1" THEN 1 when (order_confirm_date > "2024-01-01 00:00:01" or is_data_moved = "1" or last_modified_at > "2024-01-01 00:00:01") and is_refunded != "2" THEN 2 else 0 end) as cancel_reverse_previous from prepaid_tickets pt1 WHERE museum_id = "313" and ( REPLACE(shared_capacity_id, " ", "") = "615" or REPLACE(shared_capacity_id, " ", "") like "615,%" or REPLACE(shared_capacity_id, " ", "") like "%,615" or REPLACE(shared_capacity_id, " ", "") like "%,615,%" )  AND is_iticket_product="0" and is_refunded != "1" and selected_date >= "2025-02-02" and is_cancelled = 0 AND version = (SELECT MAX(version) FROM prepaid_tickets pt2 WHERE museum_id = "313" and ( REPLACE(shared_capacity_id, " ", "") = "615" or REPLACE(shared_capacity_id, " ", "") like "615,%" or REPLACE(shared_capacity_id, " ", "") like "%,615" or REPLACE(shared_capacity_id, " ", "") like "%,615,%" )  AND pt1.prepaid_ticket_id = pt2.prepaid_ticket_id) AND capacity > 0) as base where previous_records = '1' and cancel_reverse_previous in (1, 2)<br>SELECT `shared_capacity_id`, `date`, `from_time`, `to_time`, `sold` as `count`, `is_active`, `museum_id`, `blocked`
+FROM `ticket_capacity_v1`
+WHERE `shared_capacity_id` = '615'
+AND `date` >= '2025-02-02'<br>SELECT `mec_id`, `third_party_id`
+FROM `modeventcontent`
+WHERE (`shared_capacity_id` = '615' OR `own_capacity_id` = '615') AND `is_own_capacity` != '2' AND `is_own_capacity` = IF(shared_capacity_id='615', '1', '3')
+ORDER BY `is_own_capacity` DESC<br>SELECT `shared_capacity_id`, `capacity`, `season_start_date`, `season_end_date`, `start_from`, `end_to`, `timeslot`, `timezone`
+FROM `standardticketopeninghours`
+WHERE `shared_capacity_id` = '615'
+AND `is_active` = '1'<pre>-----UPDATE DATA IN TCV1 FOR BLOCKED CHANGES------Array
+(
+    [0] => UPDATE ticket_capacity_v1 SET blocked = CASE  WHEN shared_capacity_id = "615" and date = "2025-02-14" and from_time = "10:00" and to_time = "20:00" THEN "4" ELSE blocked END WHERE shared_capacity_id IN(615)
+)
+</pre>
+<pre>4211<br>313<br><br>select * from (SELECT shared_capacity_id,museum_id,selected_date,from_time,to_time, timeslot, capacity,(case when last_modified_at < "2021-08-03 04:00:00" and is_refunded = "2" then 0 else 1 end) as previous_records, (case when activated = "1" and order_confirm_date < "2024-01-01 00:00:01"  and last_modified_at < "2024-01-01 00:00:01" and is_data_moved != "1" THEN 1 when (order_confirm_date > "2024-01-01 00:00:01" or is_data_moved = "1" or last_modified_at > "2024-01-01 00:00:01") and is_refunded != "2" THEN 2 else 0 end) as cancel_reverse_previous from prepaid_tickets pt1 WHERE museum_id = "313" and ( REPLACE(shared_capacity_id, " ", "") = "4211" or REPLACE(shared_capacity_id, " ", "") like "4211,%" or REPLACE(shared_capacity_id, " ", "") like "%,4211" or REPLACE(shared_capacity_id, " ", "") like "%,4211,%" )  AND is_iticket_product="0" and is_refunded != "1" and selected_date >= "2025-02-02" and is_cancelled = 0 AND version = (SELECT MAX(version) FROM prepaid_tickets pt2 WHERE museum_id = "313" and ( REPLACE(shared_capacity_id, " ", "") = "4211" or REPLACE(shared_capacity_id, " ", "") like "4211,%" or REPLACE(shared_capacity_id, " ", "") like "%,4211" or REPLACE(shared_capacity_id, " ", "") like "%,4211,%" )  AND pt1.prepaid_ticket_id = pt2.prepaid_ticket_id) AND capacity > 0) as base where previous_records = '1' and cancel_reverse_previous in (1, 2)<br>SELECT `shared_capacity_id`, `date`, `from_time`, `to_time`, `sold` as `count`, `is_active`, `museum_id`, `blocked`
+FROM `ticket_capacity_v1`
+WHERE `shared_capacity_id` = '4211'
+AND `date` >= '2025-02-02'<br>SELECT `mec_id`, `third_party_id`
+FROM `modeventcontent`
+WHERE (`shared_capacity_id` = '4211' OR `own_capacity_id` = '4211') AND `is_own_capacity` != '2' AND `is_own_capacity` = IF(shared_capacity_id='4211', '1', '3')
+ORDER BY `is_own_capacity` DESC<br>SELECT `shared_capacity_id`, `capacity`, `season_start_date`, `season_end_date`, `start_from`, `end_to`, `timeslot`, `timezone`
+FROM `standardticketopeninghours`
+WHERE `shared_capacity_id` = '4211'
+AND `is_active` = '1'<pre>-----UPDATE DATA IN TCV1 FOR BLOCKED CHANGES------Array
+(
+    [0] => UPDATE ticket_capacity_v1 SET blocked = CASE  WHEN shared_capacity_id = "4211" and date = "2025-02-14" and from_time = "18:00" and to_time = "18:20" THEN "0" ELSE blocked END WHERE shared_capacity_id IN(4211)
+)
+</pre>
+<pre>20312<br>5702<br><br>select * from (SELECT shared_capacity_id,museum_id,selected_date,from_time,to_time, timeslot, capacity,(case when last_modified_at < "2021-08-03 04:00:00" and is_refunded = "2" then 0 else 1 end) as previous_records, (case when activated = "1" and order_confirm_date < "2024-01-01 00:00:01"  and last_modified_at < "2024-01-01 00:00:01" and is_data_moved != "1" THEN 1 when (order_confirm_date > "2024-01-01 00:00:01" or is_data_moved = "1" or last_modified_at > "2024-01-01 00:00:01") and is_refunded != "2" THEN 2 else 0 end) as cancel_reverse_previous from prepaid_tickets pt1 WHERE museum_id = "5702" and ( REPLACE(shared_capacity_id, " ", "") = "20312" or REPLACE(shared_capacity_id, " ", "") like "20312,%" or REPLACE(shared_capacity_id, " ", "") like "%,20312" or REPLACE(shared_capacity_id, " ", "") like "%,20312,%" )  AND is_iticket_product="0" and is_refunded != "1" and selected_date >= "2025-02-02" and is_cancelled = 0 AND version = (SELECT MAX(version) FROM prepaid_tickets pt2 WHERE museum_id = "5702" and ( REPLACE(shared_capacity_id, " ", "") = "20312" or REPLACE(shared_capacity_id, " ", "") like "20312,%" or REPLACE(shared_capacity_id, " ", "") like "%,20312" or REPLACE(shared_capacity_id, " ", "") like "%,20312,%" )  AND pt1.prepaid_ticket_id = pt2.prepaid_ticket_id) AND capacity > 0) as base where previous_records = '1' and cancel_reverse_previous in (1, 2)<br>SELECT `shared_capacity_id`, `date`, `from_time`, `to_time`, `sold` as `count`, `is_active`, `museum_id`, `blocked`
+FROM `ticket_capacity_v1`
+WHERE `shared_capacity_id` = '20312'
+AND `date` >= '2025-02-02'<br>SELECT `mec_id`, `third_party_id`
+FROM `modeventcontent`
+WHERE (`shared_capacity_id` = '20312' OR `own_capacity_id` = '20312') AND `is_own_capacity` != '2' AND `is_own_capacity` = IF(shared_capacity_id='20312', '1', '3')
+ORDER BY `is_own_capacity` DESC<br>SELECT `shared_capacity_id`, `capacity`, `season_start_date`, `season_end_date`, `start_from`, `end_to`, `timeslot`, `timezone`
+FROM `standardticketopeninghours`
+WHERE `shared_capacity_id` = '20312'
+AND `is_active` = '1'<pre>-----UPDATE DATA IN TCV1 FOR BLOCKED CHANGES------Array
+(
+    [0] => UPDATE ticket_capacity_v1 SET blocked = CASE  WHEN shared_capacity_id = "20312" and date = "2025-02-21" and from_time = "10:45" and to_time = "11:00" THEN "0" ELSE blocked END WHERE shared_capacity_id IN(20312)
+)
+</pre>
