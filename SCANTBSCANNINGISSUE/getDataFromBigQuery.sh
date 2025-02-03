@@ -47,7 +47,7 @@ if [[ "$uploadData" == "upload" ]]; then
   BQ_QUERY_FILE="WITH
   pt1 AS (
       SELECT *, 
-            ROW_NUMBER() OVER (PARTITION BY prepaid_ticket_id ORDER BY last_modified_at DESC, IFNULL(version, '1') DESC) AS rn 
+            ROW_NUMBER() OVER (PARTITION BY prepaid_ticket_id ORDER BY IFNULL(version, '1') DESC,last_modified_at DESC) AS rn 
       FROM prio_olap.scan_report
   ),
   pt AS (
@@ -56,7 +56,7 @@ if [[ "$uploadData" == "upload" ]]; then
       WHERE rn=1 AND deleted=0
   ),vt1 AS (
       SELECT *, 
-            ROW_NUMBER() OVER (PARTITION BY id ORDER BY last_modified_at DESC, IFNULL(version, '1') DESC) AS rn 
+            ROW_NUMBER() OVER (PARTITION BY id ORDER BY IFNULL(version, '1') DESC,last_modified_at DESC) AS rn 
       FROM prio_olap.financial_transactions
   ),
   vt AS (
